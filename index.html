@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Чат Хоровой студии</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #messages { list-style-type: none; padding: 0; height: 300px; overflow-y: scroll; border: 1px solid #ccc; margin-bottom: 10px; padding: 10px; }
+        #messages li { margin-bottom: 5px; }
+        .system { color: gray; font-style: italic; }
+        .user { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Чат Хоровой студии</h1>
+
+    <div>
+        <label>Твое имя:</label>
+        <input type="text" id="nameInput" placeholder="Введи имя" />
+        <button id="joinBtn">Войти в чат</button>
+    </div>
+
+    <ul id="messages"></ul>
+
+    <form id="chatForm" style="display: none;">
+        <input type="text" id="messageInput" autocomplete="off" placeholder="Введите сообщение..." />
+        <button>Отправить</button>
+    </form>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let myName = '';
+
+        const messagesList = document.getElementById('messages');
+        const nameInput = document.getElementById('nameInput');
+        const joinBtn = document.getElementById('joinBtn');
+        const chatForm = document.getElementById('chatForm');
+        const messageInput = document.getElementById('messageInput');
+
+        function addMessage(data) {
+            const li = document.createElement('li');
+            if (data.name === 'Система') {
+                li.className = 'system';
+                li.textContent = data.text;
+            } else {
+                li.innerHTML = `<span class="user">${data.name}:</span> ${data.text}`;
+            }
+            messagesList.appendChild(li);
+            messagesList.scrollTop = messagesList.scrollHeight;
+        }
+
+        socket.on('message', addMessage);
+
+        joinBtn.addEventListener('click', () => {
+            const name = nameInput.value.trim();
+            if (name) {
+                myName = name;
+                socket.emit('user joined', myName);
+                nameInput.disabled = true;
+                joinBtn.disabled = true;
+                chatForm.style.display = 'block';
+                addMessage({ name: 'Система', text: `Ты вошел как ${myName}` });
+            }
+        });
+
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const msg = messageInput.value;
+            if (msg) {
+                socket.emit('chat message', msg);
+                messageInput.value = '';
+            }
+        });
+    </script>
+</body>
+</html>
