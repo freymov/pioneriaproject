@@ -1,0 +1,15 @@
+{
+  "name": "chorus-chat",
+  "version": "1.0.0",
+  "description": "Чат для хоровой студии",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "express": "^4.18.2",
+    "socket.io": "^4.5.4",
+    "sqlite3": "^6.0.1"
+  }
+}
