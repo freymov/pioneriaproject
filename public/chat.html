@@ -1,39 +1,154 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Чат Хоровой студии</title>
+    <title>Чат хоровой студии</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        #messages { list-style-type: none; padding: 0; height: 300px; overflow-y: scroll; border: 1px solid #ccc; margin-bottom: 10px; padding: 10px; }
-        #messages li { margin-bottom: 5px; }
-        .system { color: gray; font-style: italic; }
-        .user { font-weight: bold; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+            width: 100%;
+        }
+        .chat-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f9f9f9;
+            border-radius: 20px 20px 0 0;
+        }
+        .chat-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 1.2rem;
+        }
+        .chat-header button {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        .chat-header button:hover {
+            background: #cc0000;
+        }
+        #messages {
+            list-style-type: none;
+            padding: 20px;
+            margin: 0;
+            flex-grow: 1;
+            overflow-y: auto;
+            background: #f9f9f9;
+        }
+        #messages li {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            word-wrap: break-word;
+        }
+        .system {
+            background: #e3f2fd;
+            color: #1976d2;
+            text-align: center;
+            font-style: italic;
+            font-size: 0.9rem;
+        }
+        .user {
+            font-weight: bold;
+            color: #667eea;
+            margin-right: 8px;
+        }
+        .message-form {
+            display: flex;
+            padding: 20px;
+            border-top: 1px solid #eee;
+            background: white;
+            border-radius: 0 0 20px 20px;
+            gap: 10px;
+        }
+        #messageInput {
+            flex-grow: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        #messageInput:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        .message-form button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .message-form button:hover {
+            background: #764ba2;
+        }
     </style>
 </head>
 <body>
-    <h1>Чат Хоровой студии</h1>
-
-    <div>
-        <label>Твое имя:</label>
-        <input type="text" id="nameInput" placeholder="Введи имя" />
-        <button id="joinBtn">Войти в чат</button>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>🎵 Чат хоровой студии - <span id="userName"></span></h2>
+            <button onclick="leaveChat()">Выйти</button>
+        </div>
+        
+        <ul id="messages"></ul>
+        
+        <form class="message-form" id="chatForm">
+            <input type="text" id="messageInput" autocomplete="off" placeholder="Введите сообщение..." />
+            <button type="submit">Отправить</button>
+        </form>
     </div>
-
-    <ul id="messages"></ul>
-
-    <form id="chatForm" style="display: none;">
-        <input type="text" id="messageInput" autocomplete="off" placeholder="Введите сообщение..." />
-        <button>Отправить</button>
-    </form>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        let myName = '';
+        
+        // Получаем данные пользователя
+        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        // Если нет данных - отправляем на логин
+        if (!userData.name) {
+            window.location.href = 'login.html';
+        }
+        
+        // Показываем имя в заголовке
+        document.getElementById('userName').textContent = userData.name;
+        
+        // Сообщаем серверу, что пользователь присоединился
+        socket.emit('user joined', userData.name);
 
         const messagesList = document.getElementById('messages');
-        const nameInput = document.getElementById('nameInput');
-        const joinBtn = document.getElementById('joinBtn');
         const chatForm = document.getElementById('chatForm');
         const messageInput = document.getElementById('messageInput');
 
@@ -51,26 +166,19 @@
 
         socket.on('message', addMessage);
 
-        joinBtn.addEventListener('click', () => {
-            const name = nameInput.value.trim();
-            if (name) {
-                myName = name;
-                socket.emit('user joined', myName);
-                nameInput.disabled = true;
-                joinBtn.disabled = true;
-                chatForm.style.display = 'block';
-                addMessage({ name: 'Система', text: `Ты вошел как ${myName}` });
-            }
-        });
-
         chatForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const msg = messageInput.value;
+            const msg = messageInput.value.trim();
             if (msg) {
                 socket.emit('chat message', msg);
                 messageInput.value = '';
             }
         });
+
+        function leaveChat() {
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
     </script>
 </body>
 </html>

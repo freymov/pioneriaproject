@@ -1,222 +1,298 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Вход в Pioneria Project Chat</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чат - Вход и регистрация</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin: 0;
-            padding: 0;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
         }
-        
+
         .container {
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 400px;
             padding: 40px;
-            width: 350px;
-            text-align: center;
         }
-        
+
         h1 {
+            text-align: center;
             color: #333;
             margin-bottom: 30px;
+            font-size: 28px;
         }
-        
-        .tab {
+
+        .tabs {
             display: flex;
             margin-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
         }
-        
-        .tab button {
+
+        .tab {
             flex: 1;
+            text-align: center;
             padding: 10px;
-            background: #f0f0f0;
-            border: none;
             cursor: pointer;
-            font-size: 16px;
-            transition: background 0.3s;
+            color: #666;
+            font-weight: 500;
+            transition: all 0.3s;
         }
-        
-        .tab button.active {
-            background: #667eea;
-            color: white;
+
+        .tab.active {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            margin-bottom: -2px;
         }
-        
+
         .form {
             display: none;
         }
-        
+
         .form.active {
             display: block;
         }
-        
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
         input {
             width: 100%;
-            padding: 12px;
-            margin: 10px 0;
+            padding: 12px 15px;
             border: 2px solid #e0e0e0;
-            border-radius: 5px;
+            border-radius: 10px;
             font-size: 16px;
-            box-sizing: border-box;
+            transition: border-color 0.3s;
         }
-        
+
         input:focus {
             outline: none;
             border-color: #667eea;
         }
-        
+
         button {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             background: #667eea;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 10px;
             font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            margin-top: 20px;
             transition: background 0.3s;
+            margin-top: 10px;
         }
-        
+
         button:hover {
-            background: #5a67d8;
+            background: #764ba2;
         }
-        
-        .message {
-            margin-top: 20px;
-            padding: 10px;
-            border-radius: 5px;
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
             display: none;
         }
-        
-        .message.error {
-            background: #fee;
-            color: #c33;
-            display: block;
-        }
-        
-        .message.success {
-            background: #efe;
-            color: #3c3;
-            display: block;
+
+        .success-message {
+            color: #27ae60;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+            text-align: center;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎵 Pioneria Project Chat</h1>
+        <h1>🎵 Чат хоровой студии</h1>
         
-        <div class="tab">
-            <button id="tabLogin" class="active">Вход</button>
-            <button id="tabRegister">Регистрация</button>
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('login')">Вход</div>
+            <div class="tab" onclick="switchTab('register')">Регистрация</div>
         </div>
-        
+
+        <!-- Форма входа -->
         <div id="loginForm" class="form active">
-            <h2>Вход в чат</h2>
-            <input type="text" id="loginUsername" placeholder="Имя пользователя">
-            <input type="password" id="loginPassword" placeholder="Пароль">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="loginEmail" placeholder="Введите email">
+            </div>
+            <div class="form-group">
+                <label>Пароль</label>
+                <input type="password" id="loginPassword" placeholder="Введите пароль">
+            </div>
             <button onclick="login()">Войти</button>
+            <div id="loginError" class="error-message"></div>
         </div>
-        
+
+        <!-- Форма регистрации -->
         <div id="registerForm" class="form">
-            <h2>Регистрация</h2>
-            <input type="text" id="registerUsername" placeholder="Имя пользователя">
-            <input type="password" id="registerPassword" placeholder="Пароль">
-            <input type="password" id="registerConfirm" placeholder="Повторите пароль">
+            <div class="form-group">
+                <label>Имя</label>
+                <input type="text" id="regName" placeholder="Введите ваше имя">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="regEmail" placeholder="Введите email">
+            </div>
+            <div class="form-group">
+                <label>Пароль</label>
+                <input type="password" id="regPassword" placeholder="Придумайте пароль">
+            </div>
+            <div class="form-group">
+                <label>Подтверждение пароля</label>
+                <input type="password" id="regConfirmPassword" placeholder="Повторите пароль">
+            </div>
+            <div class="form-group">
+                <label>🔑 Ключ доступа</label>
+                <input type="text" id="regAccessKey" placeholder="Введите кодовое слово">
+            </div>
             <button onclick="register()">Зарегистрироваться</button>
+            <div id="registerError" class="error-message"></div>
+            <div id="registerSuccess" class="success-message"></div>
         </div>
-        
-        <div id="message" class="message"></div>
     </div>
-    
+
     <script>
-        // Переключение между вкладками
-        document.getElementById('tabLogin').addEventListener('click', () => {
-            document.getElementById('tabLogin').classList.add('active');
-            document.getElementById('tabRegister').classList.remove('active');
-            document.getElementById('loginForm').classList.add('active');
-            document.getElementById('registerForm').classList.remove('active');
-            document.getElementById('message').style.display = 'none';
-        });
-        
-        document.getElementById('tabRegister').addEventListener('click', () => {
-            document.getElementById('tabRegister').classList.add('active');
-            document.getElementById('tabLogin').classList.remove('active');
-            document.getElementById('registerForm').classList.add('active');
+        function switchTab(tab) {
+            // Переключаем активный таб
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Переключаем форму
             document.getElementById('loginForm').classList.remove('active');
-            document.getElementById('message').style.display = 'none';
-        });
-        
-        // Регистрация
-        async function register() {
-            const username = document.getElementById('registerUsername').value;
-            const password = document.getElementById('registerPassword').value;
-            const confirm = document.getElementById('registerConfirm').value;
+            document.getElementById('registerForm').classList.remove('active');
             
-            if (!username || !password || !confirm) {
-                showMessage('Заполните все поля', 'error');
-                return;
-            }
-            
-            if (password !== confirm) {
-                showMessage('Пароли не совпадают', 'error');
-                return;
-            }
-            
-            const response = await fetch('/register', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username, password})
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                showMessage('Регистрация успешна! Теперь можно войти', 'success');
-                // Переключаем на вкладку входа
-                document.getElementById('tabLogin').click();
+            if (tab === 'login') {
+                document.getElementById('loginForm').classList.add('active');
             } else {
-                showMessage(result.message, 'error');
+                document.getElementById('registerForm').classList.add('active');
             }
+            
+            // Очищаем сообщения
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('registerError').style.display = 'none';
+            document.getElementById('registerSuccess').style.display = 'none';
         }
-        
-        // Вход
+
         async function login() {
-            const username = document.getElementById('loginUsername').value;
+            const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
             
-            if (!username || !password) {
-                showMessage('Заполните все поля', 'error');
+            if (!email || !password) {
+                errorDiv.textContent = 'Заполните все поля';
+                errorDiv.style.display = 'block';
                 return;
             }
             
-            const response = await fetch('/login', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username, password})
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                // Сохраняем имя пользователя и переходим в чат
-                localStorage.setItem('username', username);
-                window.location.href = '/chat.html';
-            } else {
-                showMessage(result.message, 'error');
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    localStorage.setItem('user', JSON.stringify(result.user));
+                    window.location.href = 'chat.html';
+                } else {
+                    errorDiv.textContent = result.error;
+                    errorDiv.style.display = 'block';
+                }
+            } catch (err) {
+                errorDiv.textContent = 'Ошибка сервера';
+                errorDiv.style.display = 'block';
             }
         }
-        
-        function showMessage(text, type) {
-            const msg = document.getElementById('message');
-            msg.textContent = text;
-            msg.className = 'message ' + type;
+
+        async function register() {
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+            const accessKey = document.getElementById('regAccessKey').value;
+            
+            const errorDiv = document.getElementById('registerError');
+            const successDiv = document.getElementById('registerSuccess');
+            
+            if (!name || !email || !password || !confirmPassword || !accessKey) {
+                errorDiv.textContent = 'Заполните все поля';
+                errorDiv.style.display = 'block';
+                successDiv.style.display = 'none';
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                errorDiv.textContent = 'Пароли не совпадают';
+                errorDiv.style.display = 'block';
+                successDiv.style.display = 'none';
+                return;
+            }
+            
+            if (password.length < 6) {
+                errorDiv.textContent = 'Пароль должен быть не менее 6 символов';
+                errorDiv.style.display = 'block';
+                successDiv.style.display = 'none';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password, accessKey })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    errorDiv.style.display = 'none';
+                    successDiv.textContent = 'Регистрация прошла успешно! Теперь можно войти.';
+                    successDiv.style.display = 'block';
+                    
+                    document.getElementById('regName').value = '';
+                    document.getElementById('regEmail').value = '';
+                    document.getElementById('regPassword').value = '';
+                    document.getElementById('regConfirmPassword').value = '';
+                    document.getElementById('regAccessKey').value = '';
+                    
+                    setTimeout(() => switchTab('login'), 2000);
+                } else {
+                    errorDiv.textContent = result.error;
+                    errorDiv.style.display = 'block';
+                    successDiv.style.display = 'none';
+                }
+            } catch (err) {
+                errorDiv.textContent = 'Ошибка сервера';
+                errorDiv.style.display = 'block';
+                successDiv.style.display = 'none';
+            }
         }
     </script>
 </body>
