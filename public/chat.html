@@ -79,6 +79,11 @@
             color: #667eea;
             margin-right: 8px;
         }
+        .timestamp {
+            color: #999;
+            font-size: 0.7rem;
+            margin-left: 10px;
+        }
         .message-form {
             display: flex;
             padding: 20px;
@@ -152,24 +157,47 @@
         const chatForm = document.getElementById('chatForm');
         const messageInput = document.getElementById('messageInput');
 
+        function formatTime(timestamp) {
+            if (!timestamp) return '';
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        }
+
         function addMessage(data) {
+            console.log('Добавляю сообщение:', data);
             const li = document.createElement('li');
             if (data.name === 'Система') {
                 li.className = 'system';
                 li.textContent = data.text;
             } else {
-                li.innerHTML = `<span class="user">${data.name}:</span> ${data.text}`;
+                const time = formatTime(data.timestamp);
+                li.innerHTML = `<span class="user">${data.name}:</span> ${data.text}<span class="timestamp">${time}</span>`;
             }
             messagesList.appendChild(li);
             messagesList.scrollTop = messagesList.scrollHeight;
         }
 
-        socket.on('message', addMessage);
+        // Получаем историю сообщений
+        socket.on('message history', (messages) => {
+            console.log('🔥 ПОЛУЧЕНА ИСТОРИЯ:', messages);
+            if (messages && messages.length > 0) {
+                messages.forEach(addMessage);
+            } else {
+                console.log('История пуста');
+            }
+        });
+
+        // Получаем новое сообщение
+        socket.on('message', (data) => {
+            console.log('🔥 НОВОЕ СООБЩЕНИЕ:', data);
+            addMessage(data);
+        });
 
         chatForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const msg = messageInput.value.trim();
             if (msg) {
+                console.log('Отправляю:', msg);
                 socket.emit('chat message', msg);
                 messageInput.value = '';
             }
