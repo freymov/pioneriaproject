@@ -8,26 +8,21 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Раздаём статические файлы из папки public
 app.use(express.static('public'));
-// Для обработки JSON в запросах
 app.use(express.json());
 
 // ========== РАБОТА С ФАЙЛОМ ПОЛЬЗОВАТЕЛЕЙ ==========
 const DATA_DIR = path.join(__dirname, 'data');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 
-// Создаём папку data, если её нет
 if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR);
 }
 
-// Создаём файл users.json, если его нет
 if (!fs.existsSync(USERS_FILE)) {
     fs.writeFileSync(USERS_FILE, '[]');
 }
 
-// Функция для чтения пользователей
 function getUsers() {
     try {
         const data = fs.readFileSync(USERS_FILE, 'utf8');
@@ -37,27 +32,22 @@ function getUsers() {
     }
 }
 
-// Функция для сохранения пользователя
 function saveUser(user) {
     const users = getUsers();
     users.push(user);
     fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
 }
 
-// Проверка, существует ли пользователь с таким email
 function userExists(email) {
     const users = getUsers();
     return users.some(user => user.email === email);
 }
 
-// ========== API ДЛЯ РЕГИСТРАЦИИ И ВХОДА ==========
-
-// Регистрация
+// ========== API ==========
 app.post('/api/register', (req, res) => {
     const { name, email, password, accessKey } = req.body;
     
-    // 🔑 КЛЮЧ ДОСТУПА - поменяй на своё слово!
-    const CORRECT_ACCESS_KEY = 'ПИОНЕРИЯ2024';
+    const CORRECT_ACCESS_KEY = 'ПИОНЕРИЯ2026';
     
     if (accessKey !== CORRECT_ACCESS_KEY) {
         return res.json({ success: false, error: 'Неверный ключ доступа' });
@@ -71,14 +61,13 @@ app.post('/api/register', (req, res) => {
         id: Date.now().toString(),
         name,
         email,
-        password // пока без шифрования
+        password
     };
     
     saveUser(newUser);
     res.json({ success: true });
 });
 
-// Вход
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
     const users = getUsers();
@@ -99,19 +88,19 @@ app.post('/api/login', (req, res) => {
     }
 });
 
-// ========== ЧАТ (SOCKET.IO) ==========
-
-let onlineUsers = {}; // кто в чате сейчас
+// ========== ЧАТ ==========
+let onlineUsers = {};
 
 io.on('connection', (socket) => {
     console.log('Пользователь подключился:', socket.id);
 
     socket.on('user joined', (name) => {
         onlineUsers[socket.id] = name;
-        socket.broadcast.emit('message', {
-            name: 'Система',
-            text: `Пользователь ${name} присоединился к чату.`
-        });
+        // Вот ЭТИ строчки НЕ комментируем! Они отвечают за работу чата
+        // socket.broadcast.emit('message', {
+        //     name: 'Система',
+        //     text: `Пользователь ${name} присоединился к чату.`
+        // });
     });
 
     socket.on('chat message', (msg) => {
@@ -125,17 +114,16 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         const userName = onlineUsers[socket.id];
         if (userName) {
-            io.emit('message', {
-                name: 'Система',
-                text: `Пользователь ${userName} покинул чат.`
-            });
+            // io.emit('message', {
+            //     name: 'Система',
+            //     text: `Пользователь ${userName} покинул чат.`
+            // });
             delete onlineUsers[socket.id];
         }
         console.log('Пользователь отключился:', socket.id);
     });
 });
 
-// ========== ЗАПУСК СЕРВЕРА ==========
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`Сервер запущен на порту ${PORT}`);
