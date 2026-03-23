@@ -220,7 +220,7 @@
                 
                 if (result.success) {
                     localStorage.setItem('user', JSON.stringify(result.user));
-                    window.location.href = 'chat.html';
+                    window.location.href = 'lobby.html';
                 } else {
                     errorDiv.textContent = result.error;
                     errorDiv.style.display = 'block';

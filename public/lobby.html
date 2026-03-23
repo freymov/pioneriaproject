@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Pioneria Project — Лобби</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        /* Шапка */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #667eea;
+            transition: transform 0.2s;
+        }
+
+        .menu-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .avatar:hover {
+            transform: scale(1.05);
+        }
+
+        /* Боковое меню */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            transition: left 0.3s ease;
+            z-index: 200;
+            padding: 20px 0;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+
+        .sidebar-header h3 {
+            color: #667eea;
+        }
+
+        .sidebar-item {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .sidebar-item:hover {
+            background: #f5f5f5;
+        }
+
+        .sidebar-item .emoji {
+            font-size: 20px;
+        }
+
+        /* Оверлей (затемнение) */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 150;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+
+        /* Контент */
+        .content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .welcome-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .welcome-card h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .welcome-card p {
+            color: #666;
+            font-size: 18px;
+        }
+
+        .news-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .news-card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .news-list {
+            list-style: none;
+        }
+
+        .news-list li {
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .news-list li:last-child {
+            border-bottom: none;
+        }
+
+        .news-bullet {
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+        }
+
+        .news-date {
+            color: #999;
+            font-size: 12px;
+            margin-left: auto;
+        }
+
+        .chat-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .chat-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        /* Модальное окно профиля */
+        .profile-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            z-index: 250;
+            display: none;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .profile-modal.active {
+            display: block;
+        }
+
+        .profile-modal h3 {
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+
+        .profile-modal p {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+
+        .profile-modal button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="menu-btn" onclick="toggleMenu()">☰</button>
+        <div class="logo">🎵 PIONERIA PROJECT</div>
+        <div class="avatar" id="avatarBtn" onclick="toggleProfile()">👤</div>
+    </div>
+
+    <!-- Боковое меню -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>Меню</h3>
+        </div>
+        <div class="sidebar-item" onclick="goToNews()">
+            <span class="emoji">📢</span>
+            <span>Новости</span>
+        </div>
+        <div class="sidebar-item" onclick="goToChat()">
+            <span class="emoji">💬</span>
+            <span>Чат</span>
+        </div>
+        <div class="sidebar-item" onclick="toggleProfile()">
+            <span class="emoji">👤</span>
+            <span>Профиль</span>
+        </div>
+        <div class="sidebar-item" onclick="logout()">
+            <span class="emoji">🚪</span>
+            <span>Выход</span>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay" onclick="closeMenu()"></div>
+
+    <!-- Основной контент -->
+    <div class="content">
+        <div class="welcome-card">
+            <h1>Добро пожаловать, <span id="userName"></span>!</h1>
+            <p>Рады видеть тебя в Pioneria Project</p>
+        </div>
+
+        <div class="news-card">
+            <h2>📢 Новости студии</h2>
+            <ul class="news-list" id="newsList">
+                <li>
+                    <div class="news-bullet"></div>
+                    <span>Расписание репетиций обновлено</span>
+                    <span class="news-date">Сегодня</span>
+                </li>
+                <li>
+                    <div class="news-bullet"></div>
+                    <span>Концерт в эту субботу в 18:00</span>
+                    <span class="news-date">Вчера</span>
+                </li>
+                <li>
+                    <div class="news-bullet"></div>
+                    <span>Новая песня "Весенний хор" готова</span>
+                    <span class="news-date">3 дня назад</span>
+                </li>
+            </ul>
+        </div>
+
+        
+    </div>
+
+    <!-- Модальное окно профиля -->
+    <div class="profile-modal" id="profileModal">
+        <h3>👤 Мой профиль</h3>
+        <p><strong>Имя:</strong> <span id="profileName"></span></p>
+        <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+        <button onclick="closeProfile()">Закрыть</button>
+    </div>
+
+    <script>
+        // Получаем данные пользователя
+        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!userData.name) {
+            window.location.href = 'login.html';
+        }
+
+        // Показываем имя
+        document.getElementById('userName').textContent = userData.name;
+        document.getElementById('profileName').textContent = userData.name;
+        document.getElementById('profileEmail').textContent = userData.email;
+
+        // Меню
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('overlay').classList.toggle('active');
+        }
+
+        function closeMenu() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('overlay').classList.remove('active');
+        }
+
+        // Профиль
+        function toggleProfile() {
+            const modal = document.getElementById('profileModal');
+            modal.classList.toggle('active');
+            closeMenu();
+        }
+
+        function closeProfile() {
+            document.getElementById('profileModal').classList.remove('active');
+        }
+
+        // Навигация
+        function goToChat() {
+            window.location.href = 'chat.html';
+        }
+
+        function goToNews() {
+            closeMenu();
+            document.querySelector('.news-card').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+
+        // Закрываем меню при клике вне
+        document.addEventListener('click', function(e) {
+            const sidebar = document.getElementById('sidebar');
+            const menuBtn = document.querySelector('.menu-btn');
+            if (!sidebar.contains(e.target) && !menuBtn.contains(e.target) && sidebar.classList.contains('open')) {
+                closeMenu();
+            }
+        });
+    </script>
+</body>
+</html>

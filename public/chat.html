@@ -124,8 +124,15 @@
     <div class="chat-container">
         <div class="chat-header">
             <h2>🎵 Pioneria Project Chat - <span id="userName"></span></h2>
-            <button onclick="leaveChat()">Выйти</button>
+            <div>
+                <button onclick="goToLobby()" style="background: #667eea; margin-right: 10px;">🏠 Лобби</button>
+                <button onclick="leaveChat()">Выйти</button>
+            </div>
         </div>
+        <!-- <div class="chat-header">
+            <h2>🎵 Pioneria Project Chat - <span id="userName"></span></h2>
+            <button onclick="leaveChat()">Выйти</button>
+        </div> -->
         
         <ul id="messages"></ul>
         
@@ -206,6 +213,9 @@
         function leaveChat() {
             localStorage.removeItem('user');
             window.location.href = 'login.html';
+        }
+                function goToLobby() {
+            window.location.href = 'lobby.html';
         }
     </script>
 </body>
