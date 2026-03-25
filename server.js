@@ -1,8 +1,26 @@
+require('dotenv').config();
+console.log('🔍 Проверка .env:');
+console.log('CLOUDINARY_CLOUD_NAME:', process.env.CLOUDINARY_CLOUD_NAME);
+console.log('CLOUDINARY_API_KEY:', process.env.CLOUDINARY_API_KEY ? '✅ есть' : '❌ нет');
+console.log('CLOUDINARY_API_SECRET:', process.env.CLOUDINARY_API_SECRET ? '✅ есть' : '❌ нет');
+console.log('DATABASE_URL:', process.env.DATABASE_URL ? '✅ есть' : '❌ нет');
+
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
+const cloudinary = require('cloudinary').v2;
+const multer = require('multer');
+const stream = require('stream');
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 const app = express();
 const server = http.createServer(app);
@@ -11,8 +29,48 @@ const io = new Server(server);
 app.use(express.static('public'));
 app.use(express.json());
 
+// ========== ТЕСТ CLOUDINARY ==========
+app.get('/test-cloudinary', async (req, res) => {
+    try {
+        const result = await cloudinary.api.ping();
+        res.json({ success: true, result });
+    } catch (err) {
+        res.json({ success: false, error: err.message });
+    }
+});
+
+// ========== API ЗАГРУЗКИ ФОТО ==========
+app.post('/api/upload', upload.single('image'), async (req, res) => {
+    try {
+        const bufferStream = new stream.PassThrough();
+        bufferStream.end(req.file.buffer);
+        
+        const result = await new Promise((resolve, reject) => {
+            const uploadStream = cloudinary.uploader.upload_stream(
+                { folder: 'pioneria_chat' },
+                (error, result) => {
+                    if (error) reject(error);
+                    else resolve(result);
+                }
+            );
+            bufferStream.pipe(uploadStream);
+        });
+        
+        res.json({ success: true, url: result.secure_url });
+    } catch (err) {
+        console.error('Ошибка загрузки фото:', err);
+        res.json({ success: false, error: 'Ошибка загрузки' });
+    }
+});
+
 // ========== ПОДКЛЮЧЕНИЕ К БАЗЕ ==========
 const DATABASE_URL = process.env.DATABASE_URL;
+
+if (!DATABASE_URL) {
+    console.error('❌ ОШИБКА: DATABASE_URL не найдена в переменных окружения');
+    process.exit(1);
+}
+
 const pool = new Pool({
     connectionString: DATABASE_URL,
     ssl: { rejectUnauthorized: false }
@@ -76,6 +134,7 @@ async function initDatabase() {
 }
 
 initDatabase();
+
 app.get('/fix-role', async (req, res) => {
     try {
         await pool.query("UPDATE users SET role = 'admin' WHERE email = 'fsdgf@gmail.com'");
