@@ -12,8 +12,7 @@ app.use(express.static('public'));
 app.use(express.json());
 
 // ========== ПОДКЛЮЧЕНИЕ К БАЗЕ ==========
-const DATABASE_URL = 'postgresql://pioneria_user:yVlomsi7doJkseahmYoeOBPipfJ8NkLr@dpg-d6uohbh5pdvs7386kva0-a.oregon-postgres.render.com:5432/pioneria_db';
-
+const DATABASE_URL = process.env.DATABASE_URL;
 const pool = new Pool({
     connectionString: DATABASE_URL,
     ssl: { rejectUnauthorized: false }
