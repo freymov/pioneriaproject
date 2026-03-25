@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель | Pioneria Project</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #764ba2;
+        }
+        input, select {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            margin-right: 10px;
+        }
+        .keys-list {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #f5f5f5;
+        }
+        .back-btn {
+            background: #666;
+            margin-bottom: 20px;
+        }
+        .success {
+            color: green;
+            margin-top: 10px;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="back-btn" onclick="goToLobby()">← Вернуться в лобби</button>
+        
+        <div class="card">
+            <h1>🔧 Админ-панель</h1>
+            <p>Добро пожаловать, <span id="adminName"></span>!</p>
+        </div>
+
+        <div class="card">
+            <h2>🔑 Создать ключи доступа</h2>
+            <input type="number" id="keyCount" placeholder="Количество" value="1" min="1" max="20">
+            <select id="keyRole">
+                <option value="user">Обычный пользователь</option>
+                <option value="admin">Администратор</option>
+            </select>
+            <button onclick="generateKeys()">Создать ключи</button>
+            <div id="keysResult"></div>
+            <div id="generatedKeys" class="keys-list" style="margin-top: 15px;"></div>
+        </div>
+
+        <div class="card">
+            <h2>👥 Пользователи</h2>
+            <button onclick="loadUsers()">Обновить список</button>
+            <div id="usersList">
+                <p>Загрузка...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!userData.name || userData.role !== 'admin') {
+            alert('Доступ только для администраторов');
+            window.location.href = 'lobby.html';
+        }
+        
+        document.getElementById('adminName').textContent = userData.name;
+        
+        async function generateKeys() {
+            const count = document.getElementById('keyCount').value;
+            const role = document.getElementById('keyRole').value;
+            
+            try {
+                const response = await fetch('/api/admin/generate-keys', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminEmail: userData.email, count, role })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const keysDiv = document.getElementById('generatedKeys');
+                    keysDiv.innerHTML = '<strong>Созданные ключи:</strong><br>' + result.keys.join('<br>');
+                    document.getElementById('keysResult').innerHTML = '<div class="success">✅ Ключи созданы!</div>';
+                    setTimeout(() => {
+                        document.getElementById('keysResult').innerHTML = '';
+                    }, 3000);
+                } else {
+                    document.getElementById('keysResult').innerHTML = '<div class="error">❌ ' + result.error + '</div>';
+                }
+            } catch (err) {
+                document.getElementById('keysResult').innerHTML = '<div class="error">❌ Ошибка сервера</div>';
+            }
+        }
+        
+        async function loadUsers() {
+            try {
+                const response = await fetch(`/api/admin/users?adminEmail=${userData.email}`);
+                const result = await response.json();
+                
+                if (result.success && result.users) {
+                    let html = '<table><tr><th>ID</th><th>Имя</th><th>Email</th><th>Роль</th><th>Дата</th></tr>';
+                    result.users.forEach(user => {
+                        html += `<tr>
+                            <td>${user.id}</td>
+                            <td>${user.name}</td>
+                            <td>${user.email}</td>
+                            <td>${user.role === 'admin' ? '👑 Админ' : '👤 Пользователь'}</td>
+                            <td>${new Date(user.created_at).toLocaleDateString()}</td>
+                        </tr>`;
+                    });
+                    html += '</table>';
+                    document.getElementById('usersList').innerHTML = html;
+                } else {
+                    document.getElementById('usersList').innerHTML = '<p>Ошибка загрузки</p>';
+                }
+            } catch (err) {
+                document.getElementById('usersList').innerHTML = '<p>Ошибка сервера</p>';
+            }
+        }
+        
+        function goToLobby() {
+            window.location.href = 'lobby.html';
+        }
+        
+        loadUsers();
+    </script>
+</body>
+</html>
