@@ -289,6 +289,10 @@
             <span class="emoji">👤</span>
             <span>Профиль</span>
         </div>
+        <div class="sidebar-item" id="adminMenuItem" style="display: none;" onclick="goToAdmin()">
+            <span class="emoji">🔧</span>
+            <span>Админ-панель</span>
+        </div>
         <div class="sidebar-item" onclick="logout()">
             <span class="emoji">🚪</span>
             <span>Выход</span>
@@ -339,6 +343,13 @@
     <script>
         // Получаем данные пользователя
         const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        // Показываем админ-панель в меню, если пользователь админ
+        if (userData.role === 'admin') {
+            const adminItem = document.getElementById('adminMenuItem');
+            if (adminItem) {
+                adminItem.style.display = 'flex';
+            }
+        }
         
         if (!userData.name) {
             window.location.href = 'login.html';
@@ -384,6 +395,9 @@
         function logout() {
             localStorage.removeItem('user');
             window.location.href = 'login.html';
+        }
+        function goToAdmin() {
+            window.location.href = 'admin.html';
         }
 
         // Закрываем меню при клике вне
