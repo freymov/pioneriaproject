@@ -91,12 +91,14 @@ async function initDatabase() {
             )
         `);
         
-        // Таблица сообщений
+        // Таблица сообщений (добавляем поле user_id)
         await pool.query(`
             CREATE TABLE IF NOT EXISTS messages (
                 id SERIAL PRIMARY KEY,
                 user_name VARCHAR(100) NOT NULL,
                 text TEXT NOT NULL,
+                user_id INTEGER REFERENCES users(id),
+                image_url TEXT,
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
@@ -153,7 +155,6 @@ app.post('/api/register', async (req, res) => {
     console.log('🔑 Попытка регистрации с ключом:', accessKey);
     
     try {
-        // 1. Проверяем ключ
         const keyResult = await pool.query(
             'SELECT * FROM invite_keys WHERE key_code = $1 AND used_by IS NULL',
             [accessKey]
@@ -167,7 +168,6 @@ app.post('/api/register', async (req, res) => {
         
         const key = keyResult.rows[0];
         
-        // 2. Проверяем email
         const userExists = await pool.query(
             'SELECT * FROM users WHERE email = $1',
             [email]
@@ -177,22 +177,19 @@ app.post('/api/register', async (req, res) => {
             return res.json({ success: false, error: 'Пользователь с таким email уже существует' });
         }
         
-        // 3. Хешируем пароль
         const hashedPassword = await bcrypt.hash(password, 10);
         
-        // 4. Создаём пользователя
-        await pool.query(
-            'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4)',
+        const result = await pool.query(
+            'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id',
             [name, email, hashedPassword, key.role]
         );
         
-        // 5. Помечаем ключ как использованный
         await pool.query(
             'UPDATE invite_keys SET used_by = $1, used_at = NOW() WHERE key_code = $2',
             [email, accessKey]
         );
         
-        console.log('✅ Пользователь зарегистрирован:', name, 'роль:', key.role);
+        console.log('✅ Пользователь зарегистрирован:', name, 'роль:', key.role, 'id:', result.rows[0].id);
         res.json({ success: true });
     } catch (err) {
         console.error('❌ Ошибка регистрации:', err);
@@ -238,7 +235,6 @@ app.post('/api/login', async (req, res) => {
 
 // ========== АДМИН-API ==========
 
-// Создание ключей
 app.post('/api/admin/generate-keys', async (req, res) => {
     const { adminEmail, count, role } = req.body;
     
@@ -269,7 +265,6 @@ app.post('/api/admin/generate-keys', async (req, res) => {
     }
 });
 
-// Список пользователей
 app.get('/api/admin/users', async (req, res) => {
     const { adminEmail } = req.query;
     
@@ -294,38 +289,13 @@ app.get('/api/admin/users', async (req, res) => {
     }
 });
 
-// ========== ЧАТ ==========
-let onlineUsers = {};
-
-async function getMessageHistory() {
-    try {
-        const result = await pool.query(
-            'SELECT user_name as name, text, timestamp FROM messages ORDER BY timestamp ASC LIMIT 100'
-        );
-        return result.rows;
-    } catch (err) {
-        console.error('❌ Ошибка загрузки истории:', err);
-        return [];
-    }
-}
-
-async function saveMessage(userName, text) {
-    try {
-        await pool.query(
-            'INSERT INTO messages (user_name, text) VALUES ($1, $2)',
-            [userName, text]
-        );
-        console.log('✅ Сообщение сохранено');
-    } catch (err) {
-        console.error('❌ Ошибка сохранения сообщения:', err);
-    }
-}
 // ========== УДАЛЕНИЕ СООБЩЕНИЙ ==========
 app.post('/api/delete-message', async (req, res) => {
     const { messageId, userId, userRole, imageUrl } = req.body;
     
+    console.log('📥 Удаление сообщения:', { messageId, userId, userRole });
+    
     try {
-        // Проверяем, существует ли сообщение
         const msg = await pool.query(
             'SELECT * FROM messages WHERE id = $1',
             [messageId]
@@ -336,59 +306,100 @@ app.post('/api/delete-message', async (req, res) => {
         }
         
         const message = msg.rows[0];
-        
-        // Проверка прав: автор или админ
         const isAuthor = message.user_id === userId;
         const isAdmin = userRole === 'admin';
+        
+        console.log('🔑 Проверка прав: isAuthor=', isAuthor, 'isAdmin=', isAdmin);
         
         if (!isAuthor && !isAdmin) {
             return res.json({ success: false, error: 'Нет прав на удаление' });
         }
         
-        // Если есть фото, удаляем из Cloudinary
         if (imageUrl && imageUrl.includes('cloudinary.com')) {
             try {
                 const publicId = imageUrl.split('/').pop().split('.')[0];
                 await cloudinary.uploader.destroy(`pioneria_chat/${publicId}`);
+                console.log('✅ Фото удалено из Cloudinary');
             } catch (err) {
-                console.error('Ошибка удаления фото из Cloudinary:', err);
+                console.error('Ошибка удаления фото:', err);
             }
         }
         
-        // Удаляем из базы
         await pool.query('DELETE FROM messages WHERE id = $1', [messageId]);
-        
-        // Оповещаем всех в чате об удалении
         io.emit('message deleted', messageId);
         
+        console.log('✅ Сообщение удалено');
         res.json({ success: true });
     } catch (err) {
-        console.error('Ошибка удаления:', err);
-        res.json({ success: false, error: 'Ошибка сервера' });
+        console.error('❌ Ошибка удаления:', err);
+        res.json({ success: false, error: 'Ошибка сервера: ' + err.message });
     }
 });
 
+// ========== ЧАТ ==========
+let onlineUsers = {};
+
+async function getMessageHistory() {
+    try {
+        const result = await pool.query(
+            'SELECT id, user_name as name, text, user_id, timestamp FROM messages ORDER BY timestamp ASC LIMIT 100'
+        );
+        return result.rows;
+    } catch (err) {
+        console.error('❌ Ошибка загрузки истории:', err);
+        return [];
+    }
+}
+
+async function saveMessage(userName, text, userId, imageUrl = null) {
+    try {
+        const result = await pool.query(
+            'INSERT INTO messages (user_name, text, user_id, image_url) VALUES ($1, $2, $3, $4) RETURNING id',
+            [userName, text, userId, imageUrl]
+        );
+        console.log('✅ Сообщение сохранено, id:', result.rows[0].id);
+        return result.rows[0].id;
+    } catch (err) {
+        console.error('❌ Ошибка сохранения сообщения:', err);
+        return null;
+    }
+}
+
 io.on('connection', async (socket) => {
     console.log('🔵 Подключился:', socket.id);
+    
+    let currentUser = null;
 
     const history = await getMessageHistory();
     socket.emit('message history', history);
     console.log('📤 Отправлено сообщений:', history.length);
 
-    socket.on('user joined', (name) => {
-        onlineUsers[socket.id] = name;
-        console.log('👤 Вошёл:', name);
+    socket.on('user joined', (userData) => {
+        currentUser = userData;
+        onlineUsers[socket.id] = userData.name;
+        console.log('👤 Вошёл:', userData.name, 'id:', userData.id);
     });
 
     socket.on('chat message', async (msg) => {
-        const userName = onlineUsers[socket.id] || 'Аноним';
+        const userName = currentUser?.name || onlineUsers[socket.id] || 'Аноним';
+        const userId = currentUser?.id || null;
+        
+        let imageUrl = null;
+        if (msg.startsWith('📷')) {
+            imageUrl = msg.replace('📷 ', '');
+        }
+        
+        const messageId = await saveMessage(userName, msg, userId, imageUrl);
+        
         const messageData = {
+            id: messageId,
             name: userName,
             text: msg,
-            timestamp: new Date().toISOString()
+            user_id: userId,
+            timestamp: new Date().toISOString(),
+            image_url: imageUrl
         };
         
-        await saveMessage(userName, msg);
         io.emit('message', messageData);
     });
 
@@ -400,8 +411,6 @@ io.on('connection', async (socket) => {
         }
     });
 });
-
-
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
