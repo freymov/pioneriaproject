@@ -401,15 +401,7 @@ io.on('connection', async (socket) => {
     });
 });
 
-// ВРЕМЕННО: добавить поле user_id
-app.get('/fix-messages', async (req, res) => {
-    try {
-        await pool.query(`ALTER TABLE messages ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id)`);
-        res.send('✅ Поле user_id добавлено');
-    } catch (err) {
-        res.send('❌ Ошибка: ' + err.message);
-    }
-});
+
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
