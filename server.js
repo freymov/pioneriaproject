@@ -320,6 +320,53 @@ async function saveMessage(userName, text) {
         console.error('❌ Ошибка сохранения сообщения:', err);
     }
 }
+// ========== УДАЛЕНИЕ СООБЩЕНИЙ ==========
+app.post('/api/delete-message', async (req, res) => {
+    const { messageId, userId, userRole, imageUrl } = req.body;
+    
+    try {
+        // Проверяем, существует ли сообщение
+        const msg = await pool.query(
+            'SELECT * FROM messages WHERE id = $1',
+            [messageId]
+        );
+        
+        if (msg.rows.length === 0) {
+            return res.json({ success: false, error: 'Сообщение не найдено' });
+        }
+        
+        const message = msg.rows[0];
+        
+        // Проверка прав: автор или админ
+        const isAuthor = message.user_id === userId;
+        const isAdmin = userRole === 'admin';
+        
+        if (!isAuthor && !isAdmin) {
+            return res.json({ success: false, error: 'Нет прав на удаление' });
+        }
+        
+        // Если есть фото, удаляем из Cloudinary
+        if (imageUrl && imageUrl.includes('cloudinary.com')) {
+            try {
+                const publicId = imageUrl.split('/').pop().split('.')[0];
+                await cloudinary.uploader.destroy(`pioneria_chat/${publicId}`);
+            } catch (err) {
+                console.error('Ошибка удаления фото из Cloudinary:', err);
+            }
+        }
+        
+        // Удаляем из базы
+        await pool.query('DELETE FROM messages WHERE id = $1', [messageId]);
+        
+        // Оповещаем всех в чате об удалении
+        io.emit('message deleted', messageId);
+        
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Ошибка удаления:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
 
 io.on('connection', async (socket) => {
     console.log('🔵 Подключился:', socket.id);
@@ -352,6 +399,16 @@ io.on('connection', async (socket) => {
             delete onlineUsers[socket.id];
         }
     });
+});
+
+// ВРЕМЕННО: добавить поле user_id
+app.get('/fix-messages', async (req, res) => {
+    try {
+        await pool.query(`ALTER TABLE messages ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id)`);
+        res.send('✅ Поле user_id добавлено');
+    } catch (err) {
+        res.send('❌ Ошибка: ' + err.message);
+    }
 });
 
 const PORT = process.env.PORT || 3000;
