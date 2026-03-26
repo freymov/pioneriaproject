@@ -79,7 +79,6 @@ const pool = new Pool({
 // ========== ИНИЦИАЛИЗАЦИЯ БАЗЫ ==========
 async function initDatabase() {
     try {
-        // Таблица users с полем role
         await pool.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
@@ -91,7 +90,6 @@ async function initDatabase() {
             )
         `);
         
-        // Таблица сообщений (добавляем поле user_id)
         await pool.query(`
             CREATE TABLE IF NOT EXISTS messages (
                 id SERIAL PRIMARY KEY,
@@ -103,7 +101,6 @@ async function initDatabase() {
             )
         `);
         
-        // Таблица ключей
         await pool.query(`
             CREATE TABLE IF NOT EXISTS invite_keys (
                 id SERIAL PRIMARY KEY,
@@ -115,7 +112,6 @@ async function initDatabase() {
             )
         `);
         
-        // Добавляем админ-ключ, если его нет
         const existing = await pool.query(
             "SELECT * FROM invite_keys WHERE key_code = 'ADMIN-PIONERIA-2026'"
         );
@@ -137,18 +133,8 @@ async function initDatabase() {
 
 initDatabase();
 
-app.get('/fix-role', async (req, res) => {
-    try {
-        await pool.query("UPDATE users SET role = 'admin' WHERE email = 'fsdgf@gmail.com'");
-        res.send('✅ Роль обновлена! Теперь пользователь fsdgf@gmail.com - админ');
-    } catch (err) {
-        res.send('❌ Ошибка: ' + err.message);
-    }
-});
-
 // ========== API ==========
 
-// Регистрация с ключом
 app.post('/api/register', async (req, res) => {
     const { name, email, password, accessKey } = req.body;
     
@@ -159,8 +145,6 @@ app.post('/api/register', async (req, res) => {
             'SELECT * FROM invite_keys WHERE key_code = $1 AND used_by IS NULL',
             [accessKey]
         );
-        
-        console.log('🔍 Результат проверки ключа:', keyResult.rows.length);
         
         if (keyResult.rows.length === 0) {
             return res.json({ success: false, error: 'Неверный или уже использованный ключ' });
@@ -189,7 +173,7 @@ app.post('/api/register', async (req, res) => {
             [email, accessKey]
         );
         
-        console.log('✅ Пользователь зарегистрирован:', name, 'роль:', key.role, 'id:', result.rows[0].id);
+        console.log('✅ Пользователь зарегистрирован:', name, 'id:', result.rows[0].id);
         res.json({ success: true });
     } catch (err) {
         console.error('❌ Ошибка регистрации:', err);
@@ -197,7 +181,6 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// Вход
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
     
@@ -309,8 +292,6 @@ app.post('/api/delete-message', async (req, res) => {
         const isAuthor = message.user_id === userId;
         const isAdmin = userRole === 'admin';
         
-        console.log('🔑 Проверка прав: isAuthor=', isAuthor, 'isAdmin=', isAdmin);
-        
         if (!isAuthor && !isAdmin) {
             return res.json({ success: false, error: 'Нет прав на удаление' });
         }
@@ -319,7 +300,6 @@ app.post('/api/delete-message', async (req, res) => {
             try {
                 const publicId = imageUrl.split('/').pop().split('.')[0];
                 await cloudinary.uploader.destroy(`pioneria_chat/${publicId}`);
-                console.log('✅ Фото удалено из Cloudinary');
             } catch (err) {
                 console.error('Ошибка удаления фото:', err);
             }
@@ -328,11 +308,10 @@ app.post('/api/delete-message', async (req, res) => {
         await pool.query('DELETE FROM messages WHERE id = $1', [messageId]);
         io.emit('message deleted', messageId);
         
-        console.log('✅ Сообщение удалено');
         res.json({ success: true });
     } catch (err) {
         console.error('❌ Ошибка удаления:', err);
-        res.json({ success: false, error: 'Ошибка сервера: ' + err.message });
+        res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
 
@@ -342,7 +321,7 @@ let onlineUsers = {};
 async function getMessageHistory() {
     try {
         const result = await pool.query(
-            'SELECT id, user_name as name, text, user_id, timestamp FROM messages ORDER BY timestamp ASC LIMIT 100'
+            'SELECT id, user_name as name, text, user_id, image_url, timestamp FROM messages ORDER BY timestamp ASC LIMIT 100'
         );
         return result.rows;
     } catch (err) {
@@ -353,11 +332,13 @@ async function getMessageHistory() {
 
 async function saveMessage(userName, text, userId, imageUrl = null) {
     try {
+        const validUserId = (userId && typeof userId === 'number') ? userId : null;
+        
         const result = await pool.query(
             'INSERT INTO messages (user_name, text, user_id, image_url) VALUES ($1, $2, $3, $4) RETURNING id',
-            [userName, text, userId, imageUrl]
+            [userName, text, validUserId, imageUrl]
         );
-        console.log('✅ Сообщение сохранено, id:', result.rows[0].id);
+        console.log('✅ Сообщение сохранено, id:', result.rows[0].id, 'user_id:', validUserId);
         return result.rows[0].id;
     } catch (err) {
         console.error('❌ Ошибка сохранения сообщения:', err);
@@ -382,7 +363,7 @@ io.on('connection', async (socket) => {
 
     socket.on('chat message', async (msg) => {
         const userName = currentUser?.name || onlineUsers[socket.id] || 'Аноним';
-        const userId = currentUser?.id || null;
+        const userId = currentUser?.id ? parseInt(currentUser.id) : null;
         
         let imageUrl = null;
         if (msg.startsWith('📷')) {
@@ -411,16 +392,7 @@ io.on('connection', async (socket) => {
         }
     });
 });
-// ВРЕМЕННО: добавить поля в messages
-app.get('/fix-db', async (req, res) => {
-    try {
-        await pool.query(`ALTER TABLE messages ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id)`);
-        await pool.query(`ALTER TABLE messages ADD COLUMN IF NOT EXISTS image_url TEXT`);
-        res.send('✅ Поля user_id и image_url добавлены в messages');
-    } catch (err) {
-        res.send('❌ Ошибка: ' + err.message);
-    }
-});
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`\n🚀 Сервер запущен на порту ${PORT}`);
