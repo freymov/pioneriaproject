@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Чат - Вход и регистрация</title>
     <style>
         * {
@@ -18,22 +18,23 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 20px;
         }
 
         .container {
             background: white;
             border-radius: 20px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-            width: 90%;
+            width: 100%;
             max-width: 400px;
-            padding: 40px;
+            padding: 30px 20px;
         }
 
         h1 {
             text-align: center;
             color: #333;
             margin-bottom: 30px;
-            font-size: 28px;
+            font-size: 24px;
         }
 
         .tabs {
@@ -45,11 +46,12 @@
         .tab {
             flex: 1;
             text-align: center;
-            padding: 10px;
+            padding: 12px;
             cursor: pointer;
             color: #666;
             font-weight: 500;
             transition: all 0.3s;
+            font-size: 16px;
         }
 
         .tab.active {
@@ -75,6 +77,7 @@
             margin-bottom: 8px;
             color: #333;
             font-weight: 500;
+            font-size: 14px;
         }
 
         input {
@@ -84,6 +87,7 @@
             border-radius: 10px;
             font-size: 16px;
             transition: border-color 0.3s;
+            -webkit-appearance: none;
         }
 
         input:focus {
@@ -122,6 +126,28 @@
             margin-top: 5px;
             display: none;
             text-align: center;
+        }
+
+        /* Мобильная версия */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px 15px;
+            }
+            h1 {
+                font-size: 20px;
+                margin-bottom: 20px;
+            }
+            .tab {
+                padding: 10px;
+                font-size: 14px;
+            }
+            input, button {
+                padding: 12px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
@@ -166,10 +192,9 @@
                 <label>Подтверждение пароля</label>
                 <input type="password" id="regConfirmPassword" placeholder="Повторите пароль">
             </div>
-            
             <div class="form-group">
                 <label>🔑 Ключ доступа</label>
-                <input type="text" id="regAccessKey" placeholder="Введите ключ (выдаёт администратор)">
+                <input type="text" id="regAccessKey" placeholder="Введите ключ">
             </div>
             <button onclick="register()">Зарегистрироваться</button>
             <div id="registerError" class="error-message"></div>
@@ -179,11 +204,9 @@
 
     <script>
         function switchTab(tab) {
-            // Переключаем активный таб
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             event.target.classList.add('active');
             
-            // Переключаем форму
             document.getElementById('loginForm').classList.remove('active');
             document.getElementById('registerForm').classList.remove('active');
             
@@ -193,7 +216,6 @@
                 document.getElementById('registerForm').classList.add('active');
             }
             
-            // Очищаем сообщения
             document.getElementById('loginError').style.display = 'none';
             document.getElementById('registerError').style.display = 'none';
             document.getElementById('registerSuccess').style.display = 'none';
@@ -237,7 +259,6 @@
             const email = document.getElementById('regEmail').value;
             const password = document.getElementById('regPassword').value;
             const confirmPassword = document.getElementById('regConfirmPassword').value;
-            
             const accessKey = document.getElementById('regAccessKey').value;
             
             const errorDiv = document.getElementById('registerError');
