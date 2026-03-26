@@ -2,16 +2,20 @@
 <html>
 <head>
     <title>Pioneria Project Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            box-sizing: border-box;
+            padding: 10px;
         }
         .chat-container {
             max-width: 800px;
@@ -21,22 +25,24 @@
             box-shadow: 0 15px 35px rgba(0,0,0,0.2);
             display: flex;
             flex-direction: column;
-            height: 90vh;
+            height: 95vh;
             width: 100%;
         }
         .chat-header {
-            padding: 20px;
+            padding: 15px 20px;
             border-bottom: 1px solid #eee;
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: #f9f9f9;
             border-radius: 20px 20px 0 0;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         .chat-header h2 {
             margin: 0;
             color: #333;
-            font-size: 1.2rem;
+            font-size: 1rem;
         }
         .chat-header button {
             background: #ff4444;
@@ -53,26 +59,33 @@
         }
         #messages {
             list-style-type: none;
-            padding: 20px;
+            padding: 15px;
             margin: 0;
             flex-grow: 1;
             overflow-y: auto;
             background: #f9f9f9;
         }
         #messages li {
-            padding: 12px 15px;
-            margin-bottom: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             word-wrap: break-word;
+            position: relative;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+        #messages li.selected {
+            background: #e3f2fd;
+            border-left: 4px solid #667eea;
         }
         .system {
             background: #e3f2fd;
             color: #1976d2;
             text-align: center;
             font-style: italic;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
         .user {
             font-weight: bold;
@@ -84,21 +97,40 @@
             font-size: 0.7rem;
             margin-left: 10px;
         }
+        .delete-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            display: none;
+        }
+        #messages li.selected .delete-btn {
+            display: block;
+        }
         .message-form {
             display: flex;
-            padding: 20px;
+            padding: 15px;
             border-top: 1px solid #eee;
             background: white;
             border-radius: 0 0 20px 20px;
-            gap: 10px;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         #messageInput {
-            flex-grow: 1;
+            flex: 1;
             padding: 12px 15px;
             border: 2px solid #e0e0e0;
             border-radius: 10px;
             font-size: 16px;
             transition: border-color 0.3s;
+            min-width: 120px;
         }
         #messageInput:focus {
             border-color: #667eea;
@@ -108,7 +140,7 @@
             background: #667eea;
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 12px 20px;
             border-radius: 10px;
             font-size: 16px;
             font-weight: 600;
@@ -117,19 +149,6 @@
         }
         .message-form button:hover {
             background: #764ba2;
-        }
-        .image-button {
-            background: #4caf50 !important;
-        }
-        .image-button:hover {
-            background: #45a049 !important;
-        }
-        .chat-image {
-            max-width: 200px;
-            max-height: 200px;
-            border-radius: 10px;
-            margin-top: 5px;
-            cursor: pointer;
         }
         .attach-button {
             background: #e0e0e0;
@@ -144,6 +163,60 @@
         .attach-button:hover {
             background: #d0d0d0;
         }
+        .chat-image {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 10px;
+            margin-top: 5px;
+            cursor: pointer;
+        }
+
+        /* Мобильная версия */
+        @media (max-width: 768px) {
+            body {
+                padding: 5px;
+            }
+            .chat-header h2 {
+                font-size: 0.9rem;
+            }
+            .chat-header button {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            .message-form button, .attach-button {
+                padding: 10px 14px;
+                font-size: 14px;
+            }
+            #messageInput {
+                font-size: 14px;
+                padding: 10px 12px;
+            }
+            .delete-btn {
+                padding: 2px 8px;
+                font-size: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chat-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            .message-form {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .attach-button {
+                order: 1;
+            }
+            #messageInput {
+                order: 2;
+                min-width: 0;
+            }
+            .message-form button[type="submit"] {
+                order: 3;
+            }
+        }
     </style>
 </head>
 <body>
@@ -151,7 +224,7 @@
         <div class="chat-header">
             <h2>🎵 Pioneria Project Chat - <span id="userName"></span></h2>
             <div>
-                <button onclick="goToLobby()" style="background: #667eea; margin-right: 10px;">🏠 Лобби</button>
+                <button onclick="goToLobby()" style="background: #667eea; margin-right: 8px;">🏠 Лобби</button>
                 <button onclick="leaveChat()">Выйти</button>
             </div>
         </div>
@@ -170,23 +243,60 @@
     <script>
         const socket = io();
         
-        // Получаем данные пользователя
         const userData = JSON.parse(localStorage.getItem('user') || '{}');
-        
-        // Если нет данных - отправляем на логин
         if (!userData.name) {
             window.location.href = 'login.html';
         }
         
-        // Показываем имя в заголовке
         document.getElementById('userName').textContent = userData.name;
-        
-        // Сообщаем серверу, что пользователь присоединился
         socket.emit('user joined', userData.name);
 
         const messagesList = document.getElementById('messages');
         const chatForm = document.getElementById('chatForm');
         const messageInput = document.getElementById('messageInput');
+        
+        let currentUserId = userData.id;
+        let selectedMessageId = null;
+
+        // Функция для выделения сообщения
+        function selectMessage(element, messageId) {
+            // Снимаем выделение с предыдущего
+            if (selectedMessageId) {
+                const prev = document.querySelector(`#messages li[data-id='${selectedMessageId}']`);
+                if (prev) prev.classList.remove('selected');
+            }
+            // Выделяем новое
+            element.classList.add('selected');
+            selectedMessageId = messageId;
+        }
+
+        // Удаление сообщения
+        async function deleteMessage(messageId, imageUrl = null) {
+            try {
+                const response = await fetch('/api/delete-message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        messageId, 
+                        userId: currentUserId,
+                        userRole: userData.role,
+                        imageUrl 
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    // Удаляем сообщение из DOM
+                    const msgElement = document.querySelector(`#messages li[data-id='${messageId}']`);
+                    if (msgElement) msgElement.remove();
+                    if (selectedMessageId === messageId) selectedMessageId = null;
+                } else {
+                    alert(result.error || 'Нельзя удалить это сообщение');
+                }
+            } catch (err) {
+                alert('Ошибка удаления');
+            }
+        }
 
         // ========== ФОТО ==========
         const imageButton = document.getElementById('imageButton');
@@ -233,35 +343,48 @@
 
         function addMessage(data) {
             const li = document.createElement('li');
+            li.setAttribute('data-id', data.id);
+            li.setAttribute('data-user-id', data.user_id);
+            li.setAttribute('data-image-url', data.image_url || '');
+            
+            const time = formatTime(data.timestamp);
+            
             if (data.name === 'Система') {
                 li.className = 'system';
                 li.textContent = data.text;
             } else {
-                const time = formatTime(data.timestamp);
-                // Проверяем, есть ли ссылка на фото
+                let content = `<span class="user">${data.name}:</span> `;
                 if (data.text && data.text.startsWith('📷')) {
                     const url = data.text.replace('📷 ', '');
-                    li.innerHTML = `<span class="user">${data.name}:</span> 
-                                    <a href="${url}" target="_blank">
-                                        <img src="${url}" class="chat-image">
-                                    </a>
-                                    <span class="timestamp">${time}</span>`;
+                    content += `<a href="${url}" target="_blank"><img src="${url}" class="chat-image"></a>`;
                 } else {
-                    li.innerHTML = `<span class="user">${data.name}:</span> ${data.text}<span class="timestamp">${time}</span>`;
+                    content += data.text;
                 }
+                content += `<span class="timestamp">${time}</span>`;
+                
+                // Кнопка удаления (показывается при выделении)
+                const canDelete = (data.user_id === currentUserId) || userData.role === 'admin';
+                if (canDelete) {
+                    content += `<button class="delete-btn" onclick="event.stopPropagation(); deleteMessage('${data.id}', '${data.image_url || ''}')">🗑️</button>`;
+                }
+                li.innerHTML = content;
+                
+                // Обработчик клика для выделения
+                li.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('delete-btn')) return;
+                    selectMessage(li, data.id);
+                });
             }
             messagesList.appendChild(li);
             messagesList.scrollTop = messagesList.scrollHeight;
         }
 
-        // Получаем историю сообщений
         socket.on('message history', (messages) => {
             if (messages && messages.length > 0) {
                 messages.forEach(addMessage);
             }
         });
 
-        // Получаем новое сообщение
         socket.on('message', (data) => {
             addMessage(data);
         });
@@ -283,6 +406,17 @@
         function goToLobby() {
             window.location.href = 'lobby.html';
         }
+        
+        // Снять выделение при клике вне сообщения
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#messages li')) {
+                if (selectedMessageId) {
+                    const prev = document.querySelector(`#messages li[data-id='${selectedMessageId}']`);
+                    if (prev) prev.classList.remove('selected');
+                    selectedMessageId = null;
+                }
+            }
+        });
     </script>
 </body>
 </html>
