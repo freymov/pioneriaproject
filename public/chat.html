@@ -249,7 +249,11 @@
         }
         
         document.getElementById('userName').textContent = userData.name;
-        socket.emit('user joined', userData.name);
+        socket.emit('user joined', {
+            name: userData.name,
+            id: userData.id,
+            role: userData.role
+        });
 
         const messagesList = document.getElementById('messages');
         const chatForm = document.getElementById('chatForm');
