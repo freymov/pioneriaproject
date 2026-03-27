@@ -111,6 +111,15 @@ async function initDatabase() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
+        // Таблица новостей
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS news (
+                id SERIAL PRIMARY KEY,
+                title VARCHAR(255) NOT NULL,
+                content TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
         
         const existing = await pool.query(
             "SELECT * FROM invite_keys WHERE key_code = 'ADMIN-PIONERIA-2026'"
@@ -271,6 +280,80 @@ app.get('/api/admin/users', async (req, res) => {
         res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
+
+
+// ========== НОВОСТИ ==========
+
+// Получить все новости (для лобби)
+app.get('/api/news', async (req, res) => {
+    try {
+        const result = await pool.query(
+            'SELECT * FROM news ORDER BY created_at DESC LIMIT 10'
+        );
+        res.json({ success: true, news: result.rows });
+    } catch (err) {
+        console.error('❌ Ошибка загрузки новостей:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+// Создать новость (только админ)
+app.post('/api/admin/news', async (req, res) => {
+    const { adminEmail, title, content } = req.body;
+    
+    if (!title || !content) {
+        return res.json({ success: false, error: 'Заполните заголовок и текст' });
+    }
+    
+    try {
+        const admin = await pool.query(
+            'SELECT * FROM users WHERE email = $1 AND role = $2',
+            [adminEmail, 'admin']
+        );
+        
+        if (admin.rows.length === 0) {
+            return res.json({ success: false, error: 'Нет прав' });
+        }
+        
+        await pool.query(
+            'INSERT INTO news (title, content) VALUES ($1, $2)',
+            [title, content]
+        );
+        
+        res.json({ success: true });
+    } catch (err) {
+        console.error('❌ Ошибка создания новости:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+// Удалить новость (только админ)
+app.delete('/api/admin/news/:id', async (req, res) => {
+    const { adminEmail } = req.body;
+    const newsId = req.params.id;
+    
+    try {
+        const admin = await pool.query(
+            'SELECT * FROM users WHERE email = $1 AND role = $2',
+            [adminEmail, 'admin']
+        );
+        
+        if (admin.rows.length === 0) {
+            return res.json({ success: false, error: 'Нет прав' });
+        }
+        
+        await pool.query('DELETE FROM news WHERE id = $1', [newsId]);
+        
+        res.json({ success: true });
+    } catch (err) {
+        console.error('❌ Ошибка удаления новости:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+
+
+
 
 // ========== УДАЛЕНИЕ СООБЩЕНИЙ ==========
 app.post('/api/delete-message', async (req, res) => {
