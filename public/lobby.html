@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Чат - Вход и регистрация</title>
+    <title>Pioneria Project — Лобби</title>
     <link rel="icon" type="image/jpg" href="/favicon.jpg">
     <style>
         * {
@@ -16,308 +16,532 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+        }
+
+        /* Шапка */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 20px;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            max-width: 400px;
-            padding: 30px 20px;
-        }
-
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 24px;
-        }
-
-        .tabs {
-            display: flex;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #f0f0f0;
-        }
-
-        .tab {
-            flex: 1;
-            text-align: center;
-            padding: 12px;
+        .menu-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
             cursor: pointer;
-            color: #666;
-            font-weight: 500;
-            transition: all 0.3s;
-            font-size: 16px;
-        }
-
-        .tab.active {
             color: #667eea;
-            border-bottom: 2px solid #667eea;
-            margin-bottom: -2px;
+            transition: transform 0.2s;
+            padding: 8px;
         }
 
-        .form {
-            display: none;
+        .menu-btn:hover {
+            transform: scale(1.1);
         }
 
-        .form.active {
-            display: block;
+        .logo {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
         }
 
-        .form-group {
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .avatar:hover {
+            transform: scale(1.05);
+        }
+
+        /* Боковое меню */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            transition: left 0.3s ease;
+            z-index: 200;
+            padding: 20px 0;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
             margin-bottom: 20px;
         }
 
-        label {
-            display: block;
-            margin-bottom: 8px;
+        .sidebar-header h3 {
+            color: #667eea;
+        }
+
+        .sidebar-item {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
             color: #333;
-            font-weight: 500;
+            font-size: 16px;
+        }
+
+        .sidebar-item:hover {
+            background: #f5f5f5;
+        }
+
+        .sidebar-item .emoji {
+            font-size: 20px;
+        }
+
+        /* Оверлей (затемнение) */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 150;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+
+        /* Контент */
+        .content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .welcome-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .welcome-card h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .welcome-card p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .news-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .news-card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+        }
+
+        .news-list {
+            list-style: none;
+        }
+
+        .news-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 12px;
             font-size: 14px;
         }
 
-        input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
+        .news-list li:last-child {
+            border-bottom: none;
+        }
+
+        .news-bullet {
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .news-date {
+            color: #999;
+            font-size: 11px;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        /* Модальное окно профиля */
+        .profile-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            width: 90%;
+            max-width: 350px;
+            z-index: 250;
+            display: none;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .profile-modal.active {
+            display: block;
+        }
+
+        .profile-modal h3 {
+            margin-bottom: 20px;
+            color: #667eea;
+            font-size: 20px;
+        }
+
+        .profile-modal p {
+            margin: 12px 0;
+            padding: 12px;
+            background: #f5f5f5;
             border-radius: 10px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-            -webkit-appearance: none;
+            word-break: break-all;
+            font-size: 14px;
         }
 
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        button {
+        .profile-modal button {
+            margin-top: 20px;
             width: 100%;
-            padding: 14px;
+            padding: 12px;
             background: #667eea;
             color: white;
             border: none;
             border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
             cursor: pointer;
-            transition: background 0.3s;
-            margin-top: 10px;
-        }
-
-        button:hover {
-            background: #764ba2;
-        }
-
-        .error-message {
-            color: #e74c3c;
-            font-size: 14px;
-            margin-top: 5px;
-            display: none;
-        }
-
-        .success-message {
-            color: #27ae60;
-            font-size: 14px;
-            margin-top: 5px;
-            display: none;
-            text-align: center;
+            font-size: 16px;
         }
 
         /* Мобильная версия */
-        @media (max-width: 480px) {
-            body {
-                padding: 10px;
+        @media (max-width: 768px) {
+            .header {
+                padding: 10px 15px;
             }
-            .container {
-                padding: 20px 15px;
+            .logo {
+                font-size: 16px;
             }
-            h1 {
+            .avatar {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+            .menu-btn {
+                font-size: 24px;
+            }
+            .content {
+                padding: 15px;
+            }
+            .welcome-card h1 {
                 font-size: 20px;
-                margin-bottom: 20px;
             }
-            .tab {
-                padding: 10px;
+            .welcome-card p {
                 font-size: 14px;
             }
-            input, button {
-                padding: 12px;
+            .news-card h2 {
+                font-size: 18px;
+            }
+            .news-list li {
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .welcome-card, .news-card {
+                padding: 20px;
+            }
+            .welcome-card h1 {
+                font-size: 18px;
+            }
+            .sidebar {
+                width: 260px;
+            }
+            .sidebar-item {
+                padding: 12px 16px;
                 font-size: 14px;
+            }
+            .profile-modal {
+                padding: 20px;
+                width: 95%;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎵 Pioneria Project Chat</h1>
-        
-        <div class="tabs">
-            <div class="tab active" onclick="switchTab('login')">Вход</div>
-            <div class="tab" onclick="switchTab('register')">Регистрация</div>
-        </div>
+    <div class="header">
+        <button class="menu-btn" onclick="toggleMenu()">☰</button>
+        <div class="logo">🎵 PIONERIA PROJECT</div>
+        <div class="avatar" id="avatarBtn" onclick="toggleProfile()">👤</div>
+    </div>
 
-        <!-- Форма входа -->
-        <div id="loginForm" class="form active">
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="loginEmail" placeholder="Введите email">
-            </div>
-            <div class="form-group">
-                <label>Пароль</label>
-                <input type="password" id="loginPassword" placeholder="Введите пароль">
-            </div>
-            <button onclick="login()">Войти</button>
-            <div id="loginError" class="error-message"></div>
+    <!-- Боковое меню -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>Меню</h3>
         </div>
-
-        <!-- Форма регистрации -->
-        <div id="registerForm" class="form">
-            <div class="form-group">
-                <label>Имя</label>
-                <input type="text" id="regName" placeholder="Введите ваше имя">
-            </div>
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="regEmail" placeholder="Введите email">
-            </div>
-            <div class="form-group">
-                <label>Пароль</label>
-                <input type="password" id="regPassword" placeholder="Придумайте пароль">
-            </div>
-            <div class="form-group">
-                <label>Подтверждение пароля</label>
-                <input type="password" id="regConfirmPassword" placeholder="Повторите пароль">
-            </div>
-            <div class="form-group">
-                <label>🔑 Ключ доступа</label>
-                <input type="text" id="regAccessKey" placeholder="Введите ключ">
-            </div>
-            <button onclick="register()">Зарегистрироваться</button>
-            <div id="registerError" class="error-message"></div>
-            <div id="registerSuccess" class="success-message"></div>
+        <div class="sidebar-item" onclick="goToNews()">
+            <span class="emoji">📢</span>
+            <span>Новости</span>
+        </div>
+        <div class="sidebar-item" onclick="goToChat()">
+            <span class="emoji">💬</span>
+            <span>Чат</span>
+        </div>
+        <div class="sidebar-item" onclick="goToChats()">
+            <span class="emoji">💬</span>
+            <span>Диалоги</span>
+        </div>
+        <div class="sidebar-item" onclick="toggleProfile()">
+            <span class="emoji">👤</span>
+            <span>Профиль</span>
+        </div>
+        <div class="sidebar-item" id="adminMenuItem" style="display: none;" onclick="goToAdmin()">
+            <span class="emoji">🔧</span>
+            <span>Админ-панель</span>
+        </div>
+        <div class="sidebar-item" onclick="logout()">
+            <span class="emoji">🚪</span>
+            <span>Выход</span>
         </div>
     </div>
 
+    <div class="overlay" id="overlay" onclick="closeMenu()"></div>
+
+    <!-- Основной контент -->
+    <div class="content">
+        <div class="welcome-card">
+            <h1>Добро пожаловать, <span id="userName"></span>!</h1>
+            <p>Рады видеть тебя в Pioneria Project</p>
+        </div>
+
+        <div class="news-card">
+            <h2>📢 Новости студии</h2>
+            <ul class="news-list" id="newsList">
+                <div id="newsLoader">Загрузка новостей...</div>
+            </ul>
+
+        </div>
+    </div>
+
+    <div class="profile-modal" id="profileModal">
+        <h3>👤 Мой профиль</h3>
+        <p><strong>Имя:</strong> <span id="profileName"></span> 
+            <button onclick="showEditName()" style="background: #667eea; padding: 4px 12px; margin-left: 10px;">✏️</button>
+        </p>
+        <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+    
+        <div id="editNameForm" style="display: none; margin-top: 15px;">
+            <input type="text" id="newNameInput" placeholder="Новое имя" style="width: 100%; margin-bottom: 10px;">
+            <button onclick="updateName()" style="background: #4caf50;">Сохранить</button>
+            <button onclick="hideEditName()" style="background: #666;">Отмена</button>
+        </div>
+    
+        <button onclick="closeProfile()" style="margin-top: 15px;">Закрыть</button>
+    </div>
+
     <script>
-        function switchTab(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            document.getElementById('loginForm').classList.remove('active');
-            document.getElementById('registerForm').classList.remove('active');
-            
-            if (tab === 'login') {
-                document.getElementById('loginForm').classList.add('active');
-            } else {
-                document.getElementById('registerForm').classList.add('active');
-            }
-            
-            document.getElementById('loginError').style.display = 'none';
-            document.getElementById('registerError').style.display = 'none';
-            document.getElementById('registerSuccess').style.display = 'none';
+        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!userData.name) {
+            window.location.href = 'login.html';
         }
 
-        async function login() {
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            const errorDiv = document.getElementById('loginError');
-            
-            if (!email || !password) {
-                errorDiv.textContent = 'Заполните все поля';
-                errorDiv.style.display = 'block';
-                return;
+        // Показываем пункт админ-панели, если пользователь админ
+        if (userData.role === 'admin') {
+            const adminItem = document.getElementById('adminMenuItem');
+            if (adminItem) adminItem.style.display = 'flex';
+        }
+        
+        document.getElementById('userName').textContent = userData.name;
+        document.getElementById('profileName').textContent = userData.name;
+        document.getElementById('profileEmail').textContent = userData.email;
+
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('overlay').classList.toggle('active');
+        }
+
+        function closeMenu() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('overlay').classList.remove('active');
+        }
+
+        function toggleProfile() {
+            const modal = document.getElementById('profileModal');
+            modal.classList.toggle('active');
+            closeMenu();
+        }
+
+        function closeProfile() {
+            document.getElementById('profileModal').classList.remove('active');
+        }
+
+        function goToChat() {
+            window.location.href = 'chat.html';
+        }
+        
+        function goToChats() {
+            window.location.href = 'chats.html';
+        }
+
+        function goToNews() {
+            closeMenu();
+            document.querySelector('.news-card').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function goToAdmin() {
+            window.location.href = 'admin.html';
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+
+        document.addEventListener('click', function(e) {
+            const sidebar = document.getElementById('sidebar');
+            const menuBtn = document.querySelector('.menu-btn');
+            if (!sidebar.contains(e.target) && !menuBtn.contains(e.target) && sidebar.classList.contains('open')) {
+                closeMenu();
             }
-            
-            try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-                
+        });
+
+        function showEditName() {
+            document.getElementById('editNameForm').style.display = 'block';
+            document.getElementById('newNameInput').value = userData.name;
+        }
+
+        function hideEditName() {
+            document.getElementById('editNameForm').style.display = 'none';
+        }
+
+        async function updateName() {
+            const newName = document.getElementById('newNameInput').value.trim();
+                if (!newName) {
+                    alert('Имя не может быть пустым');
+                return;
+                }
+    
+                try {
+                    const response = await fetch('/api/update-name', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            userId: userData.id,
+                            newName: newName,
+                            oldName: userData.name
+                        })
+                    });
+        
                 const result = await response.json();
-                
+        
                 if (result.success) {
-                    localStorage.setItem('user', JSON.stringify(result.user));
-                    window.location.href = 'lobby.html';
+                    // Обновляем данные в localStorage
+                    userData.name = newName;
+                    localStorage.setItem('user', JSON.stringify(userData));
+            
+                    // Обновляем отображение
+                    document.getElementById('profileName').textContent = newName;
+                    document.getElementById('userName').textContent = newName;
+            
+                    hideEditName();
+                    alert('Имя успешно изменено!');
+            
+                    // Перезагружаем страницу, чтобы обновить имя в чате
+                    setTimeout(() => window.location.reload(), 1000);
                 } else {
-                    errorDiv.textContent = result.error;
-                    errorDiv.style.display = 'block';
+                    alert(result.error || 'Ошибка изменения имени');
                 }
             } catch (err) {
-                errorDiv.textContent = 'Ошибка сервера';
-                errorDiv.style.display = 'block';
+                alert('Ошибка сервера');
             }
         }
 
-        async function register() {
-            const name = document.getElementById('regName').value;
-            const email = document.getElementById('regEmail').value;
-            const password = document.getElementById('regPassword').value;
-            const confirmPassword = document.getElementById('regConfirmPassword').value;
-            const accessKey = document.getElementById('regAccessKey').value;
-            
-            const errorDiv = document.getElementById('registerError');
-            const successDiv = document.getElementById('registerSuccess');
-            
-            if (!name || !email || !password || !confirmPassword || !accessKey) {
-                errorDiv.textContent = 'Заполните все поля';
-                errorDiv.style.display = 'block';
-                successDiv.style.display = 'none';
-                return;
-            }
-            
-            if (password !== confirmPassword) {
-                errorDiv.textContent = 'Пароли не совпадают';
-                errorDiv.style.display = 'block';
-                successDiv.style.display = 'none';
-                return;
-            }
-            
-            if (password.length < 6) {
-                errorDiv.textContent = 'Пароль должен быть не менее 6 символов';
-                errorDiv.style.display = 'block';
-                successDiv.style.display = 'none';
-                return;
-            }
-            
+        // Загрузка новостей
+        async function loadNews() {
             try {
-                const response = await fetch('/api/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password, accessKey })
-                });
-                
+                const response = await fetch('/api/news');
                 const result = await response.json();
                 
-                if (result.success) {
-                    errorDiv.style.display = 'none';
-                    successDiv.textContent = 'Регистрация прошла успешно! Теперь можно войти.';
-                    successDiv.style.display = 'block';
-                    
-                    document.getElementById('regName').value = '';
-                    document.getElementById('regEmail').value = '';
-                    document.getElementById('regPassword').value = '';
-                    document.getElementById('regConfirmPassword').value = '';
-                    document.getElementById('regAccessKey').value = '';
-                    
-                    setTimeout(() => switchTab('login'), 2000);
+                const newsList = document.getElementById('newsList');
+                
+                if (result.success && result.news.length > 0) {
+                    newsList.innerHTML = '';
+                    result.news.forEach(news => {
+                        const li = document.createElement('li');
+                        const date = new Date(news.created_at).toLocaleDateString('ru-RU');
+                        li.innerHTML = `
+                            <div class="news-bullet"></div>
+                            <div style="flex: 1;">
+                                <strong>${escapeHtml(news.title)}</strong>
+                                <div style="font-size: 12px; color: #666; margin-top: 4px;">${escapeHtml(news.content)}</div>
+                            </div>
+                            <span class="news-date">${date}</span>
+                        `;
+                        newsList.appendChild(li);
+                    });
                 } else {
-                    errorDiv.textContent = result.error;
-                    errorDiv.style.display = 'block';
-                    successDiv.style.display = 'none';
+                    newsList.innerHTML = '<div style="text-align: center; color: #999;">Новостей пока нет</div>';
                 }
             } catch (err) {
-                errorDiv.textContent = 'Ошибка сервера';
-                errorDiv.style.display = 'block';
-                successDiv.style.display = 'none';
+                console.error('Ошибка загрузки новостей:', err);
+                document.getElementById('newsList').innerHTML = '<div style="text-align: center; color: #999;">Ошибка загрузки</div>';
             }
         }
+
+        // Простая защита от XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Вызываем загрузку при загрузке страницы
+        loadNews();
     </script>
 </body>
 </html>
