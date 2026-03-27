@@ -392,7 +392,16 @@ io.on('connection', async (socket) => {
         }
     });
 });
-
+// ВРЕМЕННО: добавить поля в messages
+app.get('/fix-db', async (req, res) => {
+    try {
+        await pool.query(`ALTER TABLE messages ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id)`);
+        await pool.query(`ALTER TABLE messages ADD COLUMN IF NOT EXISTS image_url TEXT`);
+        res.send('✅ Поля user_id и image_url добавлены в messages');
+    } catch (err) {
+        res.send('❌ Ошибка: ' + err.message);
+    }
+});
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`\n🚀 Сервер запущен на порту ${PORT}`);
