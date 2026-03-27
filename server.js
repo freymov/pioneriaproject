@@ -98,6 +98,7 @@ async function initDatabase() {
                 user_id INTEGER REFERENCES users(id),
                 image_url TEXT,
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                is_read BOOLEAN DEFAULT FALSE
             )
         `);
         
@@ -119,6 +120,27 @@ async function initDatabase() {
                 content TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
+        `);
+                // Таблица диалогов (чатов)
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS chats (
+                id SERIAL PRIMARY KEY,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        // Таблица участников диалога
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS chat_participants (
+                chat_id INTEGER REFERENCES chats(id) ON DELETE CASCADE,
+                user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                PRIMARY KEY (chat_id, user_id)
+            )
+        `);
+
+        // Таблица сообщений (добавляем поле chat_id)
+        await pool.query(`
+            ALTER TABLE messages ADD COLUMN IF NOT EXISTS chat_id INTEGER REFERENCES chats(id)
         `);
         
         const existing = await pool.query(
@@ -280,6 +302,92 @@ app.get('/api/admin/users', async (req, res) => {
         res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
+
+
+// ========== ЛИЧНЫЕ СООБЩЕНИЯ ==========
+
+// Получить или создать диалог с пользователем
+app.post('/api/get-or-create-chat', async (req, res) => {
+    const { userId, otherUserId } = req.body;
+    
+    try {
+        // Ищем существующий диалог между этими двумя пользователями
+        const existing = await pool.query(`
+            SELECT c.id FROM chats c
+            JOIN chat_participants p1 ON c.id = p1.chat_id
+            JOIN chat_participants p2 ON c.id = p2.chat_id
+            WHERE p1.user_id = $1 AND p2.user_id = $2
+            AND (SELECT COUNT(*) FROM chat_participants WHERE chat_id = c.id) = 2
+        `, [userId, otherUserId]);
+        
+        if (existing.rows.length > 0) {
+            return res.json({ success: true, chatId: existing.rows[0].id });
+        }
+        
+        // Создаём новый диалог
+        const newChat = await pool.query(
+            'INSERT INTO chats DEFAULT VALUES RETURNING id'
+        );
+        const chatId = newChat.rows[0].id;
+        
+        await pool.query(
+            'INSERT INTO chat_participants (chat_id, user_id) VALUES ($1, $2), ($1, $3)',
+            [chatId, userId, otherUserId]
+        );
+        
+        res.json({ success: true, chatId });
+    } catch (err) {
+        console.error('❌ Ошибка создания диалога:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+// Получить список диалогов пользователя
+app.get('/api/chats', async (req, res) => {
+    const { userId } = req.query;
+    
+    try {
+        const chats = await pool.query(`
+            SELECT 
+                c.id,
+                u.id as other_user_id,
+                u.name as other_user_name,
+                u.role as other_user_role,
+                (SELECT text FROM messages WHERE chat_id = c.id ORDER BY timestamp DESC LIMIT 1) as last_message,
+                (SELECT timestamp FROM messages WHERE chat_id = c.id ORDER BY timestamp DESC LIMIT 1) as last_message_time,
+                (SELECT COUNT(*) FROM messages WHERE chat_id = c.id AND user_id != $1 AND is_read = false) as unread_count
+            FROM chats c
+            JOIN chat_participants cp ON c.id = cp.chat_id
+            JOIN users u ON cp.user_id = u.id
+            WHERE c.id IN (
+                SELECT chat_id FROM chat_participants WHERE user_id = $1
+            ) AND cp.user_id != $1
+            ORDER BY last_message_time DESC NULLS LAST
+        `, [userId]);
+        
+        res.json({ success: true, chats: chats.rows });
+    } catch (err) {
+        console.error('❌ Ошибка загрузки диалогов:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+// Отметить сообщения как прочитанные
+app.post('/api/mark-read', async (req, res) => {
+    const { chatId, userId } = req.body;
+    
+    try {
+        await pool.query(
+            'UPDATE messages SET is_read = true WHERE chat_id = $1 AND user_id != $2 AND is_read = false',
+            [chatId, userId]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        console.error('❌ Ошибка отметки прочитанных:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
 
 
 // ========== НОВОСТИ ==========
@@ -451,15 +559,15 @@ async function getMessageHistory() {
     }
 }
 
-async function saveMessage(userName, text, userId, imageUrl = null) {
+async function saveMessage(userName, text, userId, imageUrl = null, chatId = null) {
     try {
         const validUserId = (userId && typeof userId === 'number') ? userId : null;
         
         const result = await pool.query(
-            'INSERT INTO messages (user_name, text, user_id, image_url) VALUES ($1, $2, $3, $4) RETURNING id',
-            [userName, text, validUserId, imageUrl]
+            'INSERT INTO messages (user_name, text, user_id, image_url, chat_id, is_read) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+            [userName, text, validUserId, imageUrl, chatId, false]
         );
-        console.log('✅ Сообщение сохранено, id:', result.rows[0].id, 'user_id:', validUserId);
+        console.log('✅ Сообщение сохранено, id:', result.rows[0].id);
         return result.rows[0].id;
     } catch (err) {
         console.error('❌ Ошибка сохранения сообщения:', err);
@@ -482,28 +590,41 @@ io.on('connection', async (socket) => {
         console.log('👤 Вошёл:', userData.name, 'id:', userData.id);
     });
 
-    socket.on('chat message', async (msg) => {
-        const userName = currentUser?.name || onlineUsers[socket.id] || 'Аноним';
-        const userId = currentUser?.id ? parseInt(currentUser.id) : null;
-        
-        let imageUrl = null;
-        if (msg.startsWith('📷')) {
-            imageUrl = msg.replace('📷 ', '');
-        }
-        
-        const messageId = await saveMessage(userName, msg, userId, imageUrl);
-        
-        const messageData = {
-            id: messageId,
-            name: userName,
-            text: msg,
-            user_id: userId,
-            timestamp: new Date().toISOString(),
-            image_url: imageUrl
-        };
-        
+socket.on('chat message', async (msg) => {
+    const userName = currentUser?.name || onlineUsers[socket.id] || 'Аноним';
+    const userId = currentUser?.id ? parseInt(currentUser.id) : null;
+    const chatId = currentChatId || null; // нужно будет передавать из клиента
+    
+    let imageUrl = null;
+    if (msg.startsWith('📷')) {
+        imageUrl = msg.replace('📷 ', '');
+    }
+    
+    const messageId = await saveMessage(userName, msg, userId, imageUrl, chatId);
+    
+    const messageData = {
+        id: messageId,
+        name: userName,
+        text: msg,
+        user_id: userId,
+        timestamp: new Date().toISOString(),
+        image_url: imageUrl,
+        chat_id: chatId
+    };
+    
+    // Отправляем всем участникам чата
+    if (chatId) {
+        const participants = await pool.query(
+            'SELECT user_id FROM chat_participants WHERE chat_id = $1',
+            [chatId]
+        );
+        participants.rows.forEach(p => {
+            io.to(`user_${p.user_id}`).emit('message', messageData);
+        });
+    } else {
         io.emit('message', messageData);
-    });
+    }
+});
 
     socket.on('disconnect', () => {
         const userName = onlineUsers[socket.id];
