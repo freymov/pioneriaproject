@@ -55,12 +55,19 @@
             background: #666;
             margin-bottom: 20px;
         }
-        input, select {
+        input, select, textarea {
             padding: 10px;
             border: 2px solid #e0e0e0;
             border-radius: 10px;
             font-size: 14px;
-            flex: 1;
+            width: 100%;
+        }
+        .form-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
         }
         .keys-list {
             background: #f5f5f5;
@@ -93,15 +100,7 @@
             color: red;
             margin-top: 10px;
         }
-        .form-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-            margin-top: 10px;
-        }
         
-        /* Мобильная версия */
         @media (max-width: 768px) {
             body {
                 padding: 10px;
@@ -121,16 +120,12 @@
             }
             input, select, button {
                 width: 100%;
-                margin-right: 0;
             }
             table {
                 font-size: 11px;
             }
             th, td {
                 padding: 6px 4px;
-            }
-            .keys-list {
-                font-size: 10px;
             }
         }
         
@@ -171,6 +166,24 @@
             <button onclick="loadUsers()" style="margin-bottom: 15px;">Обновить список</button>
             <div id="usersList">
                 <p>Загрузка...</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📰 Управление новостями</h2>
+            
+            <div style="margin-bottom: 20px;">
+                <h3 style="margin-bottom: 10px;">Создать новость</h3>
+                <input type="text" id="newsTitle" placeholder="Заголовок" style="margin-bottom: 10px;">
+                <textarea id="newsContent" placeholder="Текст новости" rows="3" style="margin-bottom: 10px;"></textarea>
+                <button onclick="createNews()">➕ Создать</button>
+            </div>
+            
+            <div>
+                <h3 style="margin-bottom: 10px;">Существующие новости</h3>
+                <div id="newsListAdmin" style="max-height: 300px; overflow-y: auto;">
+                    <p>Загрузка...</p>
+                </div>
             </div>
         </div>
     </div>
@@ -223,8 +236,8 @@
                     result.users.forEach(user => {
                         html += `<tr>
                             <td>${user.id}</td>
-                            <td>${user.name}</td>
-                            <td>${user.email}</td>
+                            <td>${escapeHtml(user.name)}</td>
+                            <td>${escapeHtml(user.email)}</td>
                             <td>${user.role === 'admin' ? '👑 Админ' : '👤 Пользователь'}</td>
                             <td>${new Date(user.created_at).toLocaleDateString()}</td>
                         </tr>`;
@@ -243,7 +256,108 @@
             window.location.href = 'lobby.html';
         }
         
+        // ========== НОВОСТИ ==========
+        async function loadNewsAdmin() {
+            try {
+                const response = await fetch('/api/news');
+                const result = await response.json();
+                
+                const newsContainer = document.getElementById('newsListAdmin');
+                
+                if (result.success && result.news.length > 0) {
+                    let html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+                    result.news.forEach(news => {
+                        const date = new Date(news.created_at).toLocaleDateString('ru-RU');
+                        html += `
+                            <div style="background: #f5f5f5; padding: 12px; border-radius: 10px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                                    <div style="flex: 1;">
+                                        <strong>${escapeHtml(news.title)}</strong>
+                                        <div style="font-size: 12px; color: #666;">${escapeHtml(news.content)}</div>
+                                        <div style="font-size: 10px; color: #999; margin-top: 5px;">${date}</div>
+                                    </div>
+                                    <button onclick="deleteNews(${news.id})" style="background: #ff4444; padding: 6px 12px;">🗑️</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    newsContainer.innerHTML = html;
+                } else {
+                    newsContainer.innerHTML = '<p>Новостей пока нет</p>';
+                }
+            } catch (err) {
+                console.error('Ошибка:', err);
+                document.getElementById('newsListAdmin').innerHTML = '<p>Ошибка загрузки</p>';
+            }
+        }
+
+        async function createNews() {
+            const title = document.getElementById('newsTitle').value.trim();
+            const content = document.getElementById('newsContent').value.trim();
+            
+            if (!title || !content) {
+                alert('Заполните заголовок и текст новости');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/admin/news', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        adminEmail: userData.email,
+                        title,
+                        content
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('✅ Новость создана');
+                    document.getElementById('newsTitle').value = '';
+                    document.getElementById('newsContent').value = '';
+                    loadNewsAdmin();
+                } else {
+                    alert('❌ ' + result.error);
+                }
+            } catch (err) {
+                alert('Ошибка сервера');
+            }
+        }
+
+        async function deleteNews(newsId) {
+            if (!confirm('Удалить новость?')) return;
+            
+            try {
+                const response = await fetch(`/api/admin/news/${newsId}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminEmail: userData.email })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('✅ Новость удалена');
+                    loadNewsAdmin();
+                } else {
+                    alert('❌ ' + result.error);
+                }
+            } catch (err) {
+                alert('Ошибка сервера');
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         loadUsers();
+        loadNewsAdmin();
     </script>
 </body>
 </html>
