@@ -375,12 +375,20 @@
         </div>
     </div>
 
-    <!-- Модальное окно профиля -->
     <div class="profile-modal" id="profileModal">
         <h3>👤 Мой профиль</h3>
-        <p><strong>Имя:</strong> <span id="profileName"></span></p>
+        <p><strong>Имя:</strong> <span id="profileName"></span> 
+            <button onclick="showEditName()" style="background: #667eea; padding: 4px 12px; margin-left: 10px;">✏️</button>
+        </p>
         <p><strong>Email:</strong> <span id="profileEmail"></span></p>
-        <button onclick="closeProfile()">Закрыть</button>
+    
+        <div id="editNameForm" style="display: none; margin-top: 15px;">
+            <input type="text" id="newNameInput" placeholder="Новое имя" style="width: 100%; margin-bottom: 10px;">
+            <button onclick="updateName()" style="background: #4caf50;">Сохранить</button>
+            <button onclick="hideEditName()" style="background: #666;">Отмена</button>
+        </div>
+    
+        <button onclick="closeProfile()" style="margin-top: 15px;">Закрыть</button>
     </div>
 
     <script>
@@ -445,6 +453,57 @@
                 closeMenu();
             }
         });
+
+        function showEditName() {
+            document.getElementById('editNameForm').style.display = 'block';
+            document.getElementById('newNameInput').value = userData.name;
+        }
+
+        function hideEditName() {
+            document.getElementById('editNameForm').style.display = 'none';
+        }
+
+        async function updateName() {
+            const newName = document.getElementById('newNameInput').value.trim();
+                if (!newName) {
+                    alert('Имя не может быть пустым');
+                return;
+                }
+    
+                try {
+                    const response = await fetch('/api/update-name', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            userId: userData.id,
+                            newName: newName,
+                            oldName: userData.name
+                        })
+                    });
+        
+                const result = await response.json();
+        
+                if (result.success) {
+                    // Обновляем данные в localStorage
+                    userData.name = newName;
+                    localStorage.setItem('user', JSON.stringify(userData));
+            
+                    // Обновляем отображение
+                    document.getElementById('profileName').textContent = newName;
+                    document.getElementById('userName').textContent = newName;
+            
+                    hideEditName();
+                    alert('Имя успешно изменено!');
+            
+                    // Перезагружаем страницу, чтобы обновить имя в чате
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    alert(result.error || 'Ошибка изменения имени');
+                }
+            } catch (err) {
+                alert('Ошибка сервера');
+            }
+        }
     </script>
 </body>
 </html>
