@@ -97,8 +97,9 @@ async function initDatabase() {
                 text TEXT NOT NULL,
                 user_id INTEGER REFERENCES users(id),
                 image_url TEXT,
+                chat_id INTEGER REFERENCES chats(id),
+                is_read BOOLEAN DEFAULT FALSE,
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                is_read BOOLEAN DEFAULT FALSE
             )
         `);
         
