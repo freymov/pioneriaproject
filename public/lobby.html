@@ -356,22 +356,9 @@
         <div class="news-card">
             <h2>📢 Новости студии</h2>
             <ul class="news-list" id="newsList">
-                <li>
-                    <div class="news-bullet"></div>
-                    <span>Расписание репетиций обновлено</span>
-                    <span class="news-date">Сегодня</span>
-                </li>
-                <li>
-                    <div class="news-bullet"></div>
-                    <span>Концерт в эту субботу в 18:00</span>
-                    <span class="news-date">Вчера</span>
-                </li>
-                <li>
-                    <div class="news-bullet"></div>
-                    <span>Новая песня "Весенний хор" готова</span>
-                    <span class="news-date">3 дня назад</span>
-                </li>
+                <div id="newsLoader">Загрузка новостей...</div>
             </ul>
+
         </div>
     </div>
 
@@ -504,6 +491,48 @@
                 alert('Ошибка сервера');
             }
         }
+
+        // Загрузка новостей
+        async function loadNews() {
+            try {
+                const response = await fetch('/api/news');
+                const result = await response.json();
+                
+                const newsList = document.getElementById('newsList');
+                
+                if (result.success && result.news.length > 0) {
+                    newsList.innerHTML = '';
+                    result.news.forEach(news => {
+                        const li = document.createElement('li');
+                        const date = new Date(news.created_at).toLocaleDateString('ru-RU');
+                        li.innerHTML = `
+                            <div class="news-bullet"></div>
+                            <div style="flex: 1;">
+                                <strong>${escapeHtml(news.title)}</strong>
+                                <div style="font-size: 12px; color: #666; margin-top: 4px;">${escapeHtml(news.content)}</div>
+                            </div>
+                            <span class="news-date">${date}</span>
+                        `;
+                        newsList.appendChild(li);
+                    });
+                } else {
+                    newsList.innerHTML = '<div style="text-align: center; color: #999;">Новостей пока нет</div>';
+                }
+            } catch (err) {
+                console.error('Ошибка загрузки новостей:', err);
+                document.getElementById('newsList').innerHTML = '<div style="text-align: center; color: #999;">Ошибка загрузки</div>';
+            }
+        }
+
+        // Простая защита от XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Вызываем загрузку при загрузке страницы
+        loadNews();
     </script>
 </body>
 </html>
