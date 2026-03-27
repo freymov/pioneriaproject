@@ -315,6 +315,44 @@ app.post('/api/delete-message', async (req, res) => {
     }
 });
 
+
+// ========== СМЕНА ИМЕНИ ==========
+app.post('/api/update-name', async (req, res) => {
+    const { userId, newName, oldName } = req.body;
+    
+    if (!userId || !newName) {
+        return res.json({ success: false, error: 'Не все данные' });
+    }
+    
+    try {
+        // Обновляем имя в таблице users
+        await pool.query(
+            'UPDATE users SET name = $1 WHERE id = $2',
+            [newName, userId]
+        );
+        
+        // Обновляем имя во всех сообщениях пользователя
+        await pool.query(
+            'UPDATE messages SET user_name = $1 WHERE user_id = $2',
+            [newName, userId]
+        );
+        
+        console.log(`✅ Имя пользователя ${userId} изменено с ${oldName} на ${newName}`);
+        
+        res.json({ success: true });
+    } catch (err) {
+        console.error('❌ Ошибка смены имени:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+
+
+
+
+
+
+
 // ========== ЧАТ ==========
 let onlineUsers = {};
 
