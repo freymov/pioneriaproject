@@ -356,8 +356,31 @@
             imageInput.value = '';
         }
 
-        socket.emit('chat message', { text: `📷 ${result.url}`, chatId: chatId || null });
-
+        async function uploadImage() {
+            const file = imageInput.files[0];
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    socket.emit('chat message', { text: `📷 ${result.url}`, chatId: chatId || null });
+                } else {
+                    alert('Ошибка загрузки фото');
+                }
+            } catch (err) {
+                alert('Ошибка сервера');
+            }
+            
+            imageInput.value = '';
+        }
         // ========== СООБЩЕНИЯ ==========
         function formatTime(timestamp) {
             if (!timestamp) return '';
@@ -387,7 +410,7 @@
                 content += `<span class="timestamp">${time}</span>`;
                 
                 // Кнопка удаления (показывается при выделении)
-                const canDelete = (data.user_id === currentUserId) || userData.role === 'admin';
+                const canDelete = (data.user_id && data.user_id === currentUserId) || userData.role === 'admin';
                 if (canDelete) {
                     content += `<button class="delete-btn" onclick="event.stopPropagation(); deleteMessage('${data.id}', '${data.image_url || ''}')">🗑️</button>`;
                 }
