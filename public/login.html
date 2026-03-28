@@ -114,6 +114,14 @@
             background: #764ba2;
         }
 
+        button.secondary {
+            background: #666;
+        }
+
+        button.secondary:hover {
+            background: #555;
+        }
+
         .error-message {
             color: #e74c3c;
             font-size: 14px;
@@ -129,7 +137,13 @@
             text-align: center;
         }
 
-        /* Мобильная версия */
+        .verification-code {
+            font-size: 24px;
+            letter-spacing: 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+
         @media (max-width: 480px) {
             body {
                 padding: 10px;
@@ -201,15 +215,30 @@
             <div id="registerError" class="error-message"></div>
             <div id="registerSuccess" class="success-message"></div>
         </div>
+
+        <!-- Форма верификации -->
+        <div id="verificationForm" class="form">
+            <div class="form-group">
+                <label>Код подтверждения</label>
+                <input type="text" id="verificationCode" placeholder="Введите код из письма" class="verification-code">
+            </div>
+            <button onclick="verifyEmail()">Подтвердить</button>
+            <button onclick="resendCode()" class="secondary" style="margin-top: 10px;">Отправить код заново</button>
+            <div id="verificationError" class="error-message"></div>
+            <div id="verificationSuccess" class="success-message"></div>
+        </div>
     </div>
 
     <script>
+        let pendingEmail = '';
+
         function switchTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             event.target.classList.add('active');
             
             document.getElementById('loginForm').classList.remove('active');
             document.getElementById('registerForm').classList.remove('active');
+            document.getElementById('verificationForm').classList.remove('active');
             
             if (tab === 'login') {
                 document.getElementById('loginForm').classList.add('active');
@@ -220,6 +249,8 @@
             document.getElementById('loginError').style.display = 'none';
             document.getElementById('registerError').style.display = 'none';
             document.getElementById('registerSuccess').style.display = 'none';
+            document.getElementById('verificationError').style.display = 'none';
+            document.getElementById('verificationSuccess').style.display = 'none';
         }
 
         async function login() {
@@ -296,17 +327,31 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    errorDiv.style.display = 'none';
-                    successDiv.textContent = 'Регистрация прошла успешно! Теперь можно войти.';
-                    successDiv.style.display = 'block';
+                    pendingEmail = email;
                     
-                    document.getElementById('regName').value = '';
-                    document.getElementById('regEmail').value = '';
-                    document.getElementById('regPassword').value = '';
-                    document.getElementById('regConfirmPassword').value = '';
-                    document.getElementById('regAccessKey').value = '';
+                    // Отправляем код подтверждения
+                    const verifyResponse = await fetch('/api/send-verification', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email })
+                    });
                     
-                    setTimeout(() => switchTab('login'), 2000);
+                    const verifyResult = await verifyResponse.json();
+                    
+                    if (verifyResult.success) {
+                        errorDiv.style.display = 'none';
+                        successDiv.textContent = 'Код подтверждения отправлен на почту!';
+                        successDiv.style.display = 'block';
+                        
+                        setTimeout(() => {
+                            document.getElementById('registerForm').classList.remove('active');
+                            document.getElementById('verificationForm').classList.add('active');
+                            successDiv.style.display = 'none';
+                        }, 1500);
+                    } else {
+                        errorDiv.textContent = 'Ошибка отправки кода';
+                        errorDiv.style.display = 'block';
+                    }
                 } else {
                     errorDiv.textContent = result.error;
                     errorDiv.style.display = 'block';
@@ -316,6 +361,67 @@
                 errorDiv.textContent = 'Ошибка сервера';
                 errorDiv.style.display = 'block';
                 successDiv.style.display = 'none';
+            }
+        }
+
+        async function verifyEmail() {
+            const code = document.getElementById('verificationCode').value;
+            const errorDiv = document.getElementById('verificationError');
+            const successDiv = document.getElementById('verificationSuccess');
+            
+            if (!code) {
+                errorDiv.textContent = 'Введите код';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/verify-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: pendingEmail, code })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    successDiv.textContent = '✅ Email подтверждён! Теперь можно войти.';
+                    successDiv.style.display = 'block';
+                    setTimeout(() => {
+                        switchTab('login');
+                        document.getElementById('verificationCode').value = '';
+                        document.getElementById('loginEmail').value = pendingEmail;
+                        pendingEmail = '';
+                    }, 2000);
+                } else {
+                    errorDiv.textContent = result.error;
+                    errorDiv.style.display = 'block';
+                }
+            } catch (err) {
+                errorDiv.textContent = 'Ошибка сервера';
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        async function resendCode() {
+            if (!pendingEmail) return;
+            
+            try {
+                const response = await fetch('/api/send-verification', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: pendingEmail })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Новый код отправлен на почту');
+                } else {
+                    alert('Ошибка отправки');
+                }
+            } catch (err) {
+                alert('Ошибка сервера');
             }
         }
     </script>
