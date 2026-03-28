@@ -226,7 +226,6 @@
             <h2>🎵 Pioneria Project Chat - <span id="userName"></span></h2>
             <div>
                 <button onclick="goToLobby()" style="background: #667eea; margin-right: 8px;">🏠 Лобби</button>
-                <!-- <button onclick="leaveChat()">Выйти</button> -->
             </div>
         </div>
         
@@ -255,8 +254,6 @@
         if (!userData.name) {
             window.location.href = 'login.html';
         }
-        
- 
 
         // Показываем имя в заголовке (общий чат или личный)
         const headerTitle = document.getElementById('userName');
@@ -265,6 +262,7 @@
         } else {
             headerTitle.textContent = userData.name;
         }
+        
         socket.emit('user joined', {
             name: userData.name,
             id: userData.id,
@@ -280,12 +278,10 @@
 
         // Функция для выделения сообщения
         function selectMessage(element, messageId) {
-            // Снимаем выделение с предыдущего
             if (selectedMessageId) {
                 const prev = document.querySelector(`#messages li[data-id='${selectedMessageId}']`);
                 if (prev) prev.classList.remove('selected');
             }
-            // Выделяем новое
             element.classList.add('selected');
             selectedMessageId = messageId;
         }
@@ -306,7 +302,6 @@
                 
                 const result = await response.json();
                 if (result.success) {
-                    // Удаляем сообщение из DOM
                     const msgElement = document.querySelector(`#messages li[data-id='${messageId}']`);
                     if (msgElement) msgElement.remove();
                     if (selectedMessageId === messageId) selectedMessageId = null;
@@ -318,10 +313,6 @@
             }
         }
 
-
-
-
-        
         // ========== ФОТО ==========
         const imageButton = document.getElementById('imageButton');
         const imageInput = document.getElementById('imageInput');
@@ -329,32 +320,6 @@
         imageButton.addEventListener('click', () => {
             imageInput.click();
         });
-
-        async function uploadImage() {
-            const file = imageInput.files[0];
-            if (!file) return;
-            
-            const formData = new FormData();
-            formData.append('image', file);
-            
-            try {
-                const response = await fetch('/api/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const result = await response.json();
-                if (result.success) {
-                    socket.emit('chat message', `📷 ${result.url}`);
-                } else {
-                    alert('Ошибка загрузки фото');
-                }
-            } catch (err) {
-                alert('Ошибка сервера');
-            }
-            
-            imageInput.value = '';
-        }
 
         async function uploadImage() {
             const file = imageInput.files[0];
@@ -381,6 +346,9 @@
             
             imageInput.value = '';
         }
+
+        imageInput.addEventListener('change', uploadImage);
+
         // ========== СООБЩЕНИЯ ==========
         function formatTime(timestamp) {
             if (!timestamp) return '';
@@ -409,14 +377,12 @@
                 }
                 content += `<span class="timestamp">${time}</span>`;
                 
-                // Кнопка удаления (показывается при выделении)
                 const canDelete = (data.user_id && data.user_id === currentUserId) || userData.role === 'admin';
                 if (canDelete) {
                     content += `<button class="delete-btn" onclick="event.stopPropagation(); deleteMessage('${data.id}', '${data.image_url || ''}')">🗑️</button>`;
                 }
                 li.innerHTML = content;
                 
-                // Обработчик клика для выделения
                 li.addEventListener('click', (e) => {
                     if (e.target.classList.contains('delete-btn')) return;
                     selectMessage(li, data.id);
@@ -427,6 +393,7 @@
         }
 
         socket.on('message history', (messages) => {
+            messagesList.innerHTML = '';
             if (messages && messages.length > 0) {
                 messages.forEach(addMessage);
             }
@@ -440,16 +407,10 @@
             e.preventDefault();
             const msg = messageInput.value.trim();
             if (msg) {
-                // Отправляем объект с текстом и chatId
                 socket.emit('chat message', { text: msg, chatId: chatId || null });
                 messageInput.value = '';
             }
         });
-
-        function leaveChat() {
-            localStorage.removeItem('user');
-            window.location.href = 'login.html';
-        }
 
         function goToLobby() {
             window.location.href = 'lobby.html';
