@@ -720,7 +720,7 @@ app.get('/test-email', async (req, res) => {
     try {
         const { data, error } = await resend.emails.send({
             from: 'hello@pioneriaproject.site',
-            to: 'твой_личный_email@gmail.com',
+            to: 'vitalyatulen@gmail.com',
             subject: 'Тест',
             html: '<p>Письмо идёт!</p>'
         });
