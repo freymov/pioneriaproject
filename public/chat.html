@@ -242,17 +242,21 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        const socket = io();
-        
+        // Получаем chatId из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const chatId = urlParams.get('chatId');
+        const otherUserName = urlParams.get('userName');
+
+        const socket = io({
+            query: { chatId: chatId || '' }
+        });
+
         const userData = JSON.parse(localStorage.getItem('user') || '{}');
         if (!userData.name) {
             window.location.href = 'login.html';
         }
         
-        // Получаем параметры из URL (если есть)
-        const urlParams = new URLSearchParams(window.location.search);
-        const chatId = urlParams.get('chatId');
-        const otherUserName = urlParams.get('userName');
+ 
 
         // Показываем имя в заголовке (общий чат или личный)
         const headerTitle = document.getElementById('userName');
