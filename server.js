@@ -716,6 +716,21 @@ io.on('connection', async (socket) => {
         }
     });
 });
+app.get('/test-email', async (req, res) => {
+    try {
+        const { data, error } = await resend.emails.send({
+            from: 'hello@pioneriaproject.site',
+            to: 'твой_личный_email@gmail.com',
+            subject: 'Тест',
+            html: '<p>Письмо идёт!</p>'
+        });
+        res.json({ success: true, data, error });
+    } catch (err) {
+        res.json({ success: false, error: err.message });
+    }
+});
+
+
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
