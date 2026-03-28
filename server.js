@@ -729,7 +729,14 @@ app.get('/test-email', async (req, res) => {
         res.json({ success: false, error: err.message });
     }
 });
-
+app.get('/fix-email-verified', async (req, res) => {
+    try {
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE`);
+        res.send('✅ Поле email_verified добавлено в users');
+    } catch (err) {
+        res.send('❌ Ошибка: ' + err.message);
+    }
+});
 
 
 const PORT = process.env.PORT || 3000;
