@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Диалоги | Pioneria Project</title>
-    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="icon" type="image/jpg" href="/favicon.jpg">
     <style>
         * {
             margin: 0;
@@ -121,14 +121,16 @@
             margin-top: 15px;
             width: 100%;
             padding: 12px;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
         }
         
         @media (max-width: 768px) {
             .chat-last-message {
                 max-width: 150px;
-            }
-            .chat-name {
-                font-size: 14px;
             }
         }
     </style>
@@ -148,18 +150,17 @@
     </div>
 
     <!-- Модальное окно для выбора пользователя -->
-    <div id="newChatModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;">
-        <div style="background: white; border-radius: 20px; padding: 20px; width: 90%; max-width: 400px;">
+    <div id="newChatModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 20px; padding: 20px; width: 90%; max-width: 400px; margin: auto; margin-top: 20vh;">
             <h3 style="margin-bottom: 15px; color: #667eea;">Новый диалог</h3>
             <input type="text" id="searchUser" placeholder="Введите имя пользователя" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 2px solid #e0e0e0; border-radius: 10px;">
             <div id="usersListModal" style="max-height: 300px; overflow-y: auto;">
                 <p>Загрузка...</p>
             </div>
-            <button onclick="closeNewChatModal()" style="margin-top: 15px; width: 100%; background: #666;">Отмена</button>
+            <button onclick="closeNewChatModal()" style="margin-top: 15px; width: 100%; background: #666; padding: 10px; border: none; border-radius: 10px; color: white; cursor: pointer;">Отмена</button>
         </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
     <script>
         const userData = JSON.parse(localStorage.getItem('user') || '{}');
         if (!userData.name) {
@@ -180,21 +181,21 @@
                 
                 const chatsList = document.getElementById('chatsList');
                 
-                if (result.success && result.chats.length > 0) {
+                if (result.success && result.chats && result.chats.length > 0) {
                     chatsList.innerHTML = '';
                     result.chats.forEach(chat => {
-                        const avatarLetter = chat.other_user_name.charAt(0).toUpperCase();
+                        const avatarLetter = chat.other_user_name ? chat.other_user_name.charAt(0).toUpperCase() : '?';
                         const lastMessage = chat.last_message || 'Нет сообщений';
                         const time = chat.last_message_time ? new Date(chat.last_message_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
                         
                         const div = document.createElement('div');
                         div.className = 'chat-item';
-                        div.onclick = () => openChat(chat.chat_id, chat.other_user_name);
+                        div.onclick = () => openChat(chat.id, chat.other_user_name);
                         div.innerHTML = `
                             <div class="chat-avatar">${avatarLetter}</div>
                             <div class="chat-info">
                                 <div class="chat-name">
-                                    ${escapeHtml(chat.other_user_name)}
+                                    ${escapeHtml(chat.other_user_name || 'Неизвестный')}
                                     ${chat.other_user_role === 'admin' ? '<span style="font-size: 10px; background: #667eea; color: white; padding: 2px 6px; border-radius: 10px;">ADMIN</span>' : ''}
                                 </div>
                                 <div class="chat-last-message">${escapeHtml(lastMessage.substring(0, 50))}</div>
@@ -213,12 +214,10 @@
             }
         }
 
-        // Открыть чат
         function openChat(chatId, userName) {
             window.location.href = `chat.html?chatId=${chatId}&userName=${encodeURIComponent(userName)}`;
         }
 
-        // Модальное окно нового диалога
         async function showNewChatModal() {
             const modal = document.getElementById('newChatModal');
             modal.style.display = 'flex';
@@ -227,7 +226,7 @@
 
         async function loadUsersList() {
             try {
-                const response = await fetch(`/api/admin/users?adminEmail=${userData.email}`);
+                const response = await fetch('/api/users');
                 const result = await response.json();
                 
                 if (result.success && result.users) {
@@ -285,7 +284,6 @@
             document.getElementById('searchUser').value = '';
         }
 
-        // Поиск пользователей
         document.getElementById('searchUser')?.addEventListener('input', (e) => {
             const query = e.target.value.toLowerCase();
             const filtered = allUsers.filter(u => u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query));
@@ -293,6 +291,7 @@
         });
 
         function escapeHtml(text) {
+            if (!text) return '';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
