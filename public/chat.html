@@ -249,7 +249,18 @@
             window.location.href = 'login.html';
         }
         
-        document.getElementById('userName').textContent = userData.name;
+        // Получаем параметры из URL (если есть)
+        const urlParams = new URLSearchParams(window.location.search);
+        const chatId = urlParams.get('chatId');
+        const otherUserName = urlParams.get('userName');
+
+        // Показываем имя в заголовке (общий чат или личный)
+        const headerTitle = document.getElementById('userName');
+        if (chatId && otherUserName) {
+            headerTitle.textContent = `${userData.name} → ${otherUserName}`;
+        } else {
+            headerTitle.textContent = userData.name;
+        }
         socket.emit('user joined', {
             name: userData.name,
             id: userData.id,
@@ -303,6 +314,10 @@
             }
         }
 
+
+
+
+        
         // ========== ФОТО ==========
         const imageButton = document.getElementById('imageButton');
         const imageInput = document.getElementById('imageInput');
@@ -337,7 +352,7 @@
             imageInput.value = '';
         }
 
-        imageInput.addEventListener('change', uploadImage);
+        socket.emit('chat message', { text: `📷 ${result.url}`, chatId: chatId || null });
 
         // ========== СООБЩЕНИЯ ==========
         function formatTime(timestamp) {
@@ -398,7 +413,8 @@
             e.preventDefault();
             const msg = messageInput.value.trim();
             if (msg) {
-                socket.emit('chat message', msg);
+                // Отправляем объект с текстом и chatId
+                socket.emit('chat message', { text: msg, chatId: chatId || null });
                 messageInput.value = '';
             }
         });
