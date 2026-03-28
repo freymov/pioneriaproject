@@ -165,6 +165,29 @@ async function initDatabase() {
 
 initDatabase();
 
+
+
+// ВРЕМЕННО: добавить недостающие поля
+app.get('/fix-chats', async (req, res) => {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS chats (
+                id SERIAL PRIMARY KEY,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS chat_participants (
+                chat_id INTEGER REFERENCES chats(id) ON DELETE CASCADE,
+                user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                PRIMARY KEY (chat_id, user_id)
+            )
+        `);
+        res.send('✅ Таблицы chats и chat_participants созданы');
+    } catch (err) {
+        res.send('❌ Ошибка: ' + err.message);
+    }
+});
 // ========== API ==========
 
 app.post('/api/register', async (req, res) => {
@@ -536,18 +559,23 @@ app.post('/api/update-name', async (req, res) => {
 // ========== ЧАТ ==========
 let onlineUsers = {};
 
-async function getMessageHistory() {
+async function getMessageHistory(chatId = null) {
     try {
-        const result = await pool.query(
-            'SELECT id, user_name as name, text, user_id, image_url, timestamp FROM messages WHERE chat_id IS NULL ORDER BY timestamp ASC LIMIT 100'
-        );
+        let query, params;
+        if (chatId) {
+            query = 'SELECT id, user_name as name, text, user_id, image_url, timestamp FROM messages WHERE chat_id = $1 ORDER BY timestamp ASC LIMIT 100';
+            params = [chatId];
+        } else {
+            query = 'SELECT id, user_name as name, text, user_id, image_url, timestamp FROM messages WHERE chat_id IS NULL ORDER BY timestamp ASC LIMIT 100';
+            params = [];
+        }
+        const result = await pool.query(query, params);
         return result.rows;
     } catch (err) {
         console.error('❌ Ошибка загрузки истории:', err);
         return [];
     }
 }
-
 async function saveMessage(userName, text, userId, imageUrl = null, chatId = null) {
     try {
         const validUserId = (userId && typeof userId === 'number') ? userId : null;
@@ -570,7 +598,7 @@ io.on('connection', async (socket) => {
     let currentUser = null;
     let currentChatId = null;
 
-    const history = await getMessageHistory();
+    const history = await getMessageHistory(chatId);
     socket.emit('message history', history);
     console.log('📤 Отправлено сообщений:', history.length);
 
@@ -587,34 +615,50 @@ io.on('connection', async (socket) => {
         console.log('💬 Присоединился к чату:', chatId);
     });
 
-    socket.on('chat message', async (msg) => {
-        const userName = currentUser?.name || onlineUsers[socket.id] || 'Аноним';
-        const userId = currentUser?.id ? parseInt(currentUser.id) : null;
-        const chatId = currentChatId || null;
-        
-        let imageUrl = null;
-        if (msg.startsWith('📷')) {
-            imageUrl = msg.replace('📷 ', '');
-        }
-        
-        const messageId = await saveMessage(userName, msg, userId, imageUrl, chatId);
-        
-        const messageData = {
-            id: messageId,
-            name: userName,
-            text: msg,
-            user_id: userId,
-            timestamp: new Date().toISOString(),
-            image_url: imageUrl,
-            chat_id: chatId
-        };
-        
-        if (chatId) {
-            io.to(`chat_${chatId}`).emit('message', messageData);
-        } else {
-            io.emit('message', messageData);
-        }
-    });
+socket.on('chat message', async (data) => {
+    // data может быть строкой (старый формат) или объектом (новый)
+    let text, chatId;
+    if (typeof data === 'string') {
+        text = data;
+        chatId = null;
+    } else {
+        text = data.text;
+        chatId = data.chatId;
+    }
+    
+    const userName = currentUser?.name || onlineUsers[socket.id] || 'Аноним';
+    const userId = currentUser?.id ? parseInt(currentUser.id) : null;
+    
+    let imageUrl = null;
+    if (text.startsWith('📷')) {
+        imageUrl = text.replace('📷 ', '');
+    }
+    
+    const messageId = await saveMessage(userName, text, userId, imageUrl, chatId || null);
+    
+    const messageData = {
+        id: messageId,
+        name: userName,
+        text: text,
+        user_id: userId,
+        timestamp: new Date().toISOString(),
+        image_url: imageUrl,
+        chat_id: chatId || null
+    };
+    
+    if (chatId) {
+        // Отправляем только участникам этого чата
+        const participants = await pool.query(
+            'SELECT user_id FROM chat_participants WHERE chat_id = $1',
+            [chatId]
+        );
+        participants.rows.forEach(p => {
+            io.to(`user_${p.user_id}`).emit('message', messageData);
+        });
+    } else {
+        io.emit('message', messageData);
+    }
+});
 
     socket.on('disconnect', () => {
         const userName = onlineUsers[socket.id];
