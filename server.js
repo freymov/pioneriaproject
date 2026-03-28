@@ -153,14 +153,14 @@ async function initDatabase() {
         `);
         
         const existing = await pool.query(
-            "SELECT * FROM invite_keys WHERE key_code = 'ADMIN-PIONERIA-2026'"
+            "SELECT * FROM invite_keys WHERE key_code = 'ADMIN-PIONERIA-2025'"
         );
         
         if (existing.rows.length === 0) {
             await pool.query(
-                "INSERT INTO invite_keys (key_code, role) VALUES ('ADMIN-PIONERIA-2026', 'admin')"
+                "INSERT INTO invite_keys (key_code, role) VALUES ('ADMIN-PIONERIA-2025', 'admin')"
             );
-            console.log('✅ Создан админ-ключ: ADMIN-PIONERIA-2026');
+            console.log('✅ Создан админ-ключ: ADMIN-PIONERIA-2025');
         } else {
             console.log('✅ Админ-ключ уже существует');
         }
@@ -720,7 +720,7 @@ app.get('/test-email', async (req, res) => {
     try {
         const { data, error } = await resend.emails.send({
             from: 'hello@pioneriaproject.site',
-            to: 'vitalyatulen@gmail.com',
+            to: 'твой_личный_email@gmail.com',
             subject: 'Тест',
             html: '<p>Письмо идёт!</p>'
         });
