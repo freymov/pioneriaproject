@@ -4,6 +4,7 @@ console.log('CLOUDINARY_CLOUD_NAME:', process.env.CLOUDINARY_CLOUD_NAME);
 console.log('CLOUDINARY_API_KEY:', process.env.CLOUDINARY_API_KEY ? '✅ есть' : '❌ нет');
 console.log('CLOUDINARY_API_SECRET:', process.env.CLOUDINARY_API_SECRET ? '✅ есть' : '❌ нет');
 console.log('DATABASE_URL:', process.env.DATABASE_URL ? '✅ есть' : '❌ нет');
+console.log('RESEND_API_KEY:', process.env.RESEND_API_KEY ? '✅ есть' : '❌ нет');
 
 const express = require('express');
 const http = require('http');
@@ -13,6 +14,7 @@ const bcrypt = require('bcryptjs');
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
 const stream = require('stream');
+const { Resend } = require('resend');
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -20,6 +22,7 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+const resend = new Resend(process.env.RESEND_API_KEY);
 const upload = multer({ storage: multer.memoryStorage() });
 
 const app = express();
@@ -86,6 +89,17 @@ async function initDatabase() {
                 email VARCHAR(255) UNIQUE NOT NULL,
                 password VARCHAR(255) NOT NULL,
                 role VARCHAR(50) DEFAULT 'user',
+                email_verified BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS email_verifications (
+                id SERIAL PRIMARY KEY,
+                email VARCHAR(255) NOT NULL,
+                code VARCHAR(6) NOT NULL,
+                expires_at TIMESTAMP NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
@@ -207,6 +221,72 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
+// ========== ВЕРИФИКАЦИЯ ПОЧТЫ ==========
+
+app.post('/api/send-verification', async (req, res) => {
+    const { email } = req.body;
+    
+    try {
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+        
+        await pool.query(
+            'INSERT INTO email_verifications (email, code, expires_at) VALUES ($1, $2, $3)',
+            [email, code, expiresAt]
+        );
+        
+        await resend.emails.send({
+            from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+            to: email,
+            subject: 'Подтверждение email | Pioneria Project',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto;">
+                    <h2 style="color: #667eea;">Добро пожаловать в Pioneria Project!</h2>
+                    <p>Ваш код подтверждения:</p>
+                    <div style="font-size: 32px; font-weight: bold; background: #f0f0f0; padding: 20px; text-align: center; letter-spacing: 5px;">${code}</div>
+                    <p>Код действителен 10 минут.</p>
+                    <p>Если вы не регистрировались, проигнорируйте это письмо.</p>
+                </div>
+            `
+        });
+        
+        res.json({ success: true });
+    } catch (err) {
+        console.error('❌ Ошибка отправки кода:', err);
+        res.json({ success: false, error: 'Ошибка отправки письма' });
+    }
+});
+
+app.post('/api/verify-email', async (req, res) => {
+    const { email, code } = req.body;
+    
+    try {
+        const result = await pool.query(
+            'SELECT * FROM email_verifications WHERE email = $1 AND code = $2 AND expires_at > NOW()',
+            [email, code]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.json({ success: false, error: 'Неверный или просроченный код' });
+        }
+        
+        await pool.query(
+            'UPDATE users SET email_verified = true WHERE email = $1',
+            [email]
+        );
+        
+        await pool.query(
+            'DELETE FROM email_verifications WHERE email = $1',
+            [email]
+        );
+        
+        res.json({ success: true });
+    } catch (err) {
+        console.error('❌ Ошибка верификации:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
     
@@ -225,6 +305,10 @@ app.post('/api/login', async (req, res) => {
         
         if (!valid) {
             return res.json({ success: false, error: 'Неверный email или пароль' });
+        }
+        
+        if (!user.email_verified) {
+            return res.json({ success: false, error: 'Подтвердите email. Проверьте почту' });
         }
         
         res.json({
