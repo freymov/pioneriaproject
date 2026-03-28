@@ -612,7 +612,7 @@ io.on('connection', async (socket) => {
     });
 
     socket.on('join chat', (chatId) => {
-        currentChatId = chatId;
+        
         socket.join(`chat_${chatId}`);
         console.log('💬 Присоединился к чату:', chatId);
     });
