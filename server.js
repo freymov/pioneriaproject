@@ -595,8 +595,10 @@ async function saveMessage(userName, text, userId, imageUrl = null, chatId = nul
 io.on('connection', async (socket) => {
     console.log('🔵 Подключился:', socket.id);
     
+    // Получаем chatId из параметров подключения
+    const chatId = socket.handshake.query.chatId || null;
+    
     let currentUser = null;
-    let currentChatId = null;
 
     const history = await getMessageHistory(chatId);
     socket.emit('message history', history);
