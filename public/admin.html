@@ -241,6 +241,7 @@
                             <td>${escapeHtml(user.email)}</td>
                             <td>${user.role === 'admin' ? '👑 Админ' : '👤 Пользователь'}</td>
                             <td>${new Date(user.created_at).toLocaleDateString()}</td>
+                            <td><button onclick="deleteUser(${user.id}, '${escapeHtml(user.email)}')" style="background: #ff4444; padding: 4px 10px;">🗑️</button></td>
                         </tr>`;
                     });
                     html += '</tbody></table>';
@@ -359,6 +360,35 @@
 
         loadUsers();
         loadNewsAdmin();
+
+        
+        async function deleteUser(userId, userEmail) {
+            if (!confirm(`Удалить пользователя ${userEmail}? Это действие необратимо.`)) return;
+            
+            try {
+                const response = await fetch('/api/admin/delete-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        adminEmail: userData.email,
+                        userId: userId
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('✅ Пользователь удалён');
+                    loadUsers();
+                } else {
+                    alert('❌ ' + result.error);
+                }
+            } catch (err) {
+                alert('Ошибка сервера');
+            }
+        }
+
+        
     </script>
 </body>
 </html>
