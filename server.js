@@ -382,6 +382,32 @@ app.get('/api/admin/users', async (req, res) => {
     }
 });
 
+app.post('/api/admin/delete-user', async (req, res) => {
+    const { adminEmail, userId } = req.body;
+    
+    try {
+        const admin = await pool.query(
+            'SELECT * FROM users WHERE email = $1 AND role = $2',
+            [adminEmail, 'admin']
+        );
+        
+        if (admin.rows.length === 0) {
+            return res.json({ success: false, error: 'Нет прав' });
+        }
+        
+        if (admin.rows[0].id === userId) {
+            return res.json({ success: false, error: 'Нельзя удалить свой аккаунт' });
+        }
+        
+        await pool.query('DELETE FROM users WHERE id = $1', [userId]);
+        
+        res.json({ success: true });
+    } catch (err) {
+        console.error('❌ Ошибка удаления пользователя:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
 app.get('/api/users', async (req, res) => {
     try {
         const users = await pool.query(
