@@ -137,13 +137,6 @@
             text-align: center;
         }
 
-        .verification-code {
-            font-size: 24px;
-            letter-spacing: 5px;
-            text-align: center;
-            font-weight: bold;
-        }
-
         @media (max-width: 480px) {
             body {
                 padding: 10px;
@@ -220,7 +213,10 @@
         <div id="verificationForm" class="form">
             <div class="form-group">
                 <label>Код подтверждения</label>
-                <input type="text" id="verificationCode" placeholder="Введите код из письма" class="verification-code">
+                <p style="font-size: 14px; color: #666; margin-bottom: 8px;">
+                    Код отправлен на <strong id="verificationEmailDisplay"></strong>
+                </p>
+                <input type="text" id="verificationCode" placeholder="Введите код">
             </div>
             <button onclick="verifyEmail()">Подтвердить</button>
             <button onclick="resendCode()" class="secondary" style="margin-top: 10px;">Отправить код заново</button>
@@ -230,7 +226,20 @@
     </div>
 
     <script>
-        let pendingEmail = '';
+        let pendingEmail = null;
+
+        // Восстанавливаем форму верификации, если она была прервана
+        window.addEventListener('load', () => {
+            const savedEmail = sessionStorage.getItem('pendingEmail');
+            if (savedEmail) {
+                pendingEmail = savedEmail;
+                document.getElementById('registerForm').classList.remove('active');
+                document.getElementById('verificationForm').classList.add('active');
+                document.getElementById('verificationEmailDisplay').textContent = savedEmail;
+                // Скрываем табы, чтобы не переключались
+                document.querySelectorAll('.tab').forEach(t => t.style.display = 'none');
+            }
+        });
 
         function switchTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -328,6 +337,7 @@
                 
                 if (result.success) {
                     pendingEmail = email;
+                    sessionStorage.setItem('pendingEmail', email);
                     
                     // Отправляем код подтверждения
                     const verifyResponse = await fetch('/api/send-verification', {
@@ -346,7 +356,10 @@
                         setTimeout(() => {
                             document.getElementById('registerForm').classList.remove('active');
                             document.getElementById('verificationForm').classList.add('active');
+                            document.getElementById('verificationEmailDisplay').textContent = email;
                             successDiv.style.display = 'none';
+                            // Скрываем табы
+                            document.querySelectorAll('.tab').forEach(t => t.style.display = 'none');
                         }, 1500);
                     } else {
                         errorDiv.textContent = 'Ошибка отправки кода';
@@ -387,11 +400,14 @@
                 if (result.success) {
                     successDiv.textContent = '✅ Email подтверждён! Теперь можно войти.';
                     successDiv.style.display = 'block';
+                    sessionStorage.removeItem('pendingEmail');
                     setTimeout(() => {
+                        // Возвращаем табы
+                        document.querySelectorAll('.tab').forEach(t => t.style.display = 'flex');
                         switchTab('login');
                         document.getElementById('verificationCode').value = '';
                         document.getElementById('loginEmail').value = pendingEmail;
-                        pendingEmail = '';
+                        pendingEmail = null;
                     }, 2000);
                 } else {
                     errorDiv.textContent = result.error;
