@@ -66,38 +66,95 @@
             overflow-y: auto;
             background: #f9f9f9;
         }
-        #messages li {
-            padding: 10px 12px;
-            margin-bottom: 8px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            word-wrap: break-word;
+        
+        /* Стили для сообщений */
+        .message {
+            display: flex;
+            margin-bottom: 12px;
+        }
+        .message-own {
+            justify-content: flex-end;
+        }
+        .message-other {
+            justify-content: flex-start;
+        }
+        .message-bubble {
+            max-width: 70%;
+            padding: 10px 14px;
+            border-radius: 18px;
             position: relative;
-            transition: background 0.2s;
+            word-wrap: break-word;
+        }
+        .message-own .message-bubble {
+            background: #667eea;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .message-other .message-bubble {
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .message-name {
+            font-size: 12px;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+        .message-own .message-name {
+            text-align: right;
+            color: rgba(255,255,255,0.8);
+        }
+        .message-other .message-name {
+            color: #667eea;
+        }
+        .message-text {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .message-time {
+            font-size: 10px;
+            margin-top: 4px;
+            opacity: 0.7;
+            text-align: right;
+        }
+        .message-own .message-time {
+            color: rgba(255,255,255,0.7);
+        }
+        .message-other .message-time {
+            color: #999;
+        }
+        .message-image {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 12px;
+            margin-top: 5px;
             cursor: pointer;
         }
-        #messages li.selected {
-            background: #e3f2fd;
-            border-left: 4px solid #667eea;
-        }
+        
+        /* Системные сообщения */
         .system {
             background: #e3f2fd;
             color: #1976d2;
             text-align: center;
             font-style: italic;
             font-size: 0.85rem;
+            padding: 8px 12px;
+            border-radius: 12px;
+            margin-bottom: 12px;
         }
-        .user {
-            font-weight: bold;
-            color: #667eea;
-            margin-right: 8px;
+        
+        /* Выделение сообщения */
+        #messages li.selected .message-bubble {
+            outline: 2px solid #ff4444;
         }
-        .timestamp {
-            color: #999;
-            font-size: 0.7rem;
-            margin-left: 10px;
+        .message-own.selected .message-bubble {
+            background: #764ba2;
         }
+        .message-other.selected .message-bubble {
+            background: #e3f2fd;
+        }
+        
         .delete-btn {
             position: absolute;
             right: 10px;
@@ -115,6 +172,7 @@
         #messages li.selected .delete-btn {
             display: block;
         }
+        
         .message-form {
             display: flex;
             padding: 15px;
@@ -164,13 +222,6 @@
         .attach-button:hover {
             background: #d0d0d0;
         }
-        .chat-image {
-            max-width: 200px;
-            max-height: 200px;
-            border-radius: 10px;
-            margin-top: 5px;
-            cursor: pointer;
-        }
 
         /* Мобильная версия */
         @media (max-width: 768px) {
@@ -195,6 +246,9 @@
             .delete-btn {
                 padding: 2px 8px;
                 font-size: 10px;
+            }
+            .message-bubble {
+                max-width: 85%;
             }
         }
 
@@ -363,6 +417,13 @@
             }
         }
 
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         function addMessage(data) {
             const li = document.createElement('li');
             li.setAttribute('data-id', data.id);
@@ -375,20 +436,34 @@
                 li.className = 'system';
                 li.textContent = data.text;
             } else {
-                let content = `<span class="user">${data.name}:</span> `;
+                const isOwn = data.user_id === currentUserId;
+                li.className = `message ${isOwn ? 'message-own' : 'message-other'}`;
+                
+                let content = '';
+                
+                // Имя (только для чужих сообщений)
+                if (!isOwn) {
+                    content += `<div class="message-name">${escapeHtml(data.name)}</div>`;
+                }
+                
+                // Текст или фото
                 if (data.text && data.text.startsWith('📷')) {
                     const url = data.text.replace('📷 ', '');
-                    content += `<a href="${url}" target="_blank"><img src="${url}" class="chat-image"></a>`;
+                    content += `<div class="message-text"><a href="${url}" target="_blank"><img src="${url}" class="message-image"></a></div>`;
                 } else {
-                    content += data.text;
+                    content += `<div class="message-text">${escapeHtml(data.text)}</div>`;
                 }
-                content += `<span class="timestamp">${time}</span>`;
                 
+                // Время
+                content += `<div class="message-time">${time}</div>`;
+                
+                // Кнопка удаления
                 const canDelete = (data.user_id && data.user_id === currentUserId) || userData.role === 'admin';
                 if (canDelete) {
                     content += `<button class="delete-btn" onclick="event.stopPropagation(); deleteMessage('${data.id}', '${data.image_url || ''}')">🗑️</button>`;
                 }
-                li.innerHTML = content;
+                
+                li.innerHTML = `<div class="message-bubble">${content}</div>`;
                 
                 li.addEventListener('click', (e) => {
                     if (e.target.classList.contains('delete-btn')) return;
