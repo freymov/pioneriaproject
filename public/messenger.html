@@ -27,7 +27,6 @@
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
         }
         
-        /* Левая панель */
         .chats-panel {
             width: 320px;
             background: #f9f9f9;
@@ -125,7 +124,6 @@
             font-weight: bold;
         }
         
-        /* Правая панель */
         .chat-area {
             flex: 1;
             display: flex;
@@ -161,7 +159,6 @@
             gap: 12px;
         }
         
-        /* Стили сообщений */
         .message {
             display: flex;
         }
@@ -219,7 +216,6 @@
             cursor: pointer;
         }
         
-        /* Форма отправки */
         .message-form {
             display: flex;
             padding: 15px;
@@ -256,7 +252,6 @@
             cursor: pointer;
         }
         
-        /* Модальное окно */
         .modal {
             display: none;
             position: fixed;
@@ -319,7 +314,6 @@
 </head>
 <body>
     <div class="messenger">
-        <!-- Левая панель -->
         <div class="chats-panel" id="chatsPanel">
             <div class="chats-header">
                 <h2>💬 Диалоги</h2>
@@ -330,7 +324,6 @@
             </div>
         </div>
         
-        <!-- Правая панель -->
         <div class="chat-area">
             <div class="chat-area-header">
                 <h3 id="currentChatTitle">Выберите чат</h3>
@@ -348,7 +341,6 @@
     </div>
     <input type="file" id="imageInput" accept="image/*" style="display: none;">
     
-    <!-- Модальное окно выбора пользователя -->
     <div id="userModal" class="modal">
         <div class="modal-content">
             <h3>Выберите пользователя</h3>
@@ -457,11 +449,18 @@
             document.getElementById('chatForm').style.display = 'flex';
             
             if (socket) socket.disconnect();
-            // Передаём пустую строку для общего чата
             const queryChatId = (chatId !== null && chatId !== undefined) ? chatId : '';
             socket = io({ query: { chatId: queryChatId } });
             
-            socket.on('connect', () => console.log('Socket connected for chat', chatId));
+            socket.on('connect', () => {
+                console.log('Socket connected');
+                socket.emit('user joined', {
+                    name: userData.name,
+                    id: userData.id,
+                    role: userData.role
+                });
+            });
+            
             socket.on('message history', (messages) => {
                 const container = document.getElementById('messagesContainer');
                 container.innerHTML = '';
