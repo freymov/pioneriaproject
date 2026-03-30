@@ -161,6 +161,7 @@
         
         .message {
             display: flex;
+            position: relative;
         }
         .message-own {
             justify-content: flex-end;
@@ -214,6 +215,29 @@
             border-radius: 12px;
             margin-top: 5px;
             cursor: pointer;
+        }
+        
+        .delete-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            display: none;
+        }
+        
+        .message.selected .message-bubble {
+            outline: 2px solid #ff4444;
+        }
+        
+        .message.selected .delete-btn {
+            display: block;
         }
         
         .message-form {
@@ -361,6 +385,7 @@
         let socket = null;
         let allChats = [];
         let allUsers = [];
+        let selectedMessageElement = null;
         
         const notificationSound = new Audio('/notification.mp3');
         notificationSound.preload = 'auto';
@@ -385,6 +410,40 @@
             const isToday = date.toDateString() === now.toDateString();
             if (isToday) return `Сегодня, ${date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`;
             return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        }
+        
+        function selectMessage(element, messageId) {
+            if (selectedMessageElement) {
+                selectedMessageElement.classList.remove('selected');
+            }
+            element.classList.add('selected');
+            selectedMessageElement = element;
+        }
+        
+        async function deleteMessage(messageId, imageUrl = null) {
+            try {
+                const response = await fetch('/api/delete-message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        messageId, 
+                        userId: currentUserId,
+                        userRole: userData.role,
+                        imageUrl 
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    const msgElement = document.querySelector(`.message[data-id='${messageId}']`);
+                    if (msgElement) msgElement.remove();
+                    if (selectedMessageElement === msgElement) selectedMessageElement = null;
+                } else {
+                    alert(result.error || 'Нельзя удалить это сообщение');
+                }
+            } catch (err) {
+                alert('Ошибка удаления');
+            }
         }
         
         async function loadChats() {
@@ -453,7 +512,6 @@
             socket = io({ query: { chatId: queryChatId } });
             
             socket.on('connect', () => {
-                console.log('Socket connected');
                 socket.emit('user joined', {
                     name: userData.name,
                     id: userData.id,
@@ -484,8 +542,13 @@
                 container.innerHTML = '';
             }
             const isOwn = data.user_id === currentUserId;
+            const canDelete = (data.user_id && data.user_id === currentUserId) || userData.role === 'admin';
+            
             const div = document.createElement('div');
             div.className = `message ${isOwn ? 'message-own' : 'message-other'}`;
+            div.setAttribute('data-id', data.id);
+            div.setAttribute('data-user-id', data.user_id);
+            
             const time = formatTime(data.timestamp);
             let content = `<div class="message-bubble">`;
             if (!isOwn) content += `<div class="message-name">${escapeHtml(data.name)}</div>`;
@@ -496,8 +559,19 @@
                 content += `<div class="message-text">${escapeHtml(data.text)}</div>`;
             }
             content += `<div class="message-time">${time}</div>`;
+            
+            if (canDelete) {
+                content += `<button class="delete-btn" onclick="event.stopPropagation(); deleteMessage('${data.id}', '${data.image_url || ''}')">🗑️</button>`;
+            }
+            
             content += `</div>`;
             div.innerHTML = content;
+            
+            div.addEventListener('click', (e) => {
+                if (e.target.classList.contains('delete-btn')) return;
+                selectMessage(div, data.id);
+            });
+            
             container.appendChild(div);
             container.scrollTop = container.scrollHeight;
             
@@ -601,6 +675,15 @@
             const query = e.target.value.toLowerCase();
             const filtered = allUsers.filter(u => u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query));
             renderUsersList(filtered);
+        });
+        
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.message')) {
+                if (selectedMessageElement) {
+                    selectedMessageElement.classList.remove('selected');
+                    selectedMessageElement = null;
+                }
+            }
         });
         
         loadChats();
