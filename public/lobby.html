@@ -327,13 +327,9 @@
             <span class="emoji">📢</span>
             <span>Новости</span>
         </div>
-        <div class="sidebar-item" onclick="goToChat()">
+        <div class="sidebar-item" onclick="goToMessenger()">
             <span class="emoji">💬</span>
             <span>Чат</span>
-        </div>
-        <div class="sidebar-item" onclick="goToChats()">
-            <span class="emoji">💬</span>
-            <span>Диалоги</span>
         </div>
         <div class="sidebar-item" onclick="toggleProfile()">
             <span class="emoji">👤</span>
@@ -363,7 +359,6 @@
             <ul class="news-list" id="newsList">
                 <div id="newsLoader">Загрузка новостей...</div>
             </ul>
-
         </div>
     </div>
 
@@ -420,12 +415,8 @@
             document.getElementById('profileModal').classList.remove('active');
         }
 
-        function goToChat() {
-            window.location.href = 'chat.html';
-        }
-        
-        function goToChats() {
-            window.location.href = 'chats.html';
+        function goToMessenger() {
+            window.location.href = 'messenger.html';
         }
 
         function goToNews() {
@@ -461,37 +452,31 @@
 
         async function updateName() {
             const newName = document.getElementById('newNameInput').value.trim();
-                if (!newName) {
-                    alert('Имя не может быть пустым');
+            if (!newName) {
+                alert('Имя не может быть пустым');
                 return;
-                }
+            }
     
-                try {
-                    const response = await fetch('/api/update-name', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            userId: userData.id,
-                            newName: newName,
-                            oldName: userData.name
-                        })
-                    });
+            try {
+                const response = await fetch('/api/update-name', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: userData.id,
+                        newName: newName,
+                        oldName: userData.name
+                    })
+                });
         
                 const result = await response.json();
         
                 if (result.success) {
-                    // Обновляем данные в localStorage
                     userData.name = newName;
                     localStorage.setItem('user', JSON.stringify(userData));
-            
-                    // Обновляем отображение
                     document.getElementById('profileName').textContent = newName;
                     document.getElementById('userName').textContent = newName;
-            
                     hideEditName();
                     alert('Имя успешно изменено!');
-            
-                    // Перезагружаем страницу, чтобы обновить имя в чате
                     setTimeout(() => window.location.reload(), 1000);
                 } else {
                     alert(result.error || 'Ошибка изменения имени');
@@ -501,7 +486,6 @@
             }
         }
 
-        // Загрузка новостей
         async function loadNews() {
             try {
                 const response = await fetch('/api/news');
@@ -533,14 +517,12 @@
             }
         }
 
-        // Простая защита от XSS
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
 
-        // Вызываем загрузку при загрузке страницы
         loadNews();
     </script>
 </body>
