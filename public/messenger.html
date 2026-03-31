@@ -190,7 +190,12 @@
             white-space: nowrap;
         }
         
-        .lobby-btn {
+        .chat-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .lobby-btn, .group-settings-btn {
             background: #667eea;
             color: white;
             border: none;
@@ -201,7 +206,11 @@
             flex-shrink: 0;
         }
         
-        .lobby-btn:active {
+        .group-settings-btn {
+            background: #764ba2;
+        }
+        
+        .lobby-btn:active, .group-settings-btn:active {
             opacity: 0.8;
         }
         
@@ -231,12 +240,23 @@
             -webkit-tap-highlight-color: transparent;
         }
         
+        /* Закрепленные сообщения */
+        #messages li.pinned {
+            background: #fff3e0;
+            border-left: 3px solid #ff9800;
+        }
+        
         /* Свои сообщения — справа */
         #messages li[data-own="true"] {
             float: right;
             background: #667eea;
             color: white;
             border-bottom-right-radius: 4px;
+        }
+        
+        #messages li[data-own="true"].pinned {
+            background: #7c4dff;
+            border-left: 3px solid #ff9800;
         }
         
         /* Чужие сообщения — слева */
@@ -282,24 +302,48 @@
             color: rgba(255,255,255,0.7);
         }
         
-        .delete-btn {
+        .message-actions {
             position: absolute;
             right: 10px;
             top: 50%;
             transform: translateY(-50%);
-            background: #ff4444;
-            color: white;
-            border: none;
-            border-radius: 20px;
-            padding: 4px 12px;
-            font-size: 12px;
-            cursor: pointer;
             display: none;
+            gap: 5px;
+            background: rgba(0,0,0,0.7);
+            padding: 4px 8px;
+            border-radius: 20px;
             z-index: 10;
         }
         
-        #messages li.selected .delete-btn {
-            display: block;
+        #messages li.selected .message-actions {
+            display: flex;
+        }
+        
+        .message-actions button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        
+        .message-actions button:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .delete-btn {
+            background: #ff4444;
+        }
+        
+        .edit-btn {
+            background: #4caf50;
+        }
+        
+        .pin-btn {
+            background: #ff9800;
         }
         
         .message-form {
@@ -387,6 +431,26 @@
             max-width: 400px;
             max-height: 80vh;
             overflow-y: auto;
+        }
+        
+        .modal-content input, .modal-content textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        
+        .modal-content button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
         }
         
         .user-item {
@@ -524,7 +588,7 @@
         }
         
         /* Убираем подсветку на тач-устройствах */
-        .chat-item, .user-item, .lobby-btn, .new-chat-btn, .message-form button, .attach-button {
+        .chat-item, .user-item, .lobby-btn, .new-chat-btn, .message-form button, .attach-button, .group-settings-btn {
             -webkit-tap-highlight-color: transparent;
         }
         
@@ -544,6 +608,16 @@
             background: #888;
             border-radius: 2px;
         }
+        
+        .edit-mode {
+            background: #fff9c4 !important;
+        }
+        
+        .edit-indicator {
+            font-size: 11px;
+            color: #ff9800;
+            margin-left: 5px;
+        }
     </style>
 </head>
 <body>
@@ -554,6 +628,7 @@
             <div class="chats-header">
                 <h2>💬 Диалоги</h2>
                 <button class="new-chat-btn" onclick="showNewChatModal()">➕ Новый диалог</button>
+                <button class="new-chat-btn" onclick="showCreateGroupModal()" style="margin-top: 8px;">👥 Создать группу</button>
             </div>
             <div class="chats-list" id="chatsList">Загрузка...</div>
         </div>
@@ -561,7 +636,10 @@
         <div class="chat-container">
             <div class="chat-header">
                 <h2 id="currentChatTitle">🎵 Общий чат</h2>
-                <button class="lobby-btn" onclick="goToLobby()">🏠 Лобби</button>
+                <div class="chat-actions">
+                    <button class="group-settings-btn" id="groupSettingsBtn" onclick="showGroupSettings()" style="display: none;">⚙️ Настройки</button>
+                    <button class="lobby-btn" onclick="goToLobby()">🏠 Лобби</button>
+                </div>
             </div>
             <ul id="messages"></ul>
             <form class="message-form" id="chatForm">
@@ -573,52 +651,74 @@
     </div>
     <input type="file" id="imageInput" accept="image/*" style="display: none;">
     
+    <!-- Модалка для выбора пользователя (ЛС) -->
     <div id="userModal" class="modal">
         <div class="modal-content">
             <h3>Выберите пользователя</h3>
             <input type="text" id="userSearch" placeholder="Поиск...">
             <div id="usersListModal"></div>
-            <button onclick="closeModal()" style="margin-top: 10px; padding: 10px; width: 100%;">Отмена</button>
+            <button onclick="closeModal()">Отмена</button>
+        </div>
+    </div>
+    
+    <!-- Модалка для создания группы -->
+    <div id="createGroupModal" class="modal">
+        <div class="modal-content">
+            <h3>Создать группу</h3>
+            <input type="text" id="groupName" placeholder="Название группы">
+            <div id="groupMembersList"></div>
+            <button onclick="createGroup()">Создать группу</button>
+            <button onclick="closeCreateGroupModal()">Отмена</button>
+        </div>
+    </div>
+    
+    <!-- Модалка для редактирования сообщения -->
+    <div id="editMessageModal" class="modal">
+        <div class="modal-content">
+            <h3>Редактировать сообщение</h3>
+            <textarea id="editMessageText" rows="3" placeholder="Введите новый текст..."></textarea>
+            <button onclick="saveEditedMessage()">Сохранить</button>
+            <button onclick="closeEditModal()">Отмена</button>
+        </div>
+    </div>
+    
+    <!-- Модалка для настроек группы -->
+    <div id="groupSettingsModal" class="modal">
+        <div class="modal-content">
+            <h3 id="groupSettingsTitle">Настройки группы</h3>
+            <input type="text" id="renameGroupInput" placeholder="Новое название группы">
+            <button onclick="renameGroup()">Переименовать группу</button>
+            <button onclick="closeGroupSettings()">Закрыть</button>
         </div>
     </div>
     
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        // Функция для обработки фокуса на мобильных
-        function handleMobileKeyboard() {
-            if (window.innerWidth <= 768) {
-                const messageInput = document.getElementById('messageInput');
-                const messagesContainer = document.getElementById('messages');
-                
-                messageInput.addEventListener('focus', () => {
-                    setTimeout(() => {
-                        if (messagesContainer.lastElementChild) {
-                            messagesContainer.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'end' });
-                        }
-                    }, 300);
-                });
-            }
-        }
-        
+        // Глобальные переменные
         const userData = JSON.parse(localStorage.getItem('user') || '{}');
         if (!userData.name) {
             window.location.href = 'login.html';
         }
         
-        let currentChatId = null; // null = общий чат, число = личный чат
+        let currentChatId = null; // null = общий чат, число = личный чат или группа
         let currentChatName = 'Общий чат';
+        let currentChatType = 'general'; // 'general', 'private', 'group'
         let currentUserId = userData.id;
         let socket = null;
         let allChats = [];
         let allUsers = [];
         let selectedMessageId = null;
+        let editingMessageId = null;
+        let pinnedMessages = new Set(); // Храним ID закрепленных сообщений
         
         const notificationSound = new Audio('/notification.mp3');
         
-        if ('Notification' in window && Notification.permission !== 'granted') {
+        // Запрос разрешения на уведомления
+        if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
             setTimeout(() => Notification.requestPermission(), 2000);
         }
         
+        // Функции для работы с интерфейсом
         function toggleChatsPanel() {
             document.getElementById('chatsPanel').classList.toggle('open');
         }
@@ -644,6 +744,7 @@
             return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
         }
         
+        // Выделение сообщения
         function selectMessage(element, messageId) {
             if (selectedMessageId) {
                 const prev = document.querySelector(`#messages li[data-id='${selectedMessageId}']`);
@@ -653,7 +754,9 @@
             selectedMessageId = messageId;
         }
         
+        // Удаление сообщения
         async function deleteMessage(messageId, imageUrl = null) {
+            if (!confirm('Удалить сообщение?')) return;
             try {
                 const res = await fetch('/api/delete-message', {
                     method: 'POST',
@@ -665,6 +768,7 @@
                     const el = document.querySelector(`#messages li[data-id='${messageId}']`);
                     if (el) el.remove();
                     if (selectedMessageId === messageId) selectedMessageId = null;
+                    pinnedMessages.delete(messageId);
                 } else {
                     alert(data.error || 'Нельзя удалить');
                 }
@@ -674,9 +778,114 @@
             }
         }
         
+        // Редактирование сообщения
+        function editMessage(messageId, currentText) {
+            editingMessageId = messageId;
+            const modal = document.getElementById('editMessageModal');
+            const textarea = document.getElementById('editMessageText');
+            // Убираем 📷 если это фото
+            let cleanText = currentText;
+            if (cleanText && cleanText.startsWith('📷 ')) {
+                cleanText = cleanText.replace('📷 ', '');
+            }
+            textarea.value = cleanText;
+            modal.style.display = 'flex';
+        }
+        
+        async function saveEditedMessage() {
+            const newText = document.getElementById('editMessageText').value.trim();
+            if (!newText) {
+                alert('Введите текст сообщения');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/edit-message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        messageId: editingMessageId, 
+                        newText: newText,
+                        userId: currentUserId,
+                        userRole: userData.role
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    // Обновляем сообщение в UI
+                    const li = document.querySelector(`#messages li[data-id='${editingMessageId}']`);
+                    if (li) {
+                        const userSpan = li.querySelector('.user');
+                        const textNode = li.childNodes[2];
+                        if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+                            textNode.textContent = ` ${newText}`;
+                        }
+                        // Добавляем индикатор редактирования
+                        let editIndicator = li.querySelector('.edit-indicator');
+                        if (!editIndicator) {
+                            editIndicator = document.createElement('span');
+                            editIndicator.className = 'edit-indicator';
+                            editIndicator.textContent = ' (ред.)';
+                            li.appendChild(editIndicator);
+                        }
+                    }
+                    closeEditModal();
+                } else {
+                    alert(data.error || 'Ошибка редактирования');
+                }
+            } catch(e) {
+                console.error('Ошибка редактирования:', e);
+                alert('Ошибка при редактировании');
+            }
+        }
+        
+        function closeEditModal() {
+            document.getElementById('editMessageModal').style.display = 'none';
+            editingMessageId = null;
+        }
+        
+        // Закрепление сообщения
+        async function pinMessage(messageId) {
+            try {
+                const res = await fetch('/api/pin-message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        messageId, 
+                        chatId: currentChatId,
+                        userId: currentUserId,
+                        userRole: userData.role
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    if (data.pinned) {
+                        pinnedMessages.add(messageId);
+                    } else {
+                        pinnedMessages.delete(messageId);
+                    }
+                    // Обновляем отображение
+                    const li = document.querySelector(`#messages li[data-id='${messageId}']`);
+                    if (li) {
+                        if (data.pinned) {
+                            li.classList.add('pinned');
+                        } else {
+                            li.classList.remove('pinned');
+                        }
+                    }
+                } else {
+                    alert(data.error || 'Ошибка');
+                }
+            } catch(e) {
+                console.error('Ошибка закрепления:', e);
+                alert('Ошибка');
+            }
+        }
+        
+        // Загрузка чатов
         async function loadChats() {
             try {
-                // 1. Загружаем последнее сообщение для общего чата
+                // Загружаем последнее сообщение для общего чата
                 let generalLastMessage = 'Нет сообщений';
                 try {
                     const generalMsgRes = await fetch('/api/general-last-message');
@@ -701,10 +910,11 @@
                     id: null, 
                     other_user_name: 'Общий чат', 
                     unread_count: 0,
-                    last_message: generalLastMessage
+                    last_message: generalLastMessage,
+                    type: 'general'
                 };
                 
-                // 2. Загружаем личные чаты
+                // Загружаем личные чаты и группы
                 const res = await fetch(`/api/chats?userId=${userData.id}`);
                 const data = await res.json();
                 
@@ -716,13 +926,12 @@
                 
                 renderChatsList();
                 
-                // Если нет активного чата, выбираем общий
                 if (currentChatId === undefined || currentChatId === null) {
-                    setTimeout(() => selectChat(null, 'Общий чат'), 100);
+                    setTimeout(() => selectChat(null, 'Общий чат', 'general'), 100);
                 }
             } catch(e) { 
                 console.error('Ошибка загрузки чатов:', e);
-                const generalChat = { id: null, other_user_name: 'Общий чат', unread_count: 0, last_message: 'Нет сообщений' };
+                const generalChat = { id: null, other_user_name: 'Общий чат', unread_count: 0, last_message: 'Нет сообщений', type: 'general' };
                 allChats = [generalChat];
                 renderChatsList();
             }
@@ -743,15 +952,15 @@
                     ? (chat.last_message.length > 30 ? chat.last_message.substring(0,30)+'...' : chat.last_message) 
                     : 'Нет сообщений';
                 
-                // Показываем кружок только если есть непрочитанные сообщения
                 const unreadBadge = chat.unread_count && chat.unread_count > 0 
                     ? `<span class="unread-badge">${chat.unread_count}</span>` 
                     : '';
                 
                 const chatName = chat.other_user_name || 'Общий чат';
+                const chatType = chat.type || (chat.id === null ? 'general' : 'private');
                 const onclickAttr = chat.id === null 
-                    ? `selectChat(null, 'Общий чат')` 
-                    : `selectChat(${chat.id}, '${escapeHtml(chatName)}')`;
+                    ? `selectChat(null, 'Общий чат', 'general')` 
+                    : `selectChat(${chat.id}, '${escapeHtml(chatName)}', '${chatType}')`;
                 
                 html += `<div class="chat-item ${active ? 'active' : ''}" onclick="${onclickAttr}">
                             <div class="chat-avatar">${avatar}</div>
@@ -767,11 +976,16 @@
             container.innerHTML = html;
         }
         
-        function addMessageToUI(data) {
+        // Добавление сообщения в UI
+        function addMessageToUI(data, isHistory = false) {
             const li = document.createElement('li');
             li.setAttribute('data-id', data.id);
             li.setAttribute('data-user-id', data.user_id);
             li.setAttribute('data-image-url', data.image_url || '');
+            
+            if (pinnedMessages.has(data.id)) {
+                li.classList.add('pinned');
+            }
             
             const isOwn = data.user_id === currentUserId;
             li.setAttribute('data-own', isOwn ? 'true' : 'false');
@@ -790,41 +1004,74 @@
                     content += escapeHtml(data.text);
                 }
                 content += `<span class="timestamp">${time}</span>`;
-                
-                const canDelete = (data.user_id && data.user_id === currentUserId) || userData.role === 'admin';
-                if (canDelete) {
-                    content += `<button class="delete-btn" onclick="event.stopPropagation(); deleteMessage('${data.id}', '${data.image_url || ''}')">🗑️</button>`;
+                if (data.edited) {
+                    content += `<span class="edit-indicator"> (ред.)</span>`;
                 }
+                
+                const canEdit = (data.user_id && data.user_id === currentUserId) || userData.role === 'admin';
+                if (canEdit) {
+                    content += `<div class="message-actions">
+                                    <button class="edit-btn" onclick="event.stopPropagation(); editMessage('${data.id}', '${escapeHtml(data.text).replace(/'/g, "\\'")}')">✏️</button>
+                                    <button class="pin-btn" onclick="event.stopPropagation(); pinMessage('${data.id}')">📌</button>
+                                    <button class="delete-btn" onclick="event.stopPropagation(); deleteMessage('${data.id}', '${data.image_url || ''}')">🗑️</button>
+                                </div>`;
+                } else if (userData.role === 'admin') {
+                    content += `<div class="message-actions">
+                                    <button class="pin-btn" onclick="event.stopPropagation(); pinMessage('${data.id}')">📌</button>
+                                    <button class="delete-btn" onclick="event.stopPropagation(); deleteMessage('${data.id}', '${data.image_url || ''}')">🗑️</button>
+                                </div>`;
+                }
+                
                 li.innerHTML = content;
                 
                 li.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('delete-btn') || e.target.tagName === 'IMG' || e.target.tagName === 'A') return;
+                    if (e.target.classList.contains('delete-btn') || 
+                        e.target.classList.contains('edit-btn') || 
+                        e.target.classList.contains('pin-btn') ||
+                        e.target.tagName === 'IMG' || 
+                        e.target.tagName === 'A') return;
                     selectMessage(li, data.id);
                 });
             }
             document.getElementById('messages').appendChild(li);
             li.scrollIntoView({ behavior: 'smooth', block: 'end' });
             
-            // Уведомление о новом сообщении
-            if (data.user_id !== currentUserId && !document.hasFocus()) {
-                notificationSound.play().catch(()=>{});
-                if (Notification.permission === 'granted') {
-                    new Notification('Новое сообщение', { 
-                        body: `${data.name}: ${data.text ? data.text.substring(0,50) : 'Изображение'}`, 
-                        icon: '/favicon.jpg' 
-                    });
+            // Уведомление ТОЛЬКО для новых сообщений (не из истории)
+            if (!isHistory && data.user_id !== currentUserId && !document.hasFocus()) {
+                const messageTime = new Date(data.timestamp).getTime();
+                const now = Date.now();
+                const isRecent = (now - messageTime) < 10000;
+                
+                if (isRecent) {
+                    notificationSound.play().catch(()=>{});
+                    if (Notification.permission === 'granted') {
+                        new Notification(`${currentChatName}`, { 
+                            body: `${data.name}: ${data.text ? data.text.substring(0,50) : 'Изображение'}`, 
+                            icon: '/favicon.jpg' 
+                        });
+                    }
                 }
             }
         }
         
-        async function selectChat(chatId, chatName) {
+        // Выбор чата
+        async function selectChat(chatId, chatName, chatType = 'private') {
             if (currentChatId === chatId && socket && socket.connected) return;
             
             currentChatId = chatId;
             currentChatName = chatName;
+            currentChatType = chatType;
             document.getElementById('currentChatTitle').innerHTML = `🎵 ${escapeHtml(chatName)}`;
             
-            // Отмечаем прочитанными при открытии чата (кроме общего чата)
+            // Показываем кнопку настроек только для групп
+            const groupSettingsBtn = document.getElementById('groupSettingsBtn');
+            if (chatType === 'group') {
+                groupSettingsBtn.style.display = 'block';
+            } else {
+                groupSettingsBtn.style.display = 'none';
+            }
+            
+            // Отмечаем прочитанными
             if (chatId !== null) {
                 try {
                     await fetch('/api/mark-read', { 
@@ -837,7 +1084,23 @@
                 }
             }
             
-            // Переподключаем сокет с новым chatId
+            // Загружаем закрепленные сообщения
+            if (chatId !== null) {
+                try {
+                    const pinRes = await fetch(`/api/get-pinned?chatId=${chatId}`);
+                    const pinData = await pinRes.json();
+                    if (pinData.success && pinData.pinned) {
+                        pinnedMessages.clear();
+                        pinData.pinned.forEach(p => pinnedMessages.add(p.message_id));
+                    }
+                } catch(e) {
+                    console.error('Ошибка загрузки закрепленных:', e);
+                }
+            } else {
+                pinnedMessages.clear();
+            }
+            
+            // Переподключаем сокет
             if (socket) {
                 socket.disconnect();
             }
@@ -865,17 +1128,46 @@
                 const container = document.getElementById('messages');
                 container.innerHTML = '';
                 if (msgs && msgs.length > 0) {
-                    msgs.forEach(m => addMessageToUI(m));
+                    msgs.forEach(m => addMessageToUI(m, true));
                 } else {
                     container.innerHTML = '<div class="empty-messages">✨ Нет сообщений. Напишите что-нибудь!</div>';
                 }
             });
             
             socket.on('message', (m) => {
-                addMessageToUI(m);
-                // Если сообщение от другого пользователя, обновляем список чатов для отображения счетчика
+                addMessageToUI(m, false);
                 if (m.user_id !== currentUserId) {
                     loadChats();
+                }
+            });
+            
+            socket.on('message edited', (data) => {
+                const li = document.querySelector(`#messages li[data-id='${data.messageId}']`);
+                if (li) {
+                    const textNode = li.childNodes[2];
+                    if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+                        textNode.textContent = ` ${data.newText}`;
+                    }
+                    let editIndicator = li.querySelector('.edit-indicator');
+                    if (!editIndicator) {
+                        editIndicator = document.createElement('span');
+                        editIndicator.className = 'edit-indicator';
+                        editIndicator.textContent = ' (ред.)';
+                        li.appendChild(editIndicator);
+                    }
+                }
+            });
+            
+            socket.on('message pinned', (data) => {
+                const li = document.querySelector(`#messages li[data-id='${data.messageId}']`);
+                if (li) {
+                    if (data.pinned) {
+                        li.classList.add('pinned');
+                        pinnedMessages.add(data.messageId);
+                    } else {
+                        li.classList.remove('pinned');
+                        pinnedMessages.delete(data.messageId);
+                    }
                 }
             });
             
@@ -883,7 +1175,6 @@
                 console.error('Socket connection error:', err);
             });
             
-            // Обновляем список чатов, чтобы убрать счетчик непрочитанных
             setTimeout(() => loadChats(), 500);
             
             renderChatsList();
@@ -892,6 +1183,7 @@
             }
         }
         
+        // Отправка сообщения
         async function sendMessage(text, imageUrl = null) {
             if (!socket || !socket.connected) {
                 alert('Нет соединения с сервером. Пожалуйста, обновите страницу.');
@@ -901,46 +1193,134 @@
             const finalText = imageUrl ? `📷 ${imageUrl}` : text;
             const messageData = { 
                 text: finalText, 
-                chatId: currentChatId
+                chatId: currentChatId,
+                chatType: currentChatType
             };
             
             socket.emit('chat message', messageData);
             document.getElementById('messageInput').value = '';
         }
         
-        document.getElementById('chatForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const msg = document.getElementById('messageInput').value.trim();
-            if (msg) {
-                sendMessage(msg);
-            }
-        });
+        // Создание группы
+        function showCreateGroupModal() {
+            document.getElementById('createGroupModal').style.display = 'flex';
+            loadUsersForGroup();
+        }
         
-        const imageButton = document.getElementById('imageButton');
-        const imageInput = document.getElementById('imageInput');
-        imageButton.addEventListener('click', () => imageInput.click());
-        imageInput.addEventListener('change', async () => {
-            const file = imageInput.files[0];
-            if (!file) return;
+        async function loadUsersForGroup() {
+            try {
+                const res = await fetch('/api/users');
+                const data = await res.json();
+                if (data.success && data.users) {
+                    const container = document.getElementById('groupMembersList');
+                    let html = '<h4>Выберите участников:</h4>';
+                    for (let u of data.users) {
+                        if (u.id !== currentUserId) {
+                            html += `<div>
+                                        <input type="checkbox" value="${u.id}" id="user_${u.id}">
+                                        <label for="user_${u.id}">${escapeHtml(u.name)} (${escapeHtml(u.email)})</label>
+                                    </div>`;
+                        }
+                    }
+                    container.innerHTML = html;
+                }
+            } catch(e) {
+                console.error('Ошибка загрузки пользователей:', e);
+            }
+        }
+        
+        async function createGroup() {
+            const groupName = document.getElementById('groupName').value.trim();
+            if (!groupName) {
+                alert('Введите название группы');
+                return;
+            }
             
-            const fd = new FormData();
-            fd.append('image', file);
+            const checkboxes = document.querySelectorAll('#groupMembersList input[type="checkbox"]');
+            const members = Array.from(checkboxes)
+                .filter(cb => cb.checked)
+                .map(cb => parseInt(cb.value));
+            
+            if (members.length === 0) {
+                alert('Выберите хотя бы одного участника');
+                return;
+            }
             
             try {
-                const res = await fetch('/api/upload', { method: 'POST', body: fd });
+                const res = await fetch('/api/create-group', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: groupName,
+                        creatorId: currentUserId,
+                        members: members
+                    })
+                });
                 const data = await res.json();
                 if (data.success) {
-                    sendMessage(null, data.url);
+                    closeCreateGroupModal();
+                    await loadChats();
+                    selectChat(data.chatId, groupName, 'group');
                 } else {
-                    alert('Ошибка загрузки изображения');
+                    alert(data.error || 'Ошибка создания группы');
                 }
-            } catch(e) { 
-                console.error('Ошибка загрузки:', e);
-                alert('Ошибка при загрузке изображения'); 
+            } catch(e) {
+                console.error('Ошибка создания группы:', e);
+                alert('Ошибка при создании группы');
             }
-            imageInput.value = '';
-        });
+        }
         
+        function closeCreateGroupModal() {
+            document.getElementById('createGroupModal').style.display = 'none';
+            document.getElementById('groupName').value = '';
+        }
+        
+        // Настройки группы
+        function showGroupSettings() {
+            if (currentChatType !== 'group') return;
+            document.getElementById('groupSettingsModal').style.display = 'flex';
+            document.getElementById('groupSettingsTitle').innerHTML = `Настройки группы: ${escapeHtml(currentChatName)}`;
+        }
+        
+        async function renameGroup() {
+            const newName = document.getElementById('renameGroupInput').value.trim();
+            if (!newName) {
+                alert('Введите новое название');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/rename-group', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chatId: currentChatId,
+                        newName: newName,
+                        userId: currentUserId,
+                        userRole: userData.role
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    currentChatName = newName;
+                    document.getElementById('currentChatTitle').innerHTML = `🎵 ${escapeHtml(newName)}`;
+                    closeGroupSettings();
+                    await loadChats();
+                } else {
+                    alert(data.error || 'Ошибка переименования');
+                }
+            } catch(e) {
+                console.error('Ошибка переименования:', e);
+                alert('Ошибка');
+            }
+        }
+        
+        function closeGroupSettings() {
+            document.getElementById('groupSettingsModal').style.display = 'none';
+            document.getElementById('renameGroupInput').value = '';
+        }
+        
+        // Личные сообщения
         async function showNewChatModal() {
             await loadUsersList();
             document.getElementById('userModal').style.display = 'flex';
@@ -983,7 +1363,7 @@
                 if (data.success) {
                     closeModal();
                     await loadChats();
-                    selectChat(data.chatId, otherName);
+                    selectChat(data.chatId, otherName, 'private');
                 } else {
                     alert('Ошибка создания чата');
                 }
@@ -1016,6 +1396,42 @@
             container.innerHTML = html;
         });
         
+        // Обработка формы
+        document.getElementById('chatForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const msg = document.getElementById('messageInput').value.trim();
+            if (msg) {
+                sendMessage(msg);
+            }
+        });
+        
+        // Загрузка фото
+        const imageButton = document.getElementById('imageButton');
+        const imageInput = document.getElementById('imageInput');
+        imageButton.addEventListener('click', () => imageInput.click());
+        imageInput.addEventListener('change', async () => {
+            const file = imageInput.files[0];
+            if (!file) return;
+            
+            const fd = new FormData();
+            fd.append('image', file);
+            
+            try {
+                const res = await fetch('/api/upload', { method: 'POST', body: fd });
+                const data = await res.json();
+                if (data.success) {
+                    sendMessage(null, data.url);
+                } else {
+                    alert('Ошибка загрузки изображения');
+                }
+            } catch(e) { 
+                console.error('Ошибка загрузки:', e);
+                alert('Ошибка при загрузке изображения'); 
+            }
+            imageInput.value = '';
+        });
+        
+        // Снятие выделения при клике вне сообщения
         document.addEventListener('click', (e) => {
             if (!e.target.closest('#messages li') && selectedMessageId) {
                 const prev = document.querySelector(`#messages li[data-id='${selectedMessageId}']`);
@@ -1023,6 +1439,22 @@
                 selectedMessageId = null;
             }
         });
+        
+        // Мобильная клавиатура
+        function handleMobileKeyboard() {
+            if (window.innerWidth <= 768) {
+                const messageInput = document.getElementById('messageInput');
+                const messagesContainer = document.getElementById('messages');
+                
+                messageInput.addEventListener('focus', () => {
+                    setTimeout(() => {
+                        if (messagesContainer.lastElementChild) {
+                            messagesContainer.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                        }
+                    }, 300);
+                });
+            }
+        }
         
         // Инициализация
         loadChats();
