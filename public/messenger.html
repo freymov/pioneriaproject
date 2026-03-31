@@ -66,6 +66,7 @@
             font-weight: bold;
             cursor: pointer;
             transition: opacity 0.2s;
+            margin-bottom: 8px;
         }
         
         .new-chat-btn:active {
@@ -214,6 +215,66 @@
             opacity: 0.8;
         }
         
+        /* Закрепленные сообщения */
+        #pinnedMessagesContainer {
+            background: #fff3e0;
+            border-bottom: 1px solid #ff9800;
+            padding: 10px;
+            margin: 0;
+            flex-shrink: 0;
+        }
+        
+        .pinned-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        
+        .pinned-header span:first-child {
+            font-size: 16px;
+        }
+        
+        .pinned-header span:last-child {
+            font-weight: bold;
+            color: #ff9800;
+        }
+        
+        .toggle-pinned {
+            margin-left: auto;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            color: #ff9800;
+        }
+        
+        #pinnedMessagesList {
+            margin-top: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .pinned-message {
+            background: #fff3e0;
+            border-left: 3px solid #ff9800;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+        
+        .pinned-message:hover {
+            background: #ffe6c2;
+        }
+        
+        .pinned-message .user {
+            font-weight: bold;
+            color: #ff9800;
+        }
+        
         #messages {
             list-style-type: none;
             padding: 15px;
@@ -240,9 +301,14 @@
             -webkit-tap-highlight-color: transparent;
         }
         
-        /* Закрепленные сообщения */
+        /* Закрепленные сообщения в списке */
         #messages li.pinned {
             background: #fff3e0;
+            border-left: 3px solid #ff9800;
+        }
+        
+        #messages li[data-own="true"].pinned {
+            background: #7c4dff;
             border-left: 3px solid #ff9800;
         }
         
@@ -252,11 +318,6 @@
             background: #667eea;
             color: white;
             border-bottom-right-radius: 4px;
-        }
-        
-        #messages li[data-own="true"].pinned {
-            background: #7c4dff;
-            border-left: 3px solid #ff9800;
         }
         
         /* Чужие сообщения — слева */
@@ -302,6 +363,16 @@
             color: rgba(255,255,255,0.7);
         }
         
+        .edit-indicator {
+            font-size: 10px;
+            color: #ff9800;
+            margin-left: 5px;
+        }
+        
+        #messages li[data-own="true"] .edit-indicator {
+            color: rgba(255,255,255,0.7);
+        }
+        
         .message-actions {
             position: absolute;
             right: 10px;
@@ -332,18 +403,6 @@
         
         .message-actions button:hover {
             background: rgba(255,255,255,0.2);
-        }
-        
-        .delete-btn {
-            background: #ff4444;
-        }
-        
-        .edit-btn {
-            background: #4caf50;
-        }
-        
-        .pin-btn {
-            background: #ff9800;
         }
         
         .message-form {
@@ -594,29 +653,31 @@
         
         /* Скроллбар для мобильных */
         #messages::-webkit-scrollbar,
-        .chats-panel::-webkit-scrollbar {
+        .chats-panel::-webkit-scrollbar,
+        #pinnedMessagesList::-webkit-scrollbar {
             width: 4px;
         }
         
         #messages::-webkit-scrollbar-track,
-        .chats-panel::-webkit-scrollbar-track {
+        .chats-panel::-webkit-scrollbar-track,
+        #pinnedMessagesList::-webkit-scrollbar-track {
             background: #f1f1f1;
         }
         
         #messages::-webkit-scrollbar-thumb,
-        .chats-panel::-webkit-scrollbar-thumb {
+        .chats-panel::-webkit-scrollbar-thumb,
+        #pinnedMessagesList::-webkit-scrollbar-thumb {
             background: #888;
             border-radius: 2px;
         }
         
-        .edit-mode {
-            background: #fff9c4 !important;
+        .highlight-message {
+            animation: highlight 2s ease;
         }
         
-        .edit-indicator {
-            font-size: 11px;
-            color: #ff9800;
-            margin-left: 5px;
+        @keyframes highlight {
+            0% { background-color: #fff3e0; }
+            100% { background-color: transparent; }
         }
     </style>
 </head>
@@ -628,7 +689,7 @@
             <div class="chats-header">
                 <h2>💬 Диалоги</h2>
                 <button class="new-chat-btn" onclick="showNewChatModal()">➕ Новый диалог</button>
-                <button class="new-chat-btn" onclick="showCreateGroupModal()" style="margin-top: 8px;">👥 Создать группу</button>
+                <button class="new-chat-btn" onclick="showCreateGroupModal()">👥 Создать группу</button>
             </div>
             <div class="chats-list" id="chatsList">Загрузка...</div>
         </div>
@@ -637,11 +698,23 @@
             <div class="chat-header">
                 <h2 id="currentChatTitle">🎵 Общий чат</h2>
                 <div class="chat-actions">
+                    <button class="group-settings-btn" id="generalSettingsBtn" onclick="showGeneralSettings()" style="display: none;">⚙️ Настройки</button>
                     <button class="group-settings-btn" id="groupSettingsBtn" onclick="showGroupSettings()" style="display: none;">⚙️ Настройки</button>
                     <button class="lobby-btn" onclick="goToLobby()">🏠 Лобби</button>
                 </div>
             </div>
+            
+            <div id="pinnedMessagesContainer" style="display: none;">
+                <div class="pinned-header" onclick="togglePinnedMessages()">
+                    <span>📌</span>
+                    <span>Закрепленные сообщения</span>
+                    <button class="toggle-pinned" id="togglePinnedBtn">▼</button>
+                </div>
+                <div id="pinnedMessagesList"></div>
+            </div>
+            
             <ul id="messages"></ul>
+            
             <form class="message-form" id="chatForm">
                 <button type="button" id="imageButton" class="attach-button">📎</button>
                 <input type="text" id="messageInput" autocomplete="off" placeholder="Введите сообщение...">
@@ -666,6 +739,7 @@
         <div class="modal-content">
             <h3>Создать группу</h3>
             <input type="text" id="groupName" placeholder="Название группы">
+            <h4>Выберите участников:</h4>
             <div id="groupMembersList"></div>
             <button onclick="createGroup()">Создать группу</button>
             <button onclick="closeCreateGroupModal()">Отмена</button>
@@ -692,6 +766,16 @@
         </div>
     </div>
     
+    <!-- Модалка для настроек общего чата -->
+    <div id="generalSettingsModal" class="modal">
+        <div class="modal-content">
+            <h3>Настройки общего чата</h3>
+            <input type="text" id="generalChatNameInput" placeholder="Название общего чата">
+            <button onclick="updateGeneralChatName()">Сохранить</button>
+            <button onclick="closeGeneralSettings()">Отмена</button>
+        </div>
+    </div>
+    
     <script src="/socket.io/socket.io.js"></script>
     <script>
         // Глобальные переменные
@@ -709,7 +793,9 @@
         let allUsers = [];
         let selectedMessageId = null;
         let editingMessageId = null;
-        let pinnedMessages = new Set(); // Храним ID закрепленных сообщений
+        let pinnedMessages = new Set();
+        let pinnedMessagesData = [];
+        let pinnedExpanded = true;
         
         const notificationSound = new Audio('/notification.mp3');
         
@@ -769,6 +855,8 @@
                     if (el) el.remove();
                     if (selectedMessageId === messageId) selectedMessageId = null;
                     pinnedMessages.delete(messageId);
+                    // Обновляем список закрепленных
+                    loadPinnedMessages();
                 } else {
                     alert(data.error || 'Нельзя удалить');
                 }
@@ -783,7 +871,6 @@
             editingMessageId = messageId;
             const modal = document.getElementById('editMessageModal');
             const textarea = document.getElementById('editMessageText');
-            // Убираем 📷 если это фото
             let cleanText = currentText;
             if (cleanText && cleanText.startsWith('📷 ')) {
                 cleanText = cleanText.replace('📷 ', '');
@@ -812,23 +899,6 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    // Обновляем сообщение в UI
-                    const li = document.querySelector(`#messages li[data-id='${editingMessageId}']`);
-                    if (li) {
-                        const userSpan = li.querySelector('.user');
-                        const textNode = li.childNodes[2];
-                        if (textNode && textNode.nodeType === Node.TEXT_NODE) {
-                            textNode.textContent = ` ${newText}`;
-                        }
-                        // Добавляем индикатор редактирования
-                        let editIndicator = li.querySelector('.edit-indicator');
-                        if (!editIndicator) {
-                            editIndicator = document.createElement('span');
-                            editIndicator.className = 'edit-indicator';
-                            editIndicator.textContent = ' (ред.)';
-                            li.appendChild(editIndicator);
-                        }
-                    }
                     closeEditModal();
                 } else {
                     alert(data.error || 'Ошибка редактирования');
@@ -873,12 +943,79 @@
                             li.classList.remove('pinned');
                         }
                     }
+                    // Обновляем список закрепленных
+                    loadPinnedMessages();
                 } else {
                     alert(data.error || 'Ошибка');
                 }
             } catch(e) {
                 console.error('Ошибка закрепления:', e);
                 alert('Ошибка');
+            }
+        }
+        
+        // Загрузка закрепленных сообщений
+        async function loadPinnedMessages() {
+            try {
+                let url;
+                if (currentChatId === null) {
+                    url = '/api/get-pinned?chatId=general';
+                } else {
+                    url = `/api/get-pinned?chatId=${currentChatId}`;
+                }
+                const pinRes = await fetch(url);
+                const pinData = await pinRes.json();
+                if (pinData.success && pinData.pinned) {
+                    pinnedMessagesData = pinData.pinned;
+                    const container = document.getElementById('pinnedMessagesContainer');
+                    const list = document.getElementById('pinnedMessagesList');
+                    
+                    if (pinnedMessagesData.length > 0) {
+                        container.style.display = 'block';
+                        let html = '';
+                        pinnedMessagesData.forEach(msg => {
+                            let text = msg.text;
+                            if (text && text.startsWith('📷')) {
+                                text = '📷 Изображение';
+                            }
+                            html += `
+                                <div class="pinned-message" onclick="scrollToMessage(${msg.message_id})">
+                                    <span class="user">${escapeHtml(msg.user_name)}:</span>
+                                    <span>${escapeHtml(text.length > 50 ? text.substring(0, 50) + '...' : text)}</span>
+                                </div>
+                            `;
+                        });
+                        list.innerHTML = html;
+                    } else {
+                        container.style.display = 'none';
+                    }
+                }
+            } catch(e) {
+                console.error('Ошибка загрузки закрепленных:', e);
+            }
+        }
+        
+        function togglePinnedMessages() {
+            pinnedExpanded = !pinnedExpanded;
+            const list = document.getElementById('pinnedMessagesList');
+            const btn = document.getElementById('togglePinnedBtn');
+            if (pinnedExpanded) {
+                list.style.display = 'block';
+                btn.textContent = '▼';
+            } else {
+                list.style.display = 'none';
+                btn.textContent = '▶';
+            }
+        }
+        
+        function scrollToMessage(messageId) {
+            const messageElement = document.querySelector(`#messages li[data-id='${messageId}']`);
+            if (messageElement) {
+                messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                messageElement.classList.add('highlight-message');
+                setTimeout(() => {
+                    messageElement.classList.remove('highlight-message');
+                }, 2000);
             }
         }
         
@@ -906,9 +1043,21 @@
                     console.error('Ошибка загрузки последнего сообщения общего чата:', e);
                 }
                 
+                // Загружаем название общего чата из настроек
+                let generalChatName = 'Общий чат';
+                try {
+                    const settingsRes = await fetch('/api/general-settings');
+                    const settingsData = await settingsRes.json();
+                    if (settingsData.success) {
+                        generalChatName = settingsData.name;
+                    }
+                } catch(e) {
+                    console.error('Ошибка загрузки настроек:', e);
+                }
+                
                 const generalChat = { 
                     id: null, 
-                    other_user_name: 'Общий чат', 
+                    other_user_name: generalChatName, 
                     unread_count: 0,
                     last_message: generalLastMessage,
                     type: 'general'
@@ -927,7 +1076,7 @@
                 renderChatsList();
                 
                 if (currentChatId === undefined || currentChatId === null) {
-                    setTimeout(() => selectChat(null, 'Общий чат', 'general'), 100);
+                    setTimeout(() => selectChat(null, generalChatName, 'general'), 100);
                 }
             } catch(e) { 
                 console.error('Ошибка загрузки чатов:', e);
@@ -959,7 +1108,7 @@
                 const chatName = chat.other_user_name || 'Общий чат';
                 const chatType = chat.type || (chat.id === null ? 'general' : 'private');
                 const onclickAttr = chat.id === null 
-                    ? `selectChat(null, 'Общий чат', 'general')` 
+                    ? `selectChat(null, '${escapeHtml(chatName)}', 'general')` 
                     : `selectChat(${chat.id}, '${escapeHtml(chatName)}', '${chatType}')`;
                 
                 html += `<div class="chat-item ${active ? 'active' : ''}" onclick="${onclickAttr}">
@@ -982,6 +1131,10 @@
             li.setAttribute('data-id', data.id);
             li.setAttribute('data-user-id', data.user_id);
             li.setAttribute('data-image-url', data.image_url || '');
+            
+            if (data.edited) {
+                li.setAttribute('data-edited', 'true');
+            }
             
             if (pinnedMessages.has(data.id)) {
                 li.classList.add('pinned');
@@ -1045,7 +1198,7 @@
                 if (isRecent) {
                     notificationSound.play().catch(()=>{});
                     if (Notification.permission === 'granted') {
-                        new Notification(`${currentChatName}`, { 
+                        new Notification(currentChatName, { 
                             body: `${data.name}: ${data.text ? data.text.substring(0,50) : 'Изображение'}`, 
                             icon: '/favicon.jpg' 
                         });
@@ -1063,11 +1216,18 @@
             currentChatType = chatType;
             document.getElementById('currentChatTitle').innerHTML = `🎵 ${escapeHtml(chatName)}`;
             
-            // Показываем кнопку настроек только для групп
+            // Показываем кнопки настроек
+            const generalSettingsBtn = document.getElementById('generalSettingsBtn');
             const groupSettingsBtn = document.getElementById('groupSettingsBtn');
+            
             if (chatType === 'group') {
                 groupSettingsBtn.style.display = 'block';
+                generalSettingsBtn.style.display = 'none';
+            } else if (chatType === 'general' && userData.role === 'admin') {
+                generalSettingsBtn.style.display = 'block';
+                groupSettingsBtn.style.display = 'none';
             } else {
+                generalSettingsBtn.style.display = 'none';
                 groupSettingsBtn.style.display = 'none';
             }
             
@@ -1084,21 +1244,8 @@
                 }
             }
             
-            // Загружаем закрепленные сообщения
-            if (chatId !== null) {
-                try {
-                    const pinRes = await fetch(`/api/get-pinned?chatId=${chatId}`);
-                    const pinData = await pinRes.json();
-                    if (pinData.success && pinData.pinned) {
-                        pinnedMessages.clear();
-                        pinData.pinned.forEach(p => pinnedMessages.add(p.message_id));
-                    }
-                } catch(e) {
-                    console.error('Ошибка загрузки закрепленных:', e);
-                }
-            } else {
-                pinnedMessages.clear();
-            }
+            // Загружаем закрепленные
+            await loadPinnedMessages();
             
             // Переподключаем сокет
             if (socket) {
@@ -1155,6 +1302,7 @@
                         editIndicator.textContent = ' (ред.)';
                         li.appendChild(editIndicator);
                     }
+                    li.setAttribute('data-edited', 'true');
                 }
             });
             
@@ -1169,6 +1317,7 @@
                         pinnedMessages.delete(data.messageId);
                     }
                 }
+                loadPinnedMessages();
             });
             
             socket.on('connect_error', (err) => {
@@ -1213,10 +1362,10 @@
                 const data = await res.json();
                 if (data.success && data.users) {
                     const container = document.getElementById('groupMembersList');
-                    let html = '<h4>Выберите участников:</h4>';
+                    let html = '';
                     for (let u of data.users) {
                         if (u.id !== currentUserId) {
-                            html += `<div>
+                            html += `<div style="margin-bottom: 8px;">
                                         <input type="checkbox" value="${u.id}" id="user_${u.id}">
                                         <label for="user_${u.id}">${escapeHtml(u.name)} (${escapeHtml(u.email)})</label>
                                     </div>`;
@@ -1318,6 +1467,54 @@
         function closeGroupSettings() {
             document.getElementById('groupSettingsModal').style.display = 'none';
             document.getElementById('renameGroupInput').value = '';
+        }
+        
+        // Настройки общего чата
+        async function showGeneralSettings() {
+            if (userData.role !== 'admin') return;
+            document.getElementById('generalSettingsModal').style.display = 'flex';
+            try {
+                const res = await fetch('/api/general-settings');
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('generalChatNameInput').value = data.name;
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
+        
+        async function updateGeneralChatName() {
+            const newName = document.getElementById('generalChatNameInput').value.trim();
+            if (!newName) {
+                alert('Введите название');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/admin/update-general-chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminEmail: userData.email, newName })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    currentChatName = newName;
+                    document.getElementById('currentChatTitle').innerHTML = `🎵 ${escapeHtml(newName)}`;
+                    closeGeneralSettings();
+                    await loadChats();
+                } else {
+                    alert(data.error || 'Ошибка');
+                }
+            } catch(e) {
+                console.error('Ошибка обновления:', e);
+                alert('Ошибка');
+            }
+        }
+        
+        function closeGeneralSettings() {
+            document.getElementById('generalSettingsModal').style.display = 'none';
+            document.getElementById('generalChatNameInput').value = '';
         }
         
         // Личные сообщения
