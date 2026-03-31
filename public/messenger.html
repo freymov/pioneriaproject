@@ -16,6 +16,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             height: 100vh;
             overflow: hidden;
+            position: relative;
         }
         .messenger {
             display: flex;
@@ -326,17 +327,75 @@
             padding: 40px;
         }
         
+        /* Бургер-кнопка */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001;
+            background: #667eea;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        /* Мобильная версия */
         @media (max-width: 768px) {
-            .chats-panel {
-                width: 280px;
+            .menu-toggle {
+                display: block;
             }
+            
+            .chats-panel {
+                position: fixed;
+                left: -100%;
+                width: 280px;
+                height: 100%;
+                z-index: 1000;
+                transition: left 0.3s ease;
+                background: #f9f9f9;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            }
+            
+            .chats-panel.open {
+                left: 0;
+            }
+            
+            .chat-area-header {
+                padding-left: 60px;
+            }
+            
             .message-bubble {
                 max-width: 85%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .chats-panel {
+                width: 260px;
+            }
+            .chat-item {
+                padding: 12px 15px;
+            }
+            .chat-avatar {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+            .message-bubble {
+                max-width: 90%;
             }
         }
     </style>
 </head>
 <body>
+    <button class="menu-toggle" onclick="toggleChatsPanel()">☰</button>
+    
     <div class="messenger">
         <div class="chats-panel" id="chatsPanel">
             <div class="chats-header">
@@ -392,6 +451,11 @@
         
         if ('Notification' in window && Notification.permission !== 'granted') {
             setTimeout(() => Notification.requestPermission(), 2000);
+        }
+        
+        function toggleChatsPanel() {
+            const panel = document.getElementById('chatsPanel');
+            panel.classList.toggle('open');
         }
         
         function goToLobby() { window.location.href = 'lobby.html'; }
@@ -534,6 +598,11 @@
                 await fetch('/api/mark-read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chatId, userId: currentUserId }) });
             }
             renderChatsList();
+            
+            // Закрываем панель на мобилках
+            if (window.innerWidth <= 768) {
+                document.getElementById('chatsPanel').classList.remove('open');
+            }
         }
         
         function addMessageToUI(data) {
