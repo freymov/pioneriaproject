@@ -145,7 +145,7 @@
             background: #f9f9f9;
         }
         
-        /* Стили сообщений */
+        /* Стили сообщений — свои справа, чужие слева */
         #messages li {
             padding: 10px 12px;
             margin-bottom: 8px;
@@ -159,6 +159,7 @@
             clear: both;
         }
         
+        /* Свои сообщения — справа */
         #messages li[data-own="true"] {
             float: right;
             background: #667eea;
@@ -166,6 +167,7 @@
             border-bottom-right-radius: 4px;
         }
         
+        /* Чужие сообщения — слева */
         #messages li[data-own="false"] {
             float: left;
             background: white;
@@ -174,6 +176,7 @@
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
         
+        /* Системные сообщения по центру */
         #messages li.system {
             max-width: 90%;
             margin-left: auto;
@@ -189,13 +192,11 @@
         
         .user {
             font-weight: bold;
+            color: #667eea;
             margin-right: 8px;
         }
         #messages li[data-own="true"] .user {
             color: rgba(255,255,255,0.9);
-        }
-        #messages li[data-own="false"] .user {
-            color: #667eea;
         }
         
         .timestamp {
@@ -301,7 +302,6 @@
             padding: 40px;
         }
         
-        /* Бургер-кнопка */
         .menu-toggle {
             display: none;
             position: fixed;
@@ -319,7 +319,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         
-        /* ========== АДАПТИВНОСТЬ ========== */
         @media (max-width: 768px) {
             .menu-toggle {
                 display: block;
@@ -332,7 +331,6 @@
                 z-index: 1000;
                 transition: left 0.3s ease;
                 background: #f9f9f9;
-                box-shadow: 2px 0 10px rgba(0,0,0,0.1);
             }
             .chats-panel.open {
                 left: 0;
@@ -342,59 +340,6 @@
             }
             #messages li {
                 max-width: 85%;
-            }
-            .message-form {
-                padding: 10px 12px;
-            }
-            #messageInput {
-                font-size: 14px;
-                padding: 10px 12px;
-            }
-            .message-form button {
-                padding: 10px 16px;
-                font-size: 14px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .chats-panel {
-                width: 260px;
-            }
-            .chat-item {
-                padding: 12px 15px;
-            }
-            .chat-avatar {
-                width: 40px;
-                height: 40px;
-                font-size: 16px;
-            }
-            .chat-name {
-                font-size: 14px;
-            }
-            .chat-last-message {
-                font-size: 11px;
-            }
-            #messages li {
-                max-width: 90%;
-                padding: 8px 10px;
-            }
-            .message-text {
-                font-size: 13px;
-            }
-            .attach-button, .message-form button {
-                padding: 8px 12px;
-            }
-            .attach-button {
-                font-size: 16px;
-            }
-        }
-        
-        @media (min-width: 1920px) {
-            .chats-panel {
-                width: 380px;
-            }
-            #messages li {
-                max-width: 60%;
             }
         }
     </style>
