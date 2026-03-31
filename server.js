@@ -634,6 +634,29 @@ app.post('/api/update-name', async (req, res) => {
     }
 });
 
+// ========== ПОСЛЕДНЕЕ СООБЩЕНИЕ ОБЩЕГО ЧАТА ==========
+app.get('/api/general-last-message', async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT id, user_name as name, text, user_id, image_url, timestamp 
+             FROM messages 
+             WHERE chat_id IS NULL 
+             ORDER BY timestamp DESC 
+             LIMIT 1`
+        );
+        
+        if (result.rows.length > 0) {
+            res.json({ success: true, message: result.rows[0] });
+        } else {
+            res.json({ success: true, message: null });
+        }
+    } catch (err) {
+        console.error('❌ Ошибка загрузки последнего сообщения общего чата:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+
 // ========== ЧАТ ==========
 let onlineUsers = {};
 
