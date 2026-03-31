@@ -753,17 +753,20 @@
         }
         
         async function selectChat(chatId, chatName) {
-            currentChatId = chatId;
+            // Нормализуем chatId: null для общего чата, число для личного
+            const normalizedChatId = (chatId !== null && chatId !== undefined) ? Number(chatId) : null;
+            
+            currentChatId = normalizedChatId;
             currentChatName = chatName;
             document.getElementById('currentChatTitle').innerHTML = `🎵 ${escapeHtml(chatName)}`;
             
-            // Отмечаем прочитанными при открытии чата
-            if (chatId !== null) {
+            // Отмечаем прочитанными при открытии чата (только для личных)
+            if (normalizedChatId !== null) {
                 try {
                     await fetch('/api/mark-read', { 
                         method: 'POST', 
                         headers: { 'Content-Type': 'application/json' }, 
-                        body: JSON.stringify({ chatId, userId: currentUserId }) 
+                        body: JSON.stringify({ chatId: normalizedChatId, userId: currentUserId }) 
                     });
                     // Обновляем список чатов, чтобы убрать счетчик непрочитанных
                     await loadChats();
@@ -771,30 +774,41 @@
             }
             
             if (socket) socket.disconnect();
-            socket = io({ query: { chatId: chatId !== null ? chatId : '' } });
-            socket.on('connect', () => socket.emit('user joined', { name: userData.name, id: userData.id, role: userData.role }));
+            // Для общего чата передаём пустую строку, для личного — число
+            const queryChatId = normalizedChatId !== null ? normalizedChatId : '';
+            socket = io({ query: { chatId: queryChatId } });
+            
+            socket.on('connect', () => {
+                console.log('Socket connected, chatId:', queryChatId);
+                socket.emit('user joined', { name: userData.name, id: userData.id, role: userData.role });
+            });
+            
             socket.on('message history', (msgs) => {
                 const container = document.getElementById('messages');
                 container.innerHTML = '';
-                if (msgs?.length) msgs.forEach(m => addMessageToUI(m));
-                else container.innerHTML = '<div style="text-align:center;color:#999;padding:40px">Нет сообщений</div>';
+                if (msgs?.length) {
+                    msgs.forEach(m => addMessageToUI(m));
+                } else {
+                    container.innerHTML = '<div style="text-align:center;color:#999;padding:40px">Нет сообщений</div>';
+                }
             });
             socket.on('message', (m) => {
                 addMessageToUI(m);
-                // Если сообщение от другого пользователя и не в текущем чате, обновляем список чатов для отображения счетчика
-                if (m.user_id !== currentUserId) {
-                    loadChats();
-                }
+                // Обновляем список чатов при новом сообщении
+                loadChats();
             });
             
             renderChatsList();
-            if (window.innerWidth <= 768) document.getElementById('chatsPanel').classList.remove('open');
+            if (window.innerWidth <= 768) {
+                document.getElementById('chatsPanel').classList.remove('open');
+            }
         }
         
         async function sendMessage(text, imageUrl = null) {
             if (!socket) return alert('Нет соединения');
             const finalText = imageUrl ? `📷 ${imageUrl}` : text;
-            socket.emit('chat message', { text: finalText, chatId: currentChatId === null ? null : Number(currentChatId) });
+            const chatIdToSend = currentChatId === null ? null : Number(currentChatId);
+            socket.emit('chat message', { text: finalText, chatId: chatIdToSend });
             document.getElementById('messageInput').value = '';
         }
         
@@ -848,9 +862,15 @@
                 if (data.success) {
                     closeModal();
                     await loadChats();
-                    selectChat(data.chatId, otherName);
-                } else alert('Ошибка');
-            } catch(e) { alert('Ошибка'); }
+                    // Преобразуем chatId в число
+                    selectChat(Number(data.chatId), otherName);
+                } else {
+                    alert('Ошибка создания диалога');
+                }
+            } catch(e) { 
+                console.error(e);
+                alert('Ошибка сервера'); 
+            }
         }
         
         function closeModal() {
