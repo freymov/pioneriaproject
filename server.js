@@ -151,6 +151,33 @@ async function initDatabase() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
+
+        // Таблица для групп
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS groups (
+                id SERIAL PRIMARY KEY,
+                chat_id INTEGER REFERENCES chats(id) ON DELETE CASCADE,
+                name VARCHAR(255) NOT NULL,
+                created_by INTEGER REFERENCES users(id),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        
+        // Таблица для закрепленных сообщений
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS pinned_messages (
+                id SERIAL PRIMARY KEY,
+                message_id INTEGER REFERENCES messages(id) ON DELETE CASCADE,
+                chat_id INTEGER REFERENCES chats(id) ON DELETE CASCADE,
+                pinned_by INTEGER REFERENCES users(id),
+                pinned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        
+        // Добавляем поле edited в messages
+        await pool.query(`
+            ALTER TABLE messages ADD COLUMN IF NOT EXISTS edited BOOLEAN DEFAULT FALSE
+        `);
         
         const existing = await pool.query(
             "SELECT * FROM invite_keys WHERE key_code = 'ADMIN-PIONERIA-2025'"
@@ -455,16 +482,19 @@ app.post('/api/get-or-create-chat', async (req, res) => {
     }
 });
 
+// ========== ЛИЧНЫЕ СООБЩЕНИЯ И ГРУППЫ ==========
 app.get('/api/chats', async (req, res) => {
     const { userId } = req.query;
     
     try {
-        const chats = await pool.query(`
+        // Личные чаты
+        const privateChats = await pool.query(`
             SELECT 
                 c.id,
                 u.id as other_user_id,
                 u.name as other_user_name,
                 u.role as other_user_role,
+                'private' as type,
                 (SELECT text FROM messages WHERE chat_id = c.id ORDER BY timestamp DESC LIMIT 1) as last_message,
                 (SELECT timestamp FROM messages WHERE chat_id = c.id ORDER BY timestamp DESC LIMIT 1) as last_message_time,
                 (SELECT COUNT(*) FROM messages WHERE chat_id = c.id AND user_id != $1 AND is_read = false) as unread_count
@@ -474,10 +504,27 @@ app.get('/api/chats', async (req, res) => {
             WHERE c.id IN (
                 SELECT chat_id FROM chat_participants WHERE user_id = $1
             ) AND cp.user_id != $1
+            AND c.id NOT IN (SELECT chat_id FROM groups)
             ORDER BY last_message_time DESC NULLS LAST
         `, [userId]);
         
-        res.json({ success: true, chats: chats.rows });
+        // Группы
+        const groups = await pool.query(`
+            SELECT 
+                g.chat_id as id,
+                g.name as other_user_name,
+                'group' as type,
+                (SELECT text FROM messages WHERE chat_id = g.chat_id ORDER BY timestamp DESC LIMIT 1) as last_message,
+                (SELECT timestamp FROM messages WHERE chat_id = g.chat_id ORDER BY timestamp DESC LIMIT 1) as last_message_time,
+                (SELECT COUNT(*) FROM messages WHERE chat_id = g.chat_id AND user_id != $1 AND is_read = false) as unread_count
+            FROM groups g
+            JOIN chat_participants cp ON g.chat_id = cp.chat_id
+            WHERE cp.user_id = $1
+            ORDER BY last_message_time DESC NULLS LAST
+        `, [userId]);
+        
+        const chats = [...privateChats.rows, ...groups.rows];
+        res.json({ success: true, chats });
     } catch (err) {
         console.error('❌ Ошибка загрузки диалогов:', err);
         res.json({ success: false, error: 'Ошибка сервера' });
@@ -656,6 +703,187 @@ app.get('/api/general-last-message', async (req, res) => {
     }
 });
 
+
+// ========== РЕДАКТИРОВАНИЕ СООБЩЕНИЯ ==========
+app.post('/api/edit-message', async (req, res) => {
+    const { messageId, newText, userId, userRole } = req.body;
+    
+    try {
+        const msg = await pool.query(
+            'SELECT * FROM messages WHERE id = $1',
+            [messageId]
+        );
+        
+        if (msg.rows.length === 0) {
+            return res.json({ success: false, error: 'Сообщение не найдено' });
+        }
+        
+        const message = msg.rows[0];
+        const isAuthor = message.user_id === userId;
+        const isAdmin = userRole === 'admin';
+        
+        if (!isAuthor && !isAdmin) {
+            return res.json({ success: false, error: 'Нет прав на редактирование' });
+        }
+        
+        await pool.query(
+            'UPDATE messages SET text = $1, edited = true WHERE id = $2',
+            [newText, messageId]
+        );
+        
+        io.emit('message edited', { messageId, newText });
+        
+        res.json({ success: true });
+    } catch (err) {
+        console.error('❌ Ошибка редактирования:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+// ========== ЗАКРЕПЛЕНИЕ СООБЩЕНИЯ ==========
+app.post('/api/pin-message', async (req, res) => {
+    const { messageId, chatId, userId, userRole } = req.body;
+    
+    try {
+        const isAdmin = userRole === 'admin';
+        
+        if (!isAdmin && chatId !== null) {
+            const groupCreator = await pool.query(
+                'SELECT created_by FROM groups WHERE chat_id = $1',
+                [chatId]
+            );
+            if (groupCreator.rows.length > 0 && groupCreator.rows[0].created_by !== userId) {
+                return res.json({ success: false, error: 'Только создатель группы может закреплять сообщения' });
+            }
+        }
+        
+        const existing = await pool.query(
+            'SELECT * FROM pinned_messages WHERE message_id = $1',
+            [messageId]
+        );
+        
+        if (existing.rows.length > 0) {
+            await pool.query('DELETE FROM pinned_messages WHERE message_id = $1', [messageId]);
+            io.emit('message pinned', { messageId, pinned: false });
+            res.json({ success: true, pinned: false });
+        } else {
+            await pool.query(
+                'INSERT INTO pinned_messages (message_id, chat_id, pinned_by) VALUES ($1, $2, $3)',
+                [messageId, chatId, userId]
+            );
+            io.emit('message pinned', { messageId, pinned: true });
+            res.json({ success: true, pinned: true });
+        }
+    } catch (err) {
+        console.error('❌ Ошибка закрепления:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+// ========== ПОЛУЧИТЬ ЗАКРЕПЛЕННЫЕ СООБЩЕНИЯ ==========
+app.get('/api/get-pinned', async (req, res) => {
+    const { chatId } = req.query;
+    
+    try {
+        const result = await pool.query(
+            `SELECT pm.*, m.text, m.user_name 
+             FROM pinned_messages pm
+             JOIN messages m ON pm.message_id = m.id
+             WHERE pm.chat_id = $1
+             ORDER BY pm.pinned_at DESC`,
+            [chatId]
+        );
+        res.json({ success: true, pinned: result.rows });
+    } catch (err) {
+        console.error('❌ Ошибка получения закрепленных:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+// ========== СОЗДАНИЕ ГРУППЫ ==========
+app.post('/api/create-group', async (req, res) => {
+    const { name, creatorId, members } = req.body;
+    
+    try {
+        const chatResult = await pool.query(
+            'INSERT INTO chats DEFAULT VALUES RETURNING id'
+        );
+        const chatId = chatResult.rows[0].id;
+        
+        await pool.query(
+            'INSERT INTO groups (chat_id, name, created_by, created_at) VALUES ($1, $2, $3, NOW())',
+            [chatId, name, creatorId]
+        );
+        
+        const allMembers = [creatorId, ...members];
+        for (const userId of allMembers) {
+            await pool.query(
+                'INSERT INTO chat_participants (chat_id, user_id) VALUES ($1, $2)',
+                [chatId, userId]
+            );
+        }
+        
+        res.json({ success: true, chatId });
+    } catch (err) {
+        console.error('❌ Ошибка создания группы:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+// ========== ПЕРЕИМЕНОВАНИЕ ГРУППЫ ==========
+app.post('/api/rename-group', async (req, res) => {
+    const { chatId, newName, userId, userRole } = req.body;
+    
+    try {
+        const isAdmin = userRole === 'admin';
+        
+        const group = await pool.query(
+            'SELECT * FROM groups WHERE chat_id = $1',
+            [chatId]
+        );
+        
+        if (group.rows.length === 0) {
+            return res.json({ success: false, error: 'Группа не найдена' });
+        }
+        
+        if (!isAdmin && group.rows[0].created_by !== userId) {
+            return res.json({ success: false, error: 'Только создатель группы может переименовывать' });
+        }
+        
+        await pool.query(
+            'UPDATE groups SET name = $1 WHERE chat_id = $2',
+            [newName, chatId]
+        );
+        
+        res.json({ success: true });
+    } catch (err) {
+        console.error('❌ Ошибка переименования группы:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+// ========== ПОЛУЧИТЬ СПИСОК ГРУПП ПОЛЬЗОВАТЕЛЯ ==========
+app.get('/api/user-groups', async (req, res) => {
+    const { userId } = req.query;
+    
+    try {
+        const result = await pool.query(
+            `SELECT g.chat_id, g.name, g.created_by, 
+                    (SELECT text FROM messages WHERE chat_id = g.chat_id ORDER BY timestamp DESC LIMIT 1) as last_message,
+                    (SELECT COUNT(*) FROM messages WHERE chat_id = g.chat_id AND user_id != $1 AND is_read = false) as unread_count
+             FROM groups g
+             JOIN chat_participants cp ON g.chat_id = cp.chat_id
+             WHERE cp.user_id = $1
+             ORDER BY g.created_at DESC`,
+            [userId]
+        );
+        
+        res.json({ success: true, groups: result.rows });
+    } catch (err) {
+        console.error('❌ Ошибка получения групп:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
 
 // ========== ЧАТ ==========
 let onlineUsers = {};
