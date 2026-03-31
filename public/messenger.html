@@ -18,7 +18,6 @@
             overflow: hidden;
         }
         
-        /* Контейнер как в старом chat.html */
         .messenger {
             display: flex;
             height: 100vh;
@@ -26,7 +25,7 @@
             background: white;
         }
         
-        /* Левая панель — список чатов */
+        /* Левая панель */
         .chats-panel {
             width: 320px;
             background: #f9f9f9;
@@ -108,7 +107,7 @@
             margin-left: 8px;
         }
         
-        /* Правая панель — полная копия chat.html */
+        /* Правая панель */
         .chat-container {
             flex: 1;
             display: flex;
@@ -145,6 +144,8 @@
             overflow-y: auto;
             background: #f9f9f9;
         }
+        
+        /* Стили сообщений — свои справа, чужие слева */
         #messages li {
             padding: 10px 12px;
             margin-bottom: 8px;
@@ -154,27 +155,59 @@
             word-wrap: break-word;
             position: relative;
             cursor: pointer;
+            max-width: 70%;
+            clear: both;
         }
-        #messages li.selected {
-            background: #e3f2fd;
-            border-left: 4px solid #667eea;
+        
+        /* Свои сообщения — справа */
+        #messages li[data-own="true"] {
+            float: right;
+            background: #667eea;
+            color: white;
+            border-bottom-right-radius: 4px;
         }
-        .system {
+        
+        /* Чужие сообщения — слева */
+        #messages li[data-own="false"] {
+            float: left;
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        /* Системные сообщения по центру */
+        #messages li.system {
+            max-width: 90%;
+            margin-left: auto;
+            margin-right: auto;
             background: #e3f2fd;
             color: #1976d2;
             text-align: center;
             font-style: italic;
+            font-size: 0.85rem;
+            float: none;
+            clear: both;
         }
+        
         .user {
             font-weight: bold;
             color: #667eea;
             margin-right: 8px;
         }
+        #messages li[data-own="true"] .user {
+            color: rgba(255,255,255,0.9);
+        }
+        
         .timestamp {
             color: #999;
             font-size: 0.7rem;
             margin-left: 10px;
         }
+        #messages li[data-own="true"] .timestamp {
+            color: rgba(255,255,255,0.7);
+        }
+        
         .delete-btn {
             position: absolute;
             right: 10px;
@@ -192,12 +225,14 @@
         #messages li.selected .delete-btn {
             display: block;
         }
+        
         .message-form {
             display: flex;
             padding: 15px;
             border-top: 1px solid #eee;
             background: white;
             gap: 8px;
+            clear: both;
         }
         #messageInput {
             flex: 1;
@@ -235,7 +270,6 @@
             cursor: pointer;
         }
         
-        /* Модальное окно */
         .modal {
             display: none;
             position: fixed;
@@ -268,7 +302,6 @@
             padding: 40px;
         }
         
-        /* Бургер для мобильных */
         .menu-toggle {
             display: none;
             position: fixed;
@@ -304,6 +337,9 @@
             }
             .chat-header {
                 padding-left: 60px;
+            }
+            #messages li {
+                max-width: 85%;
             }
         }
     </style>
@@ -449,13 +485,15 @@
             li.setAttribute('data-user-id', data.user_id);
             li.setAttribute('data-image-url', data.image_url || '');
             
+            const isOwn = data.user_id === currentUserId;
+            li.setAttribute('data-own', isOwn ? 'true' : 'false');
+            
             const time = formatTime(data.timestamp);
             
             if (data.name === 'Система') {
                 li.className = 'system';
                 li.textContent = data.text;
             } else {
-                const isOwn = data.user_id === currentUserId;
                 let content = `<span class="user">${data.name}:</span> `;
                 if (data.text && data.text.startsWith('📷')) {
                     const url = data.text.replace('📷 ', '');
