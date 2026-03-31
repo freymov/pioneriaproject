@@ -18,7 +18,7 @@
             overflow: hidden;
         }
         
-        /* Контейнер мессенджера — как в старом чате */
+        /* Главный контейнер */
         .messenger {
             display: flex;
             height: 100vh;
@@ -27,7 +27,7 @@
             overflow: hidden;
         }
         
-        /* Левая панель (список чатов) */
+        /* Левая панель */
         .chats-panel {
             width: 320px;
             background: #f9f9f9;
@@ -38,16 +38,19 @@
             flex-shrink: 0;
         }
         
-        /* Правая панель (чат) — как старый .chat-container */
+        /* Правая панель */
         .chat-area {
             flex: 1;
             display: flex;
             flex-direction: column;
             background: #f9f9f9;
+            height: 100vh;
             overflow: hidden;
+            min-width: 0;
         }
         
-        .chat-area-header {
+        /* Шапка чата */
+        .chat-header {
             padding: 15px 20px;
             border-bottom: 1px solid #eee;
             background: white;
@@ -56,8 +59,21 @@
             align-items: center;
             flex-shrink: 0;
         }
+        .chat-header h2 {
+            font-size: 1.1rem;
+            color: #333;
+        }
+        .lobby-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+        }
         
-        /* Список сообщений — как в старом чате */
+        /* Область сообщений */
         .messages-container {
             flex: 1;
             overflow-y: auto;
@@ -67,10 +83,10 @@
             gap: 12px;
         }
         
-        /* Стили сообщений — копия из chat.html */
+        /* Стили сообщений */
         .message {
             display: flex;
-            margin-bottom: 8px;
+            position: relative;
         }
         .message-own {
             justify-content: flex-end;
@@ -140,6 +156,7 @@
             font-size: 12px;
             cursor: pointer;
             display: none;
+            z-index: 10;
         }
         .message.selected .message-bubble {
             outline: 2px solid #ff4444;
@@ -147,11 +164,8 @@
         .message.selected .delete-btn {
             display: block;
         }
-        .message {
-            position: relative;
-        }
         
-        /* Форма отправки — копия из chat.html */
+        /* Форма отправки */
         .message-form {
             display: flex;
             padding: 15px;
@@ -166,8 +180,7 @@
             border: 2px solid #e0e0e0;
             border-radius: 10px;
             font-size: 16px;
-            transition: border-color 0.3s;
-            min-width: 120px;
+            min-width: 0;
         }
         #messageInput:focus {
             border-color: #667eea;
@@ -182,7 +195,6 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.3s;
         }
         .attach-button {
             background: #e0e0e0;
@@ -269,6 +281,7 @@
             margin-left: 8px;
         }
         
+        /* Модальное окно */
         .modal {
             display: none;
             position: fixed;
@@ -287,6 +300,8 @@
             padding: 20px;
             width: 90%;
             max-width: 400px;
+            max-height: 80%;
+            overflow-y: auto;
         }
         .user-item {
             padding: 12px;
@@ -335,7 +350,7 @@
             .chats-panel.open {
                 left: 0;
             }
-            .chat-area-header {
+            .chat-header {
                 padding-left: 60px;
             }
             .message-bubble {
@@ -368,8 +383,8 @@
         </div>
         
         <div class="chat-area">
-            <div class="chat-area-header">
-                <h3 id="currentChatTitle">Выберите чат</h3>
+            <div class="chat-header">
+                <h2 id="currentChatTitle">Выберите чат</h2>
                 <button class="lobby-btn" onclick="goToLobby()">🏠 Лобби</button>
             </div>
             <div class="messages-container" id="messagesContainer">
