@@ -20,7 +20,6 @@
             width: 100%;
         }
         
-        /* Контейнер */
         .messenger {
             display: flex;
             height: 100%;
@@ -40,13 +39,14 @@
             flex-shrink: 0;
         }
         
-        /* Правая панель */
+        /* Правая панель — важный блок, форма должна быть внутри */
         .chat-container {
             flex: 1;
             display: flex;
             flex-direction: column;
             background: white;
             min-width: 0;
+            height: 100%;
             overflow: hidden;
         }
         
@@ -77,14 +77,16 @@
             flex-shrink: 0;
         }
         
-        /* Список сообщений */
+        /* Контейнер сообщений — скроллится */
+        .messages-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            background: #f9f9f9;
+        }
         #messages {
             list-style-type: none;
             padding: 15px;
             margin: 0;
-            flex: 1;
-            overflow-y: auto;
-            background: #f9f9f9;
             display: flex;
             flex-direction: column;
         }
@@ -102,7 +104,6 @@
             cursor: pointer;
         }
         
-        /* Свои сообщения */
         #messages li[data-own="true"] {
             background: #667eea;
             color: white;
@@ -110,16 +111,13 @@
             align-self: flex-end;
         }
         
-        /* Чужие сообщения */
         #messages li[data-own="false"] {
             background: white;
             color: #333;
             border-bottom-left-radius: 4px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
             align-self: flex-start;
         }
         
-        /* Системные сообщения */
         #messages li.system {
             max-width: 90%;
             background: #e3f2fd;
@@ -169,7 +167,7 @@
             display: block;
         }
         
-        /* Форма отправки */
+        /* Форма отправки — всегда внизу */
         .message-form {
             display: flex;
             padding: 15px;
@@ -217,7 +215,7 @@
             cursor: pointer;
         }
         
-        /* Элементы левой панели */
+        /* Левая панель */
         .chats-header {
             padding: 20px;
             border-bottom: 1px solid #eee;
@@ -290,7 +288,6 @@
             margin-left: 8px;
         }
         
-        /* Модальное окно */
         .modal {
             display: none;
             position: fixed;
@@ -325,7 +322,6 @@
             padding: 40px;
         }
         
-        /* Бургер-кнопка */
         .menu-toggle {
             display: none;
             position: fixed;
@@ -343,9 +339,7 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         
-        /* ========== АДАПТИВНОСТЬ ========== */
-        
-        /* Планшеты и маленькие ноутбуки */
+        /* Адаптивность */
         @media (max-width: 900px) {
             .chats-panel {
                 width: 280px;
@@ -355,7 +349,6 @@
             }
         }
         
-        /* Мобильные устройства */
         @media (max-width: 768px) {
             .menu-toggle {
                 display: block;
@@ -392,7 +385,6 @@
             }
         }
         
-        /* Маленькие телефоны */
         @media (max-width: 480px) {
             .chats-panel {
                 width: 260px;
@@ -426,7 +418,6 @@
             }
         }
         
-        /* Очень широкие экраны (большие мониторы) */
         @media (min-width: 1920px) {
             .chats-panel {
                 width: 380px;
@@ -454,7 +445,9 @@
                 <h2 id="currentChatTitle">🎵 Чат старшего хора</h2>
                 <button class="lobby-btn" onclick="goToLobby()">🏠 Лобби</button>
             </div>
-            <ul id="messages"></ul>
+            <div class="messages-wrapper">
+                <ul id="messages"></ul>
+            </div>
             <form class="message-form" id="chatForm">
                 <button type="button" id="imageButton" class="attach-button">📎</button>
                 <input type="text" id="messageInput" autocomplete="off" placeholder="Введите сообщение...">
