@@ -676,32 +676,39 @@
         
         async function loadChats() {
             try {
-                // Общий чат всегда первый
+                // 1. Загружаем последнее сообщение для общего чата
+                let generalLastMessage = 'Нет сообщений';
+                try {
+                    const generalMsgRes = await fetch('/api/general-last-message');
+                    const generalMsgData = await generalMsgRes.json();
+                    if (generalMsgData.success && generalMsgData.message) {
+                        const lastMsg = generalMsgData.message;
+                        if (lastMsg.text) {
+                            if (lastMsg.text.startsWith('📷')) {
+                                generalLastMessage = '📷 Изображение';
+                            } else {
+                                generalLastMessage = lastMsg.text.length > 30 
+                                    ? lastMsg.text.substring(0, 30) + '...' 
+                                    : lastMsg.text;
+                            }
+                        }
+                    }
+                } catch(e) {
+                    console.error('Ошибка загрузки последнего сообщения общего чата:', e);
+                }
+                
                 const generalChat = { 
                     id: null, 
                     other_user_name: 'Общий чат', 
                     unread_count: 0,
-                    last_message: ''
+                    last_message: generalLastMessage
                 };
                 
+                // 2. Загружаем личные чаты
                 const res = await fetch(`/api/chats?userId=${userData.id}`);
                 const data = await res.json();
                 
                 if (data.success && data.chats) {
-                    // Получаем последние сообщения для каждого чата
-                    for (let chat of data.chats) {
-                        try {
-                            const msgRes = await fetch(`/api/chat-messages?chatId=${chat.id}&limit=1`);
-                            const msgData = await msgRes.json();
-                            if (msgData.success && msgData.messages && msgData.messages.length > 0) {
-                                chat.last_message = msgData.messages[0].text;
-                            } else {
-                                chat.last_message = 'Нет сообщений';
-                            }
-                        } catch(e) {
-                            chat.last_message = 'Нет сообщений';
-                        }
-                    }
                     allChats = [generalChat, ...data.chats];
                 } else {
                     allChats = [generalChat];
@@ -715,7 +722,7 @@
                 }
             } catch(e) { 
                 console.error('Ошибка загрузки чатов:', e);
-                const generalChat = { id: null, other_user_name: 'Общий чат', unread_count: 0, last_message: '' };
+                const generalChat = { id: null, other_user_name: 'Общий чат', unread_count: 0, last_message: 'Нет сообщений' };
                 allChats = [generalChat];
                 renderChatsList();
             }
@@ -811,7 +818,7 @@
         }
         
         async function selectChat(chatId, chatName) {
-            if (currentChatId === chatId && socket) return;
+            if (currentChatId === chatId && socket && socket.connected) return;
             
             currentChatId = chatId;
             currentChatName = chatName;
@@ -837,7 +844,7 @@
             
             const socketOptions = { 
                 query: { 
-                    chatId: chatId !== null ? chatId.toString() : 'general',
+                    chatId: chatId !== null ? chatId.toString() : '',
                     userId: currentUserId
                 } 
             };
@@ -860,13 +867,13 @@
                 if (msgs && msgs.length > 0) {
                     msgs.forEach(m => addMessageToUI(m));
                 } else {
-                    container.innerHTML = '<div class="empty-messages">Нет сообщений. Напишите что-нибудь!</div>';
+                    container.innerHTML = '<div class="empty-messages">✨ Нет сообщений. Напишите что-нибудь!</div>';
                 }
             });
             
             socket.on('message', (m) => {
                 addMessageToUI(m);
-                // Если сообщение от другого пользователя и не в текущем чате, обновляем список чатов
+                // Если сообщение от другого пользователя, обновляем список чатов для отображения счетчика
                 if (m.user_id !== currentUserId) {
                     loadChats();
                 }
