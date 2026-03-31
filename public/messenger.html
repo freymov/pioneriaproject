@@ -81,6 +81,7 @@
             gap: 12px;
             transition: background 0.2s;
             -webkit-tap-highlight-color: transparent;
+            position: relative;
         }
         
         .chat-item:active {
@@ -114,6 +115,10 @@
         .chat-name {
             font-weight: bold;
             color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         
         .chat-last-message {
@@ -124,13 +129,35 @@
             text-overflow: ellipsis;
         }
         
+        /* Фиолетовый кружок для непрочитанных сообщений */
         .unread-badge {
-            background: #ff4444;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border-radius: 12px;
             padding: 2px 8px;
             font-size: 11px;
-            margin-left: 8px;
+            font-weight: bold;
+            min-width: 20px;
+            text-align: center;
+            display: inline-block;
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+            animation: pulse 2s infinite;
+        }
+        
+        /* Анимация пульсации для нового сообщения */
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 2px 8px rgba(102, 126, 234, 0.5);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+            }
         }
         
         /* Правая панель */
@@ -659,10 +686,19 @@
                 const active = currentChatId === chat.id;
                 const avatar = chat.other_user_name ? chat.other_user_name.charAt(0).toUpperCase() : '🌟';
                 const lastMsg = chat.last_message ? (chat.last_message.length > 30 ? chat.last_message.substring(0,30)+'...' : chat.last_message) : 'Нет сообщений';
+                
+                // Показываем кружок только если есть непрочитанные сообщения (unread_count > 0)
+                const unreadBadge = chat.unread_count && chat.unread_count > 0 
+                    ? `<span class="unread-badge">${chat.unread_count}</span>` 
+                    : '';
+                
                 html += `<div class="chat-item ${active ? 'active' : ''}" onclick="selectChat(${chat.id === null ? 'null' : chat.id}, '${escapeHtml(chat.other_user_name)}')">
                             <div class="chat-avatar">${avatar}</div>
                             <div class="chat-info">
-                                <div class="chat-name">${escapeHtml(chat.other_user_name)}${chat.unread_count ? `<span class="unread-badge">${chat.unread_count}</span>` : ''}</div>
+                                <div class="chat-name">
+                                    ${escapeHtml(chat.other_user_name)}
+                                    ${unreadBadge}
+                                </div>
                                 <div class="chat-last-message">${escapeHtml(lastMsg)}</div>
                             </div>
                         </div>`;
@@ -720,6 +756,20 @@
             currentChatId = chatId;
             currentChatName = chatName;
             document.getElementById('currentChatTitle').innerHTML = `🎵 ${escapeHtml(chatName)}`;
+            
+            // Отмечаем прочитанными при открытии чата
+            if (chatId !== null) {
+                try {
+                    await fetch('/api/mark-read', { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' }, 
+                        body: JSON.stringify({ chatId, userId: currentUserId }) 
+                    });
+                    // Обновляем список чатов, чтобы убрать счетчик непрочитанных
+                    await loadChats();
+                } catch(e) { console.error(e); }
+            }
+            
             if (socket) socket.disconnect();
             socket = io({ query: { chatId: chatId !== null ? chatId : '' } });
             socket.on('connect', () => socket.emit('user joined', { name: userData.name, id: userData.id, role: userData.role }));
@@ -729,8 +779,14 @@
                 if (msgs?.length) msgs.forEach(m => addMessageToUI(m));
                 else container.innerHTML = '<div style="text-align:center;color:#999;padding:40px">Нет сообщений</div>';
             });
-            socket.on('message', (m) => addMessageToUI(m));
-            if (chatId) await fetch('/api/mark-read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chatId, userId: currentUserId }) });
+            socket.on('message', (m) => {
+                addMessageToUI(m);
+                // Если сообщение от другого пользователя и не в текущем чате, обновляем список чатов для отображения счетчика
+                if (m.user_id !== currentUserId) {
+                    loadChats();
+                }
+            });
+            
             renderChatsList();
             if (window.innerWidth <= 768) document.getElementById('chatsPanel').classList.remove('open');
         }
