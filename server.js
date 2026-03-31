@@ -152,6 +152,15 @@ async function initDatabase() {
             )
         `);
 
+        // Таблица настроек
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS settings (
+                key VARCHAR(100) PRIMARY KEY,
+                value TEXT NOT NULL,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
         // Таблица для групп
         await pool.query(`
             CREATE TABLE IF NOT EXISTS groups (
@@ -781,25 +790,38 @@ app.post('/api/pin-message', async (req, res) => {
 });
 
 // ========== ПОЛУЧИТЬ ЗАКРЕПЛЕННЫЕ СООБЩЕНИЯ ==========
+
 app.get('/api/get-pinned', async (req, res) => {
     const { chatId } = req.query;
     
     try {
-        const result = await pool.query(
-            `SELECT pm.*, m.text, m.user_name 
-             FROM pinned_messages pm
-             JOIN messages m ON pm.message_id = m.id
-             WHERE pm.chat_id = $1
-             ORDER BY pm.pinned_at DESC`,
-            [chatId]
-        );
+        let result;
+        // Проверяем, если chatId === 'general' или 'null' или null — это общий чат
+        if (chatId === 'general' || chatId === 'null' || chatId === null || chatId === '') {
+            result = await pool.query(
+                `SELECT pm.*, m.text, m.user_name 
+                 FROM pinned_messages pm
+                 JOIN messages m ON pm.message_id = m.id
+                 WHERE pm.chat_id IS NULL
+                 ORDER BY pm.pinned_at DESC`,
+                []
+            );
+        } else {
+            result = await pool.query(
+                `SELECT pm.*, m.text, m.user_name 
+                 FROM pinned_messages pm
+                 JOIN messages m ON pm.message_id = m.id
+                 WHERE pm.chat_id = $1
+                 ORDER BY pm.pinned_at DESC`,
+                [chatId]
+            );
+        }
         res.json({ success: true, pinned: result.rows });
     } catch (err) {
         console.error('❌ Ошибка получения закрепленных:', err);
         res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
-
 // ========== СОЗДАНИЕ ГРУППЫ ==========
 app.post('/api/create-group', async (req, res) => {
     const { name, creatorId, members } = req.body;
@@ -881,6 +903,47 @@ app.get('/api/user-groups', async (req, res) => {
         res.json({ success: true, groups: result.rows });
     } catch (err) {
         console.error('❌ Ошибка получения групп:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+// ========== НАСТРОЙКИ ОБЩЕГО ЧАТА ==========
+app.get('/api/general-settings', async (req, res) => {
+    try {
+        const result = await pool.query(
+            "SELECT value FROM settings WHERE key = 'general_chat_name'"
+        );
+        const name = result.rows.length > 0 ? result.rows[0].value : 'Общий чат';
+        res.json({ success: true, name });
+    } catch (err) {
+        console.error('❌ Ошибка получения настроек:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+app.post('/api/admin/update-general-chat', async (req, res) => {
+    const { adminEmail, newName } = req.body;
+    
+    try {
+        const admin = await pool.query(
+            'SELECT * FROM users WHERE email = $1 AND role = $2',
+            [adminEmail, 'admin']
+        );
+        
+        if (admin.rows.length === 0) {
+            return res.json({ success: false, error: 'Нет прав' });
+        }
+        
+        await pool.query(
+            `INSERT INTO settings (key, value) 
+             VALUES ('general_chat_name', $1) 
+             ON CONFLICT (key) DO UPDATE SET value = $1`,
+            [newName]
+        );
+        
+        res.json({ success: true });
+    } catch (err) {
+        console.error('❌ Ошибка обновления названия:', err);
         res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
