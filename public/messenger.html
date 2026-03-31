@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Pioneria Messenger</title>
     <link rel="icon" type="image/jpg" href="/favicon.jpg">
     <style>
@@ -16,16 +16,13 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             height: 100vh;
             overflow: hidden;
-            position: fixed;
-            width: 100%;
         }
         
         .messenger {
             display: flex;
-            height: 100%;
+            height: 100vh;
             width: 100%;
             background: white;
-            overflow: hidden;
         }
         
         /* Левая панель */
@@ -38,184 +35,6 @@
             overflow-y: auto;
             flex-shrink: 0;
         }
-        
-        /* Правая панель — важный блок, форма должна быть внутри */
-        .chat-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: white;
-            min-width: 0;
-            height: 100%;
-            overflow: hidden;
-        }
-        
-        .chat-header {
-            padding: 15px 20px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #f9f9f9;
-            flex-shrink: 0;
-        }
-        .chat-header h2 {
-            margin: 0;
-            color: #333;
-            font-size: 1rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .lobby-btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 10px;
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-        
-        /* Контейнер сообщений — скроллится */
-        .messages-wrapper {
-            flex: 1;
-            overflow-y: auto;
-            background: #f9f9f9;
-        }
-        #messages {
-            list-style-type: none;
-            padding: 15px;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        /* Сообщения */
-        #messages li {
-            max-width: 70%;
-            padding: 10px 12px;
-            margin-bottom: 8px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            word-wrap: break-word;
-            position: relative;
-            cursor: pointer;
-        }
-        
-        #messages li[data-own="true"] {
-            background: #667eea;
-            color: white;
-            border-bottom-right-radius: 4px;
-            align-self: flex-end;
-        }
-        
-        #messages li[data-own="false"] {
-            background: white;
-            color: #333;
-            border-bottom-left-radius: 4px;
-            align-self: flex-start;
-        }
-        
-        #messages li.system {
-            max-width: 90%;
-            background: #e3f2fd;
-            color: #1976d2;
-            text-align: center;
-            font-style: italic;
-            font-size: 0.85rem;
-            align-self: center;
-        }
-        
-        .user {
-            font-weight: bold;
-            margin-right: 8px;
-        }
-        #messages li[data-own="true"] .user {
-            color: rgba(255,255,255,0.9);
-        }
-        #messages li[data-own="false"] .user {
-            color: #667eea;
-        }
-        
-        .timestamp {
-            color: #999;
-            font-size: 0.7rem;
-            margin-left: 10px;
-        }
-        #messages li[data-own="true"] .timestamp {
-            color: rgba(255,255,255,0.7);
-        }
-        
-        .delete-btn {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: #ff4444;
-            color: white;
-            border: none;
-            border-radius: 20px;
-            padding: 4px 12px;
-            font-size: 12px;
-            cursor: pointer;
-            display: none;
-            z-index: 10;
-        }
-        #messages li.selected .delete-btn {
-            display: block;
-        }
-        
-        /* Форма отправки — всегда внизу */
-        .message-form {
-            display: flex;
-            padding: 15px;
-            border-top: 1px solid #eee;
-            background: white;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-        #messageInput {
-            flex: 1;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            min-width: 0;
-        }
-        #messageInput:focus {
-            border-color: #667eea;
-            outline: none;
-        }
-        .message-form button {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-        .attach-button {
-            background: #e0e0e0;
-            color: #666;
-            border: none;
-            padding: 12px 16px;
-            border-radius: 10px;
-            font-size: 18px;
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-        .chat-image {
-            max-width: 200px;
-            max-height: 200px;
-            border-radius: 10px;
-            margin-top: 5px;
-            cursor: pointer;
-        }
-        
-        /* Левая панель */
         .chats-header {
             padding: 20px;
             border-bottom: 1px solid #eee;
@@ -288,6 +107,168 @@
             margin-left: 8px;
         }
         
+        /* Правая панель */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            height: 100vh;
+        }
+        .chat-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f9f9f9;
+        }
+        .chat-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 1rem;
+        }
+        .lobby-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        #messages {
+            list-style-type: none;
+            padding: 15px;
+            margin: 0;
+            flex: 1;
+            overflow-y: auto;
+            background: #f9f9f9;
+        }
+        
+        /* Стили сообщений */
+        #messages li {
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            word-wrap: break-word;
+            position: relative;
+            cursor: pointer;
+            max-width: 70%;
+            clear: both;
+        }
+        
+        #messages li[data-own="true"] {
+            float: right;
+            background: #667eea;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        #messages li[data-own="false"] {
+            float: left;
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        #messages li.system {
+            max-width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+            background: #e3f2fd;
+            color: #1976d2;
+            text-align: center;
+            font-style: italic;
+            font-size: 0.85rem;
+            float: none;
+            clear: both;
+        }
+        
+        .user {
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        #messages li[data-own="true"] .user {
+            color: rgba(255,255,255,0.9);
+        }
+        #messages li[data-own="false"] .user {
+            color: #667eea;
+        }
+        
+        .timestamp {
+            color: #999;
+            font-size: 0.7rem;
+            margin-left: 10px;
+        }
+        #messages li[data-own="true"] .timestamp {
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .delete-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            display: none;
+        }
+        #messages li.selected .delete-btn {
+            display: block;
+        }
+        
+        .message-form {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid #eee;
+            background: white;
+            gap: 8px;
+            clear: both;
+        }
+        #messageInput {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        #messageInput:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        .message-form button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .attach-button {
+            background: #e0e0e0;
+            color: #666;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .chat-image {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 10px;
+            margin-top: 5px;
+            cursor: pointer;
+        }
+        
         .modal {
             display: none;
             position: fixed;
@@ -306,8 +287,6 @@
             padding: 20px;
             width: 90%;
             max-width: 400px;
-            max-height: 80%;
-            overflow-y: auto;
         }
         .user-item {
             padding: 12px;
@@ -322,6 +301,7 @@
             padding: 40px;
         }
         
+        /* Бургер-кнопка */
         .menu-toggle {
             display: none;
             position: fixed;
@@ -339,16 +319,7 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         
-        /* Адаптивность */
-        @media (max-width: 900px) {
-            .chats-panel {
-                width: 280px;
-            }
-            #messages li {
-                max-width: 75%;
-            }
-        }
-        
+        /* ========== АДАПТИВНОСТЬ ========== */
         @media (max-width: 768px) {
             .menu-toggle {
                 display: block;
@@ -376,8 +347,8 @@
                 padding: 10px 12px;
             }
             #messageInput {
-                padding: 10px 12px;
                 font-size: 14px;
+                padding: 10px 12px;
             }
             .message-form button {
                 padding: 10px 16px;
@@ -445,9 +416,7 @@
                 <h2 id="currentChatTitle">🎵 Чат старшего хора</h2>
                 <button class="lobby-btn" onclick="goToLobby()">🏠 Лобби</button>
             </div>
-            <div class="messages-wrapper">
-                <ul id="messages"></ul>
-            </div>
+            <ul id="messages"></ul>
             <form class="message-form" id="chatForm">
                 <button type="button" id="imageButton" class="attach-button">📎</button>
                 <input type="text" id="messageInput" autocomplete="off" placeholder="Введите сообщение...">
