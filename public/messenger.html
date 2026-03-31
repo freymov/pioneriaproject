@@ -20,7 +20,6 @@
             width: 100%;
         }
         
-        /* Telegram-like контейнер */
         .messenger {
             display: flex;
             height: 100%;
@@ -28,7 +27,7 @@
             background: white;
         }
         
-        /* Левая панель — список чатов (как в Telegram) */
+        /* Левая панель — список чатов */
         .chats-panel {
             width: 320px;
             background: #f9f9f9;
@@ -118,14 +117,13 @@
             font-size: 11px;
         }
         
-        /* Правая панель — сам чат */
+        /* Правая панель — чат */
         .chat-area {
             flex: 1;
             display: flex;
             flex-direction: column;
             background: #f9f9f9;
             min-width: 0;
-            position: relative;
         }
         
         .chat-header {
@@ -176,7 +174,6 @@
             padding: 8px 12px;
             border-radius: 16px;
             word-wrap: break-word;
-            position: relative;
         }
         .message-own .message-bubble {
             background: #667eea;
@@ -334,7 +331,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         
-        /* Мобильная версия — как Telegram */
         @media (max-width: 768px) {
             .menu-toggle {
                 display: block;
@@ -397,8 +393,8 @@
             </div>
             <form class="message-form" id="chatForm" style="display: none;">
                 <button type="button" id="imageButton" class="attach-button">📎</button>
-                <input type="text" id="messageInput" autocomplete="off" placeholder="Сообщение...">
-                <button type="submit">➤</button>
+                <input type="text" id="messageInput" autocomplete="off" placeholder="Введите сообщение...">
+                <button type="submit">Отправить</button>
             </form>
         </div>
     </div>
@@ -407,7 +403,7 @@
     <div id="userModal" class="modal">
         <div class="modal-content">
             <h3>Выберите пользователя</h3>
-            <input type="text" id="userSearch" placeholder="Поиск...">
+            <input type="text" id="userSearch" placeholder="Поиск по имени или email...">
             <div id="usersListModal"></div>
             <button onclick="closeModal()" style="margin-top: 15px; width: 100%; background: #666;">Отмена</button>
         </div>
