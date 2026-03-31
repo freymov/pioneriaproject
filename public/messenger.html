@@ -560,7 +560,7 @@
         
         <div class="chat-container">
             <div class="chat-header">
-                <h2 id="currentChatTitle">🎵 Чат старшего хора</h2>
+                <h2 id="currentChatTitle">🎵 Общий чат</h2>
                 <button class="lobby-btn" onclick="goToLobby()">🏠 Лобби</button>
             </div>
             <ul id="messages"></ul>
@@ -601,10 +601,12 @@
         }
         
         const userData = JSON.parse(localStorage.getItem('user') || '{}');
-        if (!userData.name) window.location.href = 'login.html';
+        if (!userData.name) {
+            window.location.href = 'login.html';
+        }
         
-        let currentChatId = null;
-        let currentChatName = 'Чат старшего хора';
+        let currentChatId = null; // null = общий чат, число = личный чат
+        let currentChatName = 'Общий чат';
         let currentUserId = userData.id;
         let socket = null;
         let allChats = [];
@@ -621,7 +623,9 @@
             document.getElementById('chatsPanel').classList.toggle('open');
         }
         
-        function goToLobby() { window.location.href = 'lobby.html'; }
+        function goToLobby() { 
+            window.location.href = 'lobby.html'; 
+        }
         
         function escapeHtml(text) {
             if (!text) return '';
@@ -664,39 +668,89 @@
                 } else {
                     alert(data.error || 'Нельзя удалить');
                 }
-            } catch(e) { alert('Ошибка'); }
+            } catch(e) { 
+                console.error('Ошибка удаления:', e);
+                alert('Ошибка при удалении');
+            }
         }
         
         async function loadChats() {
             try {
-                const general = { id: null, other_user_name: 'Чат старшего хора', unread_count: 0 };
+                // Общий чат всегда первый
+                const generalChat = { 
+                    id: null, 
+                    other_user_name: 'Общий чат', 
+                    unread_count: 0,
+                    last_message: ''
+                };
+                
                 const res = await fetch(`/api/chats?userId=${userData.id}`);
                 const data = await res.json();
-                allChats = data.success && data.chats ? [general, ...data.chats] : [general];
+                
+                if (data.success && data.chats) {
+                    // Получаем последние сообщения для каждого чата
+                    for (let chat of data.chats) {
+                        try {
+                            const msgRes = await fetch(`/api/chat-messages?chatId=${chat.id}&limit=1`);
+                            const msgData = await msgRes.json();
+                            if (msgData.success && msgData.messages && msgData.messages.length > 0) {
+                                chat.last_message = msgData.messages[0].text;
+                            } else {
+                                chat.last_message = 'Нет сообщений';
+                            }
+                        } catch(e) {
+                            chat.last_message = 'Нет сообщений';
+                        }
+                    }
+                    allChats = [generalChat, ...data.chats];
+                } else {
+                    allChats = [generalChat];
+                }
+                
                 renderChatsList();
-                setTimeout(() => selectChat(null, 'Чат старшего хора'), 100);
-            } catch(e) { console.error(e); }
+                
+                // Если нет активного чата, выбираем общий
+                if (currentChatId === undefined || currentChatId === null) {
+                    setTimeout(() => selectChat(null, 'Общий чат'), 100);
+                }
+            } catch(e) { 
+                console.error('Ошибка загрузки чатов:', e);
+                const generalChat = { id: null, other_user_name: 'Общий чат', unread_count: 0, last_message: '' };
+                allChats = [generalChat];
+                renderChatsList();
+            }
         }
         
         function renderChatsList() {
             const container = document.getElementById('chatsList');
-            if (!allChats.length) { container.innerHTML = '<div style="padding:20px">Нет чатов</div>'; return; }
+            if (!allChats.length) { 
+                container.innerHTML = '<div style="padding:20px">Нет чатов</div>'; 
+                return; 
+            }
+            
             let html = '';
             for (let chat of allChats) {
                 const active = currentChatId === chat.id;
                 const avatar = chat.other_user_name ? chat.other_user_name.charAt(0).toUpperCase() : '🌟';
-                const lastMsg = chat.last_message ? (chat.last_message.length > 30 ? chat.last_message.substring(0,30)+'...' : chat.last_message) : 'Нет сообщений';
+                const lastMsg = chat.last_message && chat.last_message !== 'Нет сообщений' 
+                    ? (chat.last_message.length > 30 ? chat.last_message.substring(0,30)+'...' : chat.last_message) 
+                    : 'Нет сообщений';
                 
-                // Показываем кружок только если есть непрочитанные сообщения (unread_count > 0)
+                // Показываем кружок только если есть непрочитанные сообщения
                 const unreadBadge = chat.unread_count && chat.unread_count > 0 
                     ? `<span class="unread-badge">${chat.unread_count}</span>` 
                     : '';
                 
-                html += `<div class="chat-item ${active ? 'active' : ''}" onclick="selectChat(${chat.id === null ? 'null' : chat.id}, '${escapeHtml(chat.other_user_name)}')">
+                const chatName = chat.other_user_name || 'Общий чат';
+                const onclickAttr = chat.id === null 
+                    ? `selectChat(null, 'Общий чат')` 
+                    : `selectChat(${chat.id}, '${escapeHtml(chatName)}')`;
+                
+                html += `<div class="chat-item ${active ? 'active' : ''}" onclick="${onclickAttr}">
                             <div class="chat-avatar">${avatar}</div>
                             <div class="chat-info">
                                 <div class="chat-name">
-                                    ${escapeHtml(chat.other_user_name)}
+                                    ${escapeHtml(chatName)}
                                     ${unreadBadge}
                                 </div>
                                 <div class="chat-last-message">${escapeHtml(lastMsg)}</div>
@@ -721,12 +775,12 @@
                 li.className = 'system';
                 li.textContent = data.text;
             } else {
-                let content = `<span class="user">${data.name}:</span> `;
+                let content = `<span class="user">${escapeHtml(data.name)}:</span> `;
                 if (data.text && data.text.startsWith('📷')) {
                     const url = data.text.replace('📷 ', '');
-                    content += `<a href="${url}" target="_blank"><img src="${url}" class="chat-image"></a>`;
+                    content += `<a href="${url}" target="_blank"><img src="${url}" class="chat-image" onclick="event.stopPropagation()"></a>`;
                 } else {
-                    content += data.text;
+                    content += escapeHtml(data.text);
                 }
                 content += `<span class="timestamp">${time}</span>`;
                 
@@ -737,66 +791,93 @@
                 li.innerHTML = content;
                 
                 li.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('delete-btn')) return;
+                    if (e.target.classList.contains('delete-btn') || e.target.tagName === 'IMG' || e.target.tagName === 'A') return;
                     selectMessage(li, data.id);
                 });
             }
             document.getElementById('messages').appendChild(li);
             li.scrollIntoView({ behavior: 'smooth', block: 'end' });
             
+            // Уведомление о новом сообщении
             if (data.user_id !== currentUserId && !document.hasFocus()) {
                 notificationSound.play().catch(()=>{});
                 if (Notification.permission === 'granted') {
-                    new Notification('Новое сообщение', { body: `${data.name}: ${data.text.substring(0,50)}`, icon: '/favicon.jpg' });
+                    new Notification('Новое сообщение', { 
+                        body: `${data.name}: ${data.text ? data.text.substring(0,50) : 'Изображение'}`, 
+                        icon: '/favicon.jpg' 
+                    });
                 }
             }
         }
         
         async function selectChat(chatId, chatName) {
-            // Нормализуем chatId: null для общего чата, число для личного
-            const normalizedChatId = (chatId !== null && chatId !== undefined) ? Number(chatId) : null;
+            if (currentChatId === chatId && socket) return;
             
-            currentChatId = normalizedChatId;
+            currentChatId = chatId;
             currentChatName = chatName;
             document.getElementById('currentChatTitle').innerHTML = `🎵 ${escapeHtml(chatName)}`;
             
-            // Отмечаем прочитанными при открытии чата (только для личных)
-            if (normalizedChatId !== null) {
+            // Отмечаем прочитанными при открытии чата (кроме общего чата)
+            if (chatId !== null) {
                 try {
                     await fetch('/api/mark-read', { 
                         method: 'POST', 
                         headers: { 'Content-Type': 'application/json' }, 
-                        body: JSON.stringify({ chatId: normalizedChatId, userId: currentUserId }) 
+                        body: JSON.stringify({ chatId, userId: currentUserId }) 
                     });
-                    // Обновляем список чатов, чтобы убрать счетчик непрочитанных
-                    await loadChats();
-                } catch(e) { console.error(e); }
+                } catch(e) { 
+                    console.error('Ошибка отметки прочитанных:', e);
+                }
             }
             
-            if (socket) socket.disconnect();
-            // Для общего чата передаём пустую строку, для личного — число
-            const queryChatId = normalizedChatId !== null ? normalizedChatId : '';
-            socket = io({ query: { chatId: queryChatId } });
+            // Переподключаем сокет с новым chatId
+            if (socket) {
+                socket.disconnect();
+            }
+            
+            const socketOptions = { 
+                query: { 
+                    chatId: chatId !== null ? chatId.toString() : 'general',
+                    userId: currentUserId
+                } 
+            };
+            
+            socket = io(socketOptions);
             
             socket.on('connect', () => {
-                console.log('Socket connected, chatId:', queryChatId);
-                socket.emit('user joined', { name: userData.name, id: userData.id, role: userData.role });
+                console.log('Socket connected');
+                socket.emit('user joined', { 
+                    name: userData.name, 
+                    id: userData.id, 
+                    role: userData.role,
+                    chatId: chatId
+                });
             });
             
             socket.on('message history', (msgs) => {
                 const container = document.getElementById('messages');
                 container.innerHTML = '';
-                if (msgs?.length) {
+                if (msgs && msgs.length > 0) {
                     msgs.forEach(m => addMessageToUI(m));
                 } else {
-                    container.innerHTML = '<div style="text-align:center;color:#999;padding:40px">Нет сообщений</div>';
+                    container.innerHTML = '<div class="empty-messages">Нет сообщений. Напишите что-нибудь!</div>';
                 }
             });
+            
             socket.on('message', (m) => {
                 addMessageToUI(m);
-                // Обновляем список чатов при новом сообщении
-                loadChats();
+                // Если сообщение от другого пользователя и не в текущем чате, обновляем список чатов
+                if (m.user_id !== currentUserId) {
+                    loadChats();
+                }
             });
+            
+            socket.on('connect_error', (err) => {
+                console.error('Socket connection error:', err);
+            });
+            
+            // Обновляем список чатов, чтобы убрать счетчик непрочитанных
+            setTimeout(() => loadChats(), 500);
             
             renderChatsList();
             if (window.innerWidth <= 768) {
@@ -805,17 +886,27 @@
         }
         
         async function sendMessage(text, imageUrl = null) {
-            if (!socket) return alert('Нет соединения');
+            if (!socket || !socket.connected) {
+                alert('Нет соединения с сервером. Пожалуйста, обновите страницу.');
+                return;
+            }
+            
             const finalText = imageUrl ? `📷 ${imageUrl}` : text;
-            const chatIdToSend = currentChatId === null ? null : Number(currentChatId);
-            socket.emit('chat message', { text: finalText, chatId: chatIdToSend });
+            const messageData = { 
+                text: finalText, 
+                chatId: currentChatId
+            };
+            
+            socket.emit('chat message', messageData);
             document.getElementById('messageInput').value = '';
         }
         
         document.getElementById('chatForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const msg = document.getElementById('messageInput').value.trim();
-            if (msg) sendMessage(msg);
+            if (msg) {
+                sendMessage(msg);
+            }
         });
         
         const imageButton = document.getElementById('imageButton');
@@ -824,14 +915,22 @@
         imageInput.addEventListener('change', async () => {
             const file = imageInput.files[0];
             if (!file) return;
+            
             const fd = new FormData();
             fd.append('image', file);
+            
             try {
                 const res = await fetch('/api/upload', { method: 'POST', body: fd });
                 const data = await res.json();
-                if (data.success) sendMessage(null, data.url);
-                else alert('Ошибка');
-            } catch(e) { alert('Ошибка'); }
+                if (data.success) {
+                    sendMessage(null, data.url);
+                } else {
+                    alert('Ошибка загрузки изображения');
+                }
+            } catch(e) { 
+                console.error('Ошибка загрузки:', e);
+                alert('Ошибка при загрузке изображения'); 
+            }
             imageInput.value = '';
         });
         
@@ -847,29 +946,43 @@
                 if (data.success && data.users) {
                     allUsers = data.users.filter(u => u.id !== currentUserId);
                     const container = document.getElementById('usersListModal');
-                    if (!allUsers.length) { container.innerHTML = '<div>Нет других пользователей</div>'; return; }
+                    if (!allUsers.length) { 
+                        container.innerHTML = '<div style="padding:20px; text-align:center;">Нет других пользователей</div>'; 
+                        return; 
+                    }
                     let html = '';
-                    for (let u of allUsers) html += `<div class="user-item" onclick="startChatWithUser(${u.id}, '${escapeHtml(u.name)}')"><strong>${escapeHtml(u.name)}</strong><br><small>${escapeHtml(u.email)}</small></div>`;
+                    for (let u of allUsers) {
+                        html += `<div class="user-item" onclick="startChatWithUser(${u.id}, '${escapeHtml(u.name)}')">
+                                    <strong>${escapeHtml(u.name)}</strong><br>
+                                    <small>${escapeHtml(u.email)}</small>
+                                </div>`;
+                    }
                     container.innerHTML = html;
                 }
-            } catch(e) { console.error(e); }
+            } catch(e) { 
+                console.error('Ошибка загрузки пользователей:', e);
+                document.getElementById('usersListModal').innerHTML = '<div style="padding:20px; text-align:center;">Ошибка загрузки</div>';
+            }
         }
         
         async function startChatWithUser(otherId, otherName) {
             try {
-                const res = await fetch('/api/get-or-create-chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: currentUserId, otherUserId: otherId }) });
+                const res = await fetch('/api/get-or-create-chat', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ userId: currentUserId, otherUserId: otherId }) 
+                });
                 const data = await res.json();
                 if (data.success) {
                     closeModal();
                     await loadChats();
-                    // Преобразуем chatId в число
-                    selectChat(Number(data.chatId), otherName);
+                    selectChat(data.chatId, otherName);
                 } else {
-                    alert('Ошибка создания диалога');
+                    alert('Ошибка создания чата');
                 }
             } catch(e) { 
-                console.error(e);
-                alert('Ошибка сервера'); 
+                console.error('Ошибка создания чата:', e);
+                alert('Ошибка при создании чата'); 
             }
         }
         
@@ -882,9 +995,17 @@
             const q = e.target.value.toLowerCase();
             const filtered = allUsers.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
             const container = document.getElementById('usersListModal');
-            if (!filtered.length) { container.innerHTML = '<div>Ничего не найдено</div>'; return; }
+            if (!filtered.length) { 
+                container.innerHTML = '<div style="padding:20px; text-align:center;">Ничего не найдено</div>'; 
+                return; 
+            }
             let html = '';
-            for (let u of filtered) html += `<div class="user-item" onclick="startChatWithUser(${u.id}, '${escapeHtml(u.name)}')"><strong>${escapeHtml(u.name)}</strong><br><small>${escapeHtml(u.email)}</small></div>`;
+            for (let u of filtered) {
+                html += `<div class="user-item" onclick="startChatWithUser(${u.id}, '${escapeHtml(u.name)}')">
+                            <strong>${escapeHtml(u.name)}</strong><br>
+                            <small>${escapeHtml(u.email)}</small>
+                        </div>`;
+            }
             container.innerHTML = html;
         });
         
