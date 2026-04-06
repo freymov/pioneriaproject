@@ -1,0 +1,15 @@
+{
+  "name": "Pioneria Messenger",
+  "short_name": "Pioneria",
+  "start_url": "/messenger.html",
+  "display": "standalone",
+  "theme_color": "#667eea",
+  "background_color": "#667eea",
+  "icons": [
+    {
+      "src": "/favicon.jpg",
+      "sizes": "512x512",
+      "type": "image/jpg"
+    }
+  ]
+}
