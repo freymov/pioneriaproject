@@ -1283,12 +1283,25 @@
                 }
             });
             
+            // ========== ИСПРАВЛЕНИЕ БАГА ==========
+            // Проверяем chat_id перед добавлением сообщения в UI
             socket.on('message', (m) => {
-                addMessageToUI(m, false);
+                // Определяем ID чата, к которому относится сообщение
+                const messageChatId = m.chat_id !== undefined ? m.chat_id : null;
+                // Проверяем, совпадает ли с текущим открытым чатом
+                const isForCurrentChat = messageChatId === currentChatId;
+                
+                // Добавляем в UI только если сообщение для текущего чата
+                if (isForCurrentChat) {
+                    addMessageToUI(m, false);
+                }
+                
+                // Обновляем список чатов (счетчики непрочитанных) в любом случае
                 if (m.user_id !== currentUserId) {
                     loadChats();
                 }
             });
+            // ========== КОНЕЦ ИСПРАВЛЕНИЯ ==========
             
             socket.on('message edited', (data) => {
                 const li = document.querySelector(`#messages li[data-id='${data.messageId}']`);
