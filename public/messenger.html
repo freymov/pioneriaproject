@@ -34,7 +34,6 @@
             position: relative;
         }
         
-        /* Левая панель */
         .chats-panel {
             width: 320px;
             background: #f9f9f9;
@@ -110,6 +109,14 @@
             flex-shrink: 0;
         }
         
+        .chat-avatar-img {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        
         .chat-info {
             flex: 1;
             min-width: 0;
@@ -132,7 +139,6 @@
             text-overflow: ellipsis;
         }
         
-        /* Фиолетовый кружок для непрочитанных сообщений */
         .unread-badge {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
@@ -147,23 +153,12 @@
             animation: pulse 2s infinite;
         }
         
-        /* Анимация пульсации для нового сообщения */
         @keyframes pulse {
-            0% {
-                transform: scale(1);
-                box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
-            }
-            50% {
-                transform: scale(1.05);
-                box-shadow: 0 2px 8px rgba(102, 126, 234, 0.5);
-            }
-            100% {
-                transform: scale(1);
-                box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
-            }
+            0% { transform: scale(1); box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 2px 8px rgba(102, 126, 234, 0.5); }
+            100% { transform: scale(1); box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3); }
         }
         
-        /* Правая панель */
         .chat-container {
             flex: 1;
             display: flex;
@@ -217,7 +212,6 @@
             opacity: 0.8;
         }
         
-        /* Закрепленные сообщения */
         #pinnedMessagesContainer {
             background: #fff3e0;
             border-bottom: 1px solid #ff9800;
@@ -287,7 +281,6 @@
             -webkit-overflow-scrolling: touch;
         }
         
-        /* Стили сообщений */
         #messages li {
             padding: 10px 12px;
             margin-bottom: 8px;
@@ -303,7 +296,6 @@
             -webkit-tap-highlight-color: transparent;
         }
         
-        /* Закрепленные сообщения в списке */
         #messages li.pinned {
             background: #fff3e0;
             border-left: 3px solid #ff9800;
@@ -314,7 +306,6 @@
             border-left: 3px solid #ff9800;
         }
         
-        /* Свои сообщения — справа */
         #messages li[data-own="true"] {
             float: right;
             background: #667eea;
@@ -322,7 +313,6 @@
             border-bottom-right-radius: 4px;
         }
         
-        /* Чужие сообщения — слева */
         #messages li[data-own="false"] {
             float: left;
             background: white;
@@ -331,7 +321,6 @@
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
         
-        /* Системные сообщения по центру */
         #messages li.system {
             max-width: 90%;
             margin-left: auto;
@@ -343,6 +332,30 @@
             font-size: 0.85rem;
             float: none;
             clear: both;
+        }
+        
+        .msg-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+        
+        .msg-avatar-placeholder {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-align: center;
+            line-height: 24px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 6px;
+            vertical-align: middle;
         }
         
         .user {
@@ -414,8 +427,6 @@
             border-top: 1px solid #eee;
             gap: 8px;
             flex-shrink: 0;
-            position: relative;
-            background: white;
         }
         
         #messageInput {
@@ -556,7 +567,6 @@
             opacity: 0.8;
         }
         
-        /* Мобильная оптимизация */
         @media (max-width: 768px) {
             .menu-toggle {
                 display: flex;
@@ -612,7 +622,6 @@
             }
         }
         
-        /* Для iPhone с вырезом */
         @supports (padding: max(0px)) {
             .chat-header {
                 padding-left: max(60px, env(safe-area-inset-left));
@@ -632,28 +641,19 @@
             }
         }
         
-        /* Анимация для плавного появления */
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         #messages li {
             animation: fadeIn 0.2s ease;
         }
         
-        /* Убираем подсветку на тач-устройствах */
         .chat-item, .user-item, .lobby-btn, .new-chat-btn, .message-form button, .attach-button, .group-settings-btn {
             -webkit-tap-highlight-color: transparent;
         }
         
-        /* Скроллбар для мобильных */
         #messages::-webkit-scrollbar,
         .chats-panel::-webkit-scrollbar,
         #pinnedMessagesList::-webkit-scrollbar {
@@ -726,7 +726,6 @@
     </div>
     <input type="file" id="imageInput" accept="image/*" style="display: none;">
     
-    <!-- Модалка для выбора пользователя (ЛС) -->
     <div id="userModal" class="modal">
         <div class="modal-content">
             <h3>Выберите пользователя</h3>
@@ -736,7 +735,6 @@
         </div>
     </div>
     
-    <!-- Модалка для создания группы -->
     <div id="createGroupModal" class="modal">
         <div class="modal-content">
             <h3>Создать группу</h3>
@@ -748,7 +746,6 @@
         </div>
     </div>
     
-    <!-- Модалка для редактирования сообщения -->
     <div id="editMessageModal" class="modal">
         <div class="modal-content">
             <h3>Редактировать сообщение</h3>
@@ -758,7 +755,6 @@
         </div>
     </div>
     
-    <!-- Модалка для настроек группы -->
     <div id="groupSettingsModal" class="modal">
         <div class="modal-content">
             <h3 id="groupSettingsTitle">Настройки группы</h3>
@@ -768,7 +764,6 @@
         </div>
     </div>
     
-    <!-- Модалка для настроек общего чата -->
     <div id="generalSettingsModal" class="modal">
         <div class="modal-content">
             <h3>Настройки общего чата</h3>
@@ -780,19 +775,19 @@
     
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        // Глобальные переменные
         const userData = JSON.parse(localStorage.getItem('user') || '{}');
         if (!userData.name) {
             window.location.href = 'login.html';
         }
         
-        let currentChatId = null; // null = общий чат, число = личный чат или группа
+        let currentChatId = null;
         let currentChatName = 'Общий чат';
-        let currentChatType = 'general'; // 'general', 'private', 'group'
+        let currentChatType = 'general';
         let currentUserId = userData.id;
         let socket = null;
         let allChats = [];
         let allUsers = [];
+        let userAvatars = {};
         let selectedMessageId = null;
         let editingMessageId = null;
         let pinnedMessages = new Set();
@@ -801,12 +796,10 @@
         
         const notificationSound = new Audio('/notification.mp3');
         
-        // Запрос разрешения на уведомления
         if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
             setTimeout(() => Notification.requestPermission(), 2000);
         }
         
-        // Функции для работы с интерфейсом
         function toggleChatsPanel() {
             document.getElementById('chatsPanel').classList.toggle('open');
         }
@@ -832,7 +825,6 @@
             return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
         }
         
-        // Выделение сообщения
         function selectMessage(element, messageId) {
             if (selectedMessageId) {
                 const prev = document.querySelector(`#messages li[data-id='${selectedMessageId}']`);
@@ -842,7 +834,6 @@
             selectedMessageId = messageId;
         }
         
-        // Удаление сообщения
         async function deleteMessage(messageId, imageUrl = null) {
             if (!confirm('Удалить сообщение?')) return;
             try {
@@ -857,7 +848,6 @@
                     if (el) el.remove();
                     if (selectedMessageId === messageId) selectedMessageId = null;
                     pinnedMessages.delete(messageId);
-                    // Обновляем список закрепленных
                     loadPinnedMessages();
                 } else {
                     alert(data.error || 'Нельзя удалить');
@@ -868,7 +858,6 @@
             }
         }
         
-        // Редактирование сообщения
         function editMessage(messageId, currentText) {
             editingMessageId = messageId;
             const modal = document.getElementById('editMessageModal');
@@ -916,7 +905,6 @@
             editingMessageId = null;
         }
         
-        // Закрепление сообщения
         async function pinMessage(messageId) {
             try {
                 const res = await fetch('/api/pin-message', {
@@ -936,7 +924,6 @@
                     } else {
                         pinnedMessages.delete(messageId);
                     }
-                    // Обновляем отображение
                     const li = document.querySelector(`#messages li[data-id='${messageId}']`);
                     if (li) {
                         if (data.pinned) {
@@ -945,7 +932,6 @@
                             li.classList.remove('pinned');
                         }
                     }
-                    // Обновляем список закрепленных
                     loadPinnedMessages();
                 } else {
                     alert(data.error || 'Ошибка');
@@ -956,7 +942,6 @@
             }
         }
         
-        // Загрузка закрепленных сообщений
         async function loadPinnedMessages() {
             try {
                 let url;
@@ -1021,10 +1006,35 @@
             }
         }
         
-        // Загрузка чатов
-        async function loadChats() {
+        async function loadAllUsers() {
             try {
-                // Загружаем последнее сообщение для общего чата
+                const res = await fetch('/api/users');
+                const data = await res.json();
+                if (data.success && data.users) {
+                    allUsers = data.users;
+                    userAvatars = {};
+                    allUsers.forEach(u => {
+                        userAvatars[u.id] = u.avatar_url;
+                    });
+                }
+            } catch(e) {
+                console.error('Ошибка загрузки пользователей:', e);
+            }
+        }
+        
+        function getUserAvatar(userId, userName) {
+            if (userAvatars[userId]) {
+                return `<img src="${userAvatars[userId]}" class="msg-avatar">`;
+            } else {
+                const letter = userName ? userName.charAt(0).toUpperCase() : '?';
+                return `<span class="msg-avatar-placeholder">${letter}</span>`;
+            }
+        }
+        
+        async function loadChats() {
+            await loadAllUsers();
+            
+            try {
                 let generalLastMessage = 'Нет сообщений';
                 try {
                     const generalMsgRes = await fetch('/api/general-last-message');
@@ -1045,7 +1055,6 @@
                     console.error('Ошибка загрузки последнего сообщения общего чата:', e);
                 }
                 
-                // Загружаем название общего чата из настроек
                 let generalChatName = 'Общий чат';
                 try {
                     const settingsRes = await fetch('/api/general-settings');
@@ -1065,7 +1074,6 @@
                     type: 'general'
                 };
                 
-                // Загружаем личные чаты и группы
                 const res = await fetch(`/api/chats?userId=${userData.id}`);
                 const data = await res.json();
                 
@@ -1098,7 +1106,19 @@
             let html = '';
             for (let chat of allChats) {
                 const active = currentChatId === chat.id;
-                const avatar = chat.other_user_name ? chat.other_user_name.charAt(0).toUpperCase() : '🌟';
+                
+                let avatarHtml = '';
+                if (chat.type === 'general') {
+                    avatarHtml = '<div class="chat-avatar">🌟</div>';
+                } else if (chat.type === 'group') {
+                    avatarHtml = '<div class="chat-avatar">👥</div>';
+                } else if (chat.other_user_avatar) {
+                    avatarHtml = `<img src="${chat.other_user_avatar}" class="chat-avatar-img">`;
+                } else {
+                    const avatarLetter = chat.other_user_name ? chat.other_user_name.charAt(0).toUpperCase() : '?';
+                    avatarHtml = `<div class="chat-avatar">${avatarLetter}</div>`;
+                }
+                
                 const lastMsg = chat.last_message && chat.last_message !== 'Нет сообщений' 
                     ? (chat.last_message.length > 30 ? chat.last_message.substring(0,30)+'...' : chat.last_message) 
                     : 'Нет сообщений';
@@ -1114,7 +1134,7 @@
                     : `selectChat(${chat.id}, '${escapeHtml(chatName)}', '${chatType}')`;
                 
                 html += `<div class="chat-item ${active ? 'active' : ''}" onclick="${onclickAttr}">
-                            <div class="chat-avatar">${avatar}</div>
+                            ${avatarHtml}
                             <div class="chat-info">
                                 <div class="chat-name">
                                     ${escapeHtml(chatName)}
@@ -1127,7 +1147,6 @@
             container.innerHTML = html;
         }
         
-        // Добавление сообщения в UI
         function addMessageToUI(data, isHistory = false) {
             const li = document.createElement('li');
             li.setAttribute('data-id', data.id);
@@ -1151,7 +1170,9 @@
                 li.className = 'system';
                 li.textContent = data.text;
             } else {
-                let content = `<span class="user">${escapeHtml(data.name)}:</span> `;
+                let senderAvatar = getUserAvatar(data.user_id, data.name);
+                
+                let content = `${senderAvatar}<span class="user">${escapeHtml(data.name)}:</span> `;
                 if (data.text && data.text.startsWith('📷')) {
                     const url = data.text.replace('📷 ', '');
                     content += `<a href="${url}" target="_blank"><img src="${url}" class="chat-image" onclick="event.stopPropagation()"></a>`;
@@ -1191,7 +1212,6 @@
             document.getElementById('messages').appendChild(li);
             li.scrollIntoView({ behavior: 'smooth', block: 'end' });
             
-            // Уведомление ТОЛЬКО для новых сообщений (не из истории)
             if (!isHistory && data.user_id !== currentUserId && !document.hasFocus()) {
                 const messageTime = new Date(data.timestamp).getTime();
                 const now = Date.now();
@@ -1209,7 +1229,6 @@
             }
         }
         
-        // Выбор чата
         async function selectChat(chatId, chatName, chatType = 'private') {
             if (currentChatId === chatId && socket && socket.connected) return;
             
@@ -1218,7 +1237,6 @@
             currentChatType = chatType;
             document.getElementById('currentChatTitle').innerHTML = `🎵 ${escapeHtml(chatName)}`;
             
-            // Показываем кнопки настроек
             const generalSettingsBtn = document.getElementById('generalSettingsBtn');
             const groupSettingsBtn = document.getElementById('groupSettingsBtn');
             
@@ -1233,7 +1251,6 @@
                 groupSettingsBtn.style.display = 'none';
             }
             
-            // Отмечаем прочитанными
             if (chatId !== null) {
                 try {
                     await fetch('/api/mark-read', { 
@@ -1246,10 +1263,8 @@
                 }
             }
             
-            // Загружаем закрепленные
             await loadPinnedMessages();
             
-            // Переподключаем сокет
             if (socket) {
                 socket.disconnect();
             }
@@ -1283,25 +1298,18 @@
                 }
             });
             
-            // ========== ИСПРАВЛЕНИЕ БАГА ==========
-            // Проверяем chat_id перед добавлением сообщения в UI
             socket.on('message', (m) => {
-                // Определяем ID чата, к которому относится сообщение
                 const messageChatId = m.chat_id !== undefined ? m.chat_id : null;
-                // Проверяем, совпадает ли с текущим открытым чатом
                 const isForCurrentChat = messageChatId === currentChatId;
                 
-                // Добавляем в UI только если сообщение для текущего чата
                 if (isForCurrentChat) {
                     addMessageToUI(m, false);
                 }
                 
-                // Обновляем список чатов (счетчики непрочитанных) в любом случае
                 if (m.user_id !== currentUserId) {
                     loadChats();
                 }
             });
-            // ========== КОНЕЦ ИСПРАВЛЕНИЯ ==========
             
             socket.on('message edited', (data) => {
                 const li = document.querySelector(`#messages li[data-id='${data.messageId}']`);
@@ -1347,7 +1355,6 @@
             }
         }
         
-        // Отправка сообщения
         async function sendMessage(text, imageUrl = null) {
             if (!socket || !socket.connected) {
                 alert('Нет соединения с сервером. Пожалуйста, обновите страницу.');
@@ -1365,7 +1372,6 @@
             document.getElementById('messageInput').value = '';
         }
         
-        // Создание группы
         function showCreateGroupModal() {
             document.getElementById('createGroupModal').style.display = 'flex';
             loadUsersForGroup();
@@ -1439,7 +1445,6 @@
             document.getElementById('groupName').value = '';
         }
         
-        // Настройки группы
         function showGroupSettings() {
             if (currentChatType !== 'group') return;
             document.getElementById('groupSettingsModal').style.display = 'flex';
@@ -1484,7 +1489,6 @@
             document.getElementById('renameGroupInput').value = '';
         }
         
-        // Настройки общего чата
         async function showGeneralSettings() {
             if (userData.role !== 'admin') return;
             document.getElementById('generalSettingsModal').style.display = 'flex';
@@ -1532,36 +1536,33 @@
             document.getElementById('generalChatNameInput').value = '';
         }
         
-        // Личные сообщения
         async function showNewChatModal() {
-            await loadUsersList();
+            await loadAllUsers();
             document.getElementById('userModal').style.display = 'flex';
+            renderUsersList(allUsers.filter(u => u.id !== currentUserId));
         }
         
-        async function loadUsersList() {
-            try {
-                const res = await fetch('/api/users');
-                const data = await res.json();
-                if (data.success && data.users) {
-                    allUsers = data.users.filter(u => u.id !== currentUserId);
-                    const container = document.getElementById('usersListModal');
-                    if (!allUsers.length) { 
-                        container.innerHTML = '<div style="padding:20px; text-align:center;">Нет других пользователей</div>'; 
-                        return; 
-                    }
-                    let html = '';
-                    for (let u of allUsers) {
-                        html += `<div class="user-item" onclick="startChatWithUser(${u.id}, '${escapeHtml(u.name)}')">
-                                    <strong>${escapeHtml(u.name)}</strong><br>
-                                    <small>${escapeHtml(u.email)}</small>
-                                </div>`;
-                    }
-                    container.innerHTML = html;
-                }
-            } catch(e) { 
-                console.error('Ошибка загрузки пользователей:', e);
-                document.getElementById('usersListModal').innerHTML = '<div style="padding:20px; text-align:center;">Ошибка загрузки</div>';
+        function renderUsersList(users) {
+            const container = document.getElementById('usersListModal');
+            if (!users.length) { 
+                container.innerHTML = '<div style="padding:20px; text-align:center;">Нет других пользователей</div>'; 
+                return; 
             }
+            let html = '';
+            for (let u of users) {
+                const avatarHtml = u.avatar_url 
+                    ? `<img src="${u.avatar_url}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;margin-right:10px;">`
+                    : `<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;margin-right:10px;">${u.name.charAt(0).toUpperCase()}</div>`;
+                
+                html += `<div class="user-item" onclick="startChatWithUser(${u.id}, '${escapeHtml(u.name)}')" style="display:flex;align-items:center;">
+                            ${avatarHtml}
+                            <div>
+                                <strong>${escapeHtml(u.name)}</strong><br>
+                                <small>${escapeHtml(u.email)}</small>
+                            </div>
+                        </div>`;
+            }
+            container.innerHTML = html;
         }
         
         async function startChatWithUser(otherId, otherName) {
@@ -1592,23 +1593,10 @@
         
         document.getElementById('userSearch').addEventListener('input', (e) => {
             const q = e.target.value.toLowerCase();
-            const filtered = allUsers.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
-            const container = document.getElementById('usersListModal');
-            if (!filtered.length) { 
-                container.innerHTML = '<div style="padding:20px; text-align:center;">Ничего не найдено</div>'; 
-                return; 
-            }
-            let html = '';
-            for (let u of filtered) {
-                html += `<div class="user-item" onclick="startChatWithUser(${u.id}, '${escapeHtml(u.name)}')">
-                            <strong>${escapeHtml(u.name)}</strong><br>
-                            <small>${escapeHtml(u.email)}</small>
-                        </div>`;
-            }
-            container.innerHTML = html;
+            const filtered = allUsers.filter(u => u.id !== currentUserId && (u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)));
+            renderUsersList(filtered);
         });
         
-        // Обработка формы
         document.getElementById('chatForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const msg = document.getElementById('messageInput').value.trim();
@@ -1617,7 +1605,6 @@
             }
         });
         
-        // Загрузка фото
         const imageButton = document.getElementById('imageButton');
         const imageInput = document.getElementById('imageInput');
         imageButton.addEventListener('click', () => imageInput.click());
@@ -1643,7 +1630,6 @@
             imageInput.value = '';
         });
         
-        // Снятие выделения при клике вне сообщения
         document.addEventListener('click', (e) => {
             if (!e.target.closest('#messages li') && selectedMessageId) {
                 const prev = document.querySelector(`#messages li[data-id='${selectedMessageId}']`);
@@ -1652,7 +1638,6 @@
             }
         });
         
-        // Мобильная клавиатура
         function handleMobileKeyboard() {
             if (window.innerWidth <= 768) {
                 const messageInput = document.getElementById('messageInput');
@@ -1668,13 +1653,11 @@
             }
         }
         
-        // Инициализация
         loadChats();
         handleMobileKeyboard();
-        // ========== PUSH-УВЕДОМЛЕНИЯ ==========
+        
         let pushSubscription = null;
         
-        // Преобразование base64 в Uint8Array
         function urlBase64ToUint8Array(base64String) {
             const padding = '='.repeat((4 - base64String.length % 4) % 4);
             const base64 = (base64String + padding)
@@ -1688,7 +1671,6 @@
             return outputArray;
         }
         
-        // Регистрация Service Worker
         async function registerServiceWorker() {
             if (!('serviceWorker' in navigator)) {
                 console.log('❌ Service Worker не поддерживается');
@@ -1704,7 +1686,6 @@
             }
         }
         
-        // Подписка на push
         async function subscribeToPush() {
             if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
                 console.log('❌ Push не поддерживается');
@@ -1714,11 +1695,9 @@
             try {
                 const registration = await navigator.serviceWorker.ready;
                 
-                // Проверяем существующую подписку
                 let subscription = await registration.pushManager.getSubscription();
                 
                 if (!subscription) {
-                    // Получаем публичный ключ с сервера
                     const res = await fetch('/api/push/public-key');
                     const data = await res.json();
                     
@@ -1739,7 +1718,6 @@
             }
         }
         
-        // Сохранение подписки на сервере
         async function saveSubscription(subscription) {
             try {
                 await fetch('/api/push/subscribe', {
@@ -1756,11 +1734,9 @@
             }
         }
         
-        // Запускаем при загрузке
         (async function initPush() {
             await registerServiceWorker();
             
-            // Запрашиваем разрешение, если ещё не спросили
             if ('Notification' in window && Notification.permission === 'default') {
                 const permission = await Notification.requestPermission();
                 if (permission === 'granted') {
