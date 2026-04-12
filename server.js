@@ -24,11 +24,17 @@ cloudinary.config({
 });
 
 // ========== VAPID КЛЮЧИ ДЛЯ PUSH ==========
-
 const vapidKeys = {
-    publicKey: process.env.VAPID_PUBLIC_KEY || 'BDlIFs2rQJpHQvMV3XfFg5h4vL7kM9nO2pR6sT8uV1wX4yZ5aB6cD7eF8gH9iJ0kL',
-    privateKey: process.env.VAPID_PRIVATE_KEY || 'm2nO4pQ6rS8tU0vW2xY4zA6bC8dE0fG2hI4jK6lM8nO0pQ2rS4tU6vW8xY0zA2'
+    publicKey: process.env.VAPID_PUBLIC_KEY,
+    privateKey: process.env.VAPID_PRIVATE_KEY
 };
+
+// Проверка, что ключи есть
+if (!vapidKeys.publicKey || !vapidKeys.privateKey) {
+    console.error('❌ ОШИБКА: VAPID ключи не найдены в переменных окружения!');
+    console.error('Добавь VAPID_PUBLIC_KEY и VAPID_PRIVATE_KEY в Environment Variables на Render');
+    process.exit(1);
+}
 
 webpush.setVapidDetails(
     'mailto:' + (process.env.RESEND_FROM_EMAIL || 'admin@pioneriaproject.site'),
