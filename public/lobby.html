@@ -333,7 +333,7 @@
             <span class="emoji">💬</span>
             <span>Чат</span>
         </div>
-        <div class="sidebar-item" onclick="toggleProfile()">
+        <div class="sidebar-item" onclick="goToProfile()">
             <span class="emoji">👤</span>
             <span>Профиль</span>
         </div>
@@ -428,6 +428,10 @@
 
         function goToAdmin() {
             window.location.href = 'admin.html';
+        }
+        function goToProfile() {
+            window.location.href = 'profile.html';
+            closeMenu();
         }
 
         function logout() {
