@@ -1671,6 +1671,105 @@
         // Инициализация
         loadChats();
         handleMobileKeyboard();
+        // ========== PUSH-УВЕДОМЛЕНИЯ ==========
+        let pushSubscription = null;
+        
+        // Преобразование base64 в Uint8Array
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding)
+                .replace(/\-/g, '+')
+                .replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+        
+        // Регистрация Service Worker
+        async function registerServiceWorker() {
+            if (!('serviceWorker' in navigator)) {
+                console.log('❌ Service Worker не поддерживается');
+                return;
+            }
+            
+            try {
+                const registration = await navigator.serviceWorker.register('/service-worker.js');
+                console.log('✅ Service Worker зарегистрирован');
+                return registration;
+            } catch (err) {
+                console.error('❌ Ошибка регистрации SW:', err);
+            }
+        }
+        
+        // Подписка на push
+        async function subscribeToPush() {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                console.log('❌ Push не поддерживается');
+                return;
+            }
+            
+            try {
+                const registration = await navigator.serviceWorker.ready;
+                
+                // Проверяем существующую подписку
+                let subscription = await registration.pushManager.getSubscription();
+                
+                if (!subscription) {
+                    // Получаем публичный ключ с сервера
+                    const res = await fetch('/api/push/public-key');
+                    const data = await res.json();
+                    
+                    subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array(data.publicKey)
+                    });
+                    console.log('✅ Подписались на push');
+                } else {
+                    console.log('✅ Уже подписаны на push');
+                }
+                
+                pushSubscription = subscription;
+                await saveSubscription(subscription);
+                
+            } catch (err) {
+                console.error('❌ Ошибка подписки на push:', err);
+            }
+        }
+        
+        // Сохранение подписки на сервере
+        async function saveSubscription(subscription) {
+            try {
+                await fetch('/api/push/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: currentUserId,
+                        subscription: subscription
+                    })
+                });
+                console.log('✅ Подписка сохранена на сервере');
+            } catch (err) {
+                console.error('❌ Ошибка сохранения подписки:', err);
+            }
+        }
+        
+        // Запускаем при загрузке
+        (async function initPush() {
+            await registerServiceWorker();
+            
+            // Запрашиваем разрешение, если ещё не спросили
+            if ('Notification' in window && Notification.permission === 'default') {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    await subscribeToPush();
+                }
+            } else if (Notification.permission === 'granted') {
+                await subscribeToPush();
+            }
+        })();
     </script>
 </body>
 </html>
