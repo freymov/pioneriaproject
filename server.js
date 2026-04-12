@@ -24,10 +24,10 @@ cloudinary.config({
 });
 
 // ========== VAPID КЛЮЧИ ДЛЯ PUSH ==========
-// Если нет в .env - используем тестовые (работают!)
+
 const vapidKeys = {
-    publicKey: process.env.VAPID_PUBLIC_KEY || 'BPLv0W72XPRHhVJWr_lzGkIDFjmB3_lkZXpP6Xh5qkQXqKxDvF7l4ntnDcQkXJv9vQyOcC5mL0vHqL8cPlM9bTc',
-    privateKey: process.env.VAPID_PRIVATE_KEY || 's8QwHn9fLm2KjP5rT6vY7xZ1aB3cD4eF5gH6iJ7kL8mN9oP0qR'
+    publicKey: process.env.VAPID_PUBLIC_KEY || 'BDlIFs2rQJpHQvMV3XfFg5h4vL7kM9nO2pR6sT8uV1wX4yZ5aB6cD7eF8gH9iJ0kL',
+    privateKey: process.env.VAPID_PRIVATE_KEY || 'm2nO4pQ6rS8tU0vW2xY4zA6bC8dE0fG2hI4jK6lM8nO0pQ2rS4tU6vW8xY0zA2'
 };
 
 webpush.setVapidDetails(
