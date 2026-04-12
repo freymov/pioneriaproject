@@ -146,6 +146,7 @@ async function initDatabase() {
                 password VARCHAR(255) NOT NULL,
                 role VARCHAR(50) DEFAULT 'user',
                 email_verified BOOLEAN DEFAULT FALSE,
+                avatar_url TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
@@ -247,6 +248,9 @@ async function initDatabase() {
                 UNIQUE(user_id)
             )
         `);
+        
+        // Добавляем колонку avatar_url, если её нет (для старых баз)
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT`);
         
         const existing = await pool.query(
             "SELECT * FROM invite_keys WHERE key_code = 'ADMIN-PIONERIA-2025'"
@@ -438,7 +442,8 @@ app.post('/api/login', async (req, res) => {
                 id: user.id,
                 name: user.name,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                avatar: user.avatar_url || null
             }
         });
     } catch (err) {
@@ -491,7 +496,7 @@ app.get('/api/admin/users', async (req, res) => {
         }
         
         const users = await pool.query(
-            'SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC'
+            'SELECT id, name, email, role, avatar_url, created_at FROM users ORDER BY created_at DESC'
         );
         
         res.json({ success: true, users: users.rows });
@@ -530,7 +535,7 @@ app.post('/api/admin/delete-user', async (req, res) => {
 app.get('/api/users', async (req, res) => {
     try {
         const users = await pool.query(
-            'SELECT id, name, email, role FROM users ORDER BY name'
+            'SELECT id, name, email, role, avatar_url FROM users ORDER BY name'
         );
         res.json({ success: true, users: users.rows });
     } catch (err) {
@@ -582,6 +587,7 @@ app.get('/api/chats', async (req, res) => {
                 u.id as other_user_id,
                 u.name as other_user_name,
                 u.role as other_user_role,
+                u.avatar_url as other_user_avatar,
                 'private' as type,
                 (SELECT text FROM messages WHERE chat_id = c.id ORDER BY timestamp DESC LIMIT 1) as last_message,
                 (SELECT timestamp FROM messages WHERE chat_id = c.id ORDER BY timestamp DESC LIMIT 1) as last_message_time,
@@ -760,6 +766,32 @@ app.post('/api/update-name', async (req, res) => {
         res.json({ success: true });
     } catch (err) {
         console.error('❌ Ошибка смены имени:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+// ========== ОБНОВЛЕНИЕ АВАТАРА ==========
+app.post('/api/update-avatar', async (req, res) => {
+    const { userId, avatarUrl } = req.body;
+    
+    if (!userId || !avatarUrl) {
+        return res.json({ success: false, error: 'Нет данных' });
+    }
+    
+    try {
+        await pool.query(
+            'ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT'
+        );
+        
+        await pool.query(
+            'UPDATE users SET avatar_url = $1 WHERE id = $2',
+            [avatarUrl, userId]
+        );
+        
+        console.log(`✅ Аватар обновлён для user ${userId}`);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('❌ Ошибка обновления аватара:', err);
         res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
@@ -1105,7 +1137,6 @@ io.on('connection', async (socket) => {
                 [finalChatId]
             );
             
-            // Получаем название чата для уведомления
             let chatName = 'Личный чат';
             const groupInfo = await pool.query(
                 'SELECT name FROM groups WHERE chat_id = $1',
@@ -1118,7 +1149,6 @@ io.on('connection', async (socket) => {
             for (const p of participants.rows) {
                 io.to(`user_${p.user_id}`).emit('message', messageData);
                 
-                // 🔔 PUSH для офлайн-участников
                 if (p.user_id !== userId) {
                     let notificationBody = text;
                     if (text && text.startsWith('📷')) {
@@ -1138,10 +1168,8 @@ io.on('connection', async (socket) => {
         } else {
             io.emit('message', messageData);
             
-            // 🔔 PUSH для всех (общий чат)
             const allUsers = await pool.query('SELECT id FROM users WHERE id != $1', [userId]);
             
-            // Название общего чата
             const settingsRes = await pool.query("SELECT value FROM settings WHERE key = 'general_chat_name'");
             const generalChatName = settingsRes.rows.length > 0 ? settingsRes.rows[0].value : 'Общий чат';
             
