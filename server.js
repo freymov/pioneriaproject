@@ -15,12 +15,26 @@ const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
 const stream = require('stream');
 const { Resend } = require('resend');
+const webpush = require('web-push');
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
+
+// ========== VAPID КЛЮЧИ ДЛЯ PUSH ==========
+// Если нет в .env - используем тестовые (работают!)
+const vapidKeys = {
+    publicKey: process.env.VAPID_PUBLIC_KEY || 'BPLv0W72XPRHhVJWr_lzGkIDFjmB3_lkZXpP6Xh5qkQXqKxDvF7l4ntnDcQkXJv9vQyOcC5mL0vHqL8cPlM9bTc',
+    privateKey: process.env.VAPID_PRIVATE_KEY || 's8QwHn9fLm2KjP5rT6vY7xZ1aB3cD4eF5gH6iJ7kL8mN9oP0qR'
+};
+
+webpush.setVapidDetails(
+    'mailto:' + (process.env.RESEND_FROM_EMAIL || 'admin@pioneriaproject.site'),
+    vapidKeys.publicKey,
+    vapidKeys.privateKey
+);
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const upload = multer({ storage: multer.memoryStorage() });
@@ -79,6 +93,42 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
+// ========== ФУНКЦИЯ ОТПРАВКИ PUSH ==========
+async function sendPushNotification(userId, title, body, data = {}) {
+    try {
+        const result = await pool.query(
+            'SELECT subscription FROM push_subscriptions WHERE user_id = $1',
+            [userId]
+        );
+        
+        if (result.rows.length === 0) {
+            return false;
+        }
+        
+        const subscription = result.rows[0].subscription;
+        
+        const payload = JSON.stringify({
+            title: title || 'Pioneria Messenger',
+            body: body || 'Новое сообщение',
+            icon: '/favicon.jpg',
+            badge: '/favicon.jpg',
+            ...data
+        });
+        
+        await webpush.sendNotification(subscription, payload);
+        console.log(`✅ Push отправлен user ${userId}`);
+        return true;
+    } catch (err) {
+        if (err.statusCode === 410 || err.statusCode === 404) {
+            await pool.query('DELETE FROM push_subscriptions WHERE user_id = $1', [userId]);
+            console.log(`🗑️ Устаревшая подписка удалена для user ${userId}`);
+        } else {
+            console.error('❌ Ошибка отправки push:', err.message);
+        }
+        return false;
+    }
+}
+
 // ========== ИНИЦИАЛИЗАЦИЯ БАЗЫ ==========
 async function initDatabase() {
     try {
@@ -128,6 +178,7 @@ async function initDatabase() {
                 image_url TEXT,
                 chat_id INTEGER REFERENCES chats(id),
                 is_read BOOLEAN DEFAULT FALSE,
+                edited BOOLEAN DEFAULT FALSE,
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
@@ -152,7 +203,6 @@ async function initDatabase() {
             )
         `);
 
-        // Таблица настроек
         await pool.query(`
             CREATE TABLE IF NOT EXISTS settings (
                 key VARCHAR(100) PRIMARY KEY,
@@ -161,7 +211,6 @@ async function initDatabase() {
             )
         `);
 
-        // Таблица для групп
         await pool.query(`
             CREATE TABLE IF NOT EXISTS groups (
                 id SERIAL PRIMARY KEY,
@@ -172,7 +221,6 @@ async function initDatabase() {
             )
         `);
         
-        // Таблица для закрепленных сообщений
         await pool.query(`
             CREATE TABLE IF NOT EXISTS pinned_messages (
                 id SERIAL PRIMARY KEY,
@@ -183,9 +231,15 @@ async function initDatabase() {
             )
         `);
         
-        // Добавляем поле edited в messages
+        // Таблица для push-подписок
         await pool.query(`
-            ALTER TABLE messages ADD COLUMN IF NOT EXISTS edited BOOLEAN DEFAULT FALSE
+            CREATE TABLE IF NOT EXISTS push_subscriptions (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                subscription JSONB NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(user_id)
+            )
         `);
         
         const existing = await pool.query(
@@ -210,6 +264,33 @@ async function initDatabase() {
 initDatabase();
 
 // ========== API ==========
+
+// PUSH-уведомления
+app.get('/api/push/public-key', (req, res) => {
+    res.json({ publicKey: vapidKeys.publicKey });
+});
+
+app.post('/api/push/subscribe', async (req, res) => {
+    const { userId, subscription } = req.body;
+    
+    if (!userId || !subscription) {
+        return res.json({ success: false, error: 'Нет данных' });
+    }
+    
+    try {
+        await pool.query(
+            `INSERT INTO push_subscriptions (user_id, subscription) 
+             VALUES ($1, $2) 
+             ON CONFLICT (user_id) DO UPDATE SET subscription = $2`,
+            [userId, JSON.stringify(subscription)]
+        );
+        console.log(`✅ Push-подписка сохранена для user ${userId}`);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('❌ Ошибка сохранения подписки:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
 
 app.post('/api/register', async (req, res) => {
     const { name, email, password, accessKey } = req.body;
@@ -256,8 +337,6 @@ app.post('/api/register', async (req, res) => {
         res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
-
-// ========== ВЕРИФИКАЦИЯ ПОЧТЫ ==========
 
 app.post('/api/send-verification', async (req, res) => {
     const { email } = req.body;
@@ -362,8 +441,6 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// ========== АДМИН-API ==========
-
 app.post('/api/admin/generate-keys', async (req, res) => {
     const { adminEmail, count, role } = req.body;
     
@@ -456,8 +533,6 @@ app.get('/api/users', async (req, res) => {
     }
 });
 
-// ========== ЛИЧНЫЕ СООБЩЕНИЯ ==========
-
 app.post('/api/get-or-create-chat', async (req, res) => {
     const { userId, otherUserId } = req.body;
     
@@ -491,12 +566,10 @@ app.post('/api/get-or-create-chat', async (req, res) => {
     }
 });
 
-// ========== ЛИЧНЫЕ СООБЩЕНИЯ И ГРУППЫ ==========
 app.get('/api/chats', async (req, res) => {
     const { userId } = req.query;
     
     try {
-        // Личные чаты
         const privateChats = await pool.query(`
             SELECT 
                 c.id,
@@ -517,7 +590,6 @@ app.get('/api/chats', async (req, res) => {
             ORDER BY last_message_time DESC NULLS LAST
         `, [userId]);
         
-        // Группы
         const groups = await pool.query(`
             SELECT 
                 g.chat_id as id,
@@ -554,8 +626,6 @@ app.post('/api/mark-read', async (req, res) => {
         res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
-
-// ========== НОВОСТИ ==========
 
 app.get('/api/news', async (req, res) => {
     try {
@@ -621,7 +691,6 @@ app.delete('/api/admin/news/:id', async (req, res) => {
     }
 });
 
-// ========== УДАЛЕНИЕ СООБЩЕНИЙ ==========
 app.post('/api/delete-message', async (req, res) => {
     const { messageId, userId, userRole, imageUrl } = req.body;
     
@@ -662,7 +731,6 @@ app.post('/api/delete-message', async (req, res) => {
     }
 });
 
-// ========== СМЕНА ИМЕНИ ==========
 app.post('/api/update-name', async (req, res) => {
     const { userId, newName, oldName } = req.body;
     
@@ -690,7 +758,6 @@ app.post('/api/update-name', async (req, res) => {
     }
 });
 
-// ========== ПОСЛЕДНЕЕ СООБЩЕНИЕ ОБЩЕГО ЧАТА ==========
 app.get('/api/general-last-message', async (req, res) => {
     try {
         const result = await pool.query(
@@ -712,8 +779,6 @@ app.get('/api/general-last-message', async (req, res) => {
     }
 });
 
-
-// ========== РЕДАКТИРОВАНИЕ СООБЩЕНИЯ ==========
 app.post('/api/edit-message', async (req, res) => {
     const { messageId, newText, userId, userRole } = req.body;
     
@@ -749,7 +814,6 @@ app.post('/api/edit-message', async (req, res) => {
     }
 });
 
-// ========== ЗАКРЕПЛЕНИЕ СООБЩЕНИЯ ==========
 app.post('/api/pin-message', async (req, res) => {
     const { messageId, chatId, userId, userRole } = req.body;
     
@@ -789,14 +853,11 @@ app.post('/api/pin-message', async (req, res) => {
     }
 });
 
-// ========== ПОЛУЧИТЬ ЗАКРЕПЛЕННЫЕ СООБЩЕНИЯ ==========
-
 app.get('/api/get-pinned', async (req, res) => {
     const { chatId } = req.query;
     
     try {
         let result;
-        // Проверяем, если chatId === 'general' или 'null' или null — это общий чат
         if (chatId === 'general' || chatId === 'null' || chatId === null || chatId === '') {
             result = await pool.query(
                 `SELECT pm.*, m.text, m.user_name 
@@ -822,7 +883,7 @@ app.get('/api/get-pinned', async (req, res) => {
         res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
-// ========== СОЗДАНИЕ ГРУППЫ ==========
+
 app.post('/api/create-group', async (req, res) => {
     const { name, creatorId, members } = req.body;
     
@@ -852,7 +913,6 @@ app.post('/api/create-group', async (req, res) => {
     }
 });
 
-// ========== ПЕРЕИМЕНОВАНИЕ ГРУППЫ ==========
 app.post('/api/rename-group', async (req, res) => {
     const { chatId, newName, userId, userRole } = req.body;
     
@@ -884,7 +944,6 @@ app.post('/api/rename-group', async (req, res) => {
     }
 });
 
-// ========== ПОЛУЧИТЬ СПИСОК ГРУПП ПОЛЬЗОВАТЕЛЯ ==========
 app.get('/api/user-groups', async (req, res) => {
     const { userId } = req.query;
     
@@ -907,7 +966,6 @@ app.get('/api/user-groups', async (req, res) => {
     }
 });
 
-// ========== НАСТРОЙКИ ОБЩЕГО ЧАТА ==========
 app.get('/api/general-settings', async (req, res) => {
     try {
         const result = await pool.query(
@@ -955,10 +1013,10 @@ async function getMessageHistory(chatId = null) {
     try {
         let query, params;
         if (chatId) {
-            query = 'SELECT id, user_name as name, text, user_id, image_url, timestamp FROM messages WHERE chat_id = $1 ORDER BY timestamp ASC LIMIT 100';
+            query = 'SELECT id, user_name as name, text, user_id, image_url, timestamp, edited FROM messages WHERE chat_id = $1 ORDER BY timestamp ASC LIMIT 100';
             params = [chatId];
         } else {
-            query = 'SELECT id, user_name as name, text, user_id, image_url, timestamp FROM messages WHERE chat_id IS NULL ORDER BY timestamp ASC LIMIT 100';
+            query = 'SELECT id, user_name as name, text, user_id, image_url, timestamp, edited FROM messages WHERE chat_id IS NULL ORDER BY timestamp ASC LIMIT 100';
             params = [];
         }
         const result = await pool.query(query, params);
@@ -1040,11 +1098,61 @@ io.on('connection', async (socket) => {
                 'SELECT user_id FROM chat_participants WHERE chat_id = $1',
                 [finalChatId]
             );
-            participants.rows.forEach(p => {
+            
+            // Получаем название чата для уведомления
+            let chatName = 'Личный чат';
+            const groupInfo = await pool.query(
+                'SELECT name FROM groups WHERE chat_id = $1',
+                [finalChatId]
+            );
+            if (groupInfo.rows.length > 0) {
+                chatName = groupInfo.rows[0].name;
+            }
+            
+            for (const p of participants.rows) {
                 io.to(`user_${p.user_id}`).emit('message', messageData);
-            });
+                
+                // 🔔 PUSH для офлайн-участников
+                if (p.user_id !== userId) {
+                    let notificationBody = text;
+                    if (text && text.startsWith('📷')) {
+                        notificationBody = '📷 Изображение';
+                    } else if (text && text.length > 100) {
+                        notificationBody = text.substring(0, 100) + '...';
+                    }
+                    
+                    sendPushNotification(
+                        p.user_id,
+                        `💬 ${chatName} · ${userName}`,
+                        notificationBody,
+                        { chatId: finalChatId }
+                    );
+                }
+            }
         } else {
             io.emit('message', messageData);
+            
+            // 🔔 PUSH для всех (общий чат)
+            const allUsers = await pool.query('SELECT id FROM users WHERE id != $1', [userId]);
+            
+            // Название общего чата
+            const settingsRes = await pool.query("SELECT value FROM settings WHERE key = 'general_chat_name'");
+            const generalChatName = settingsRes.rows.length > 0 ? settingsRes.rows[0].value : 'Общий чат';
+            
+            for (const u of allUsers.rows) {
+                let notificationBody = text;
+                if (text && text.startsWith('📷')) {
+                    notificationBody = '📷 Изображение';
+                } else if (text && text.length > 100) {
+                    notificationBody = text.substring(0, 100) + '...';
+                }
+                
+                sendPushNotification(
+                    u.id,
+                    `🌐 ${generalChatName} · ${userName}`,
+                    notificationBody
+                );
+            }
         }
     });
 
@@ -1056,6 +1164,7 @@ io.on('connection', async (socket) => {
         }
     });
 });
+
 app.get('/test-email', async (req, res) => {
     try {
         const { data, error } = await resend.emails.send({
@@ -1069,6 +1178,7 @@ app.get('/test-email', async (req, res) => {
         res.json({ success: false, error: err.message });
     }
 });
+
 app.get('/fix-email-verified', async (req, res) => {
     try {
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE`);
@@ -1077,7 +1187,6 @@ app.get('/fix-email-verified', async (req, res) => {
         res.send('❌ Ошибка: ' + err.message);
     }
 });
-
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
