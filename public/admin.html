@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-        <!-- Блокируем рендеринг до применения темы -->
+    <!-- Блокируем рендеринг до применения темы -->
     <script>
         (function() {
             var theme = localStorage.getItem('theme') || 'light';
@@ -21,7 +21,6 @@
             box-sizing: border-box;
         }
 
-        /* Светлая тема */
         :root,
         [data-theme="light"] {
             --bg-body: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -39,9 +38,10 @@
             --success: #27ae60;
             --input-bg: #ffffff;
             --input-border: #e0e0e0;
+            --warning: #ff9800;
+            --warning-hover: #f57c00;
         }
 
-        /* Тёмная тема */
         [data-theme="dark"] {
             --bg-body: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             --bg-primary: #1e1e2e;
@@ -58,6 +58,8 @@
             --success: #4caf50;
             --input-bg: #1e1e2e;
             --input-border: #3e4042;
+            --warning: #ff9800;
+            --warning-hover: #f57c00;
         }
 
         body {
@@ -149,6 +151,14 @@
             margin-top: 10px;
         }
 
+        .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: var(--text-primary);
+        }
+
         .keys-list {
             background: var(--bg-secondary);
             padding: 15px;
@@ -189,11 +199,50 @@
             margin-top: 10px;
         }
 
-        .news-item {
+        .news-item, .schedule-item {
             background: var(--bg-secondary);
             padding: 12px;
             border-radius: 10px;
             transition: background 0.3s;
+            margin-bottom: 8px;
+        }
+
+        .schedule-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .schedule-item .info {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .schedule-item .actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+        }
+
+        .btn-warning:hover {
+            background: var(--warning-hover);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: var(--danger-hover);
+        }
+
+        .btn-success {
+            background: var(--success);
         }
 
         @media (max-width: 768px) {
@@ -221,6 +270,9 @@
             }
             th, td {
                 padding: 6px 4px;
+            }
+            .schedule-item .actions {
+                width: 100%;
             }
         }
 
@@ -264,6 +316,47 @@
             </div>
         </div>
 
+        <!-- 📅 РАСПИСАНИЕ -->
+        <div class="card">
+            <h2>📅 Управление расписанием</h2>
+            
+            <div style="margin-bottom: 20px;">
+                <h3>Добавить репетицию</h3>
+                <div class="form-group">
+                    <select id="scheduleGroup">
+                        <option value="">Выберите группу</option>
+                    </select>
+                    <select id="scheduleDay">
+                        <option value="1">Понедельник</option>
+                        <option value="2">Вторник</option>
+                        <option value="3">Среда</option>
+                        <option value="4">Четверг</option>
+                        <option value="5">Пятница</option>
+                        <option value="6">Суббота</option>
+                        <option value="7">Воскресенье</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <input type="time" id="scheduleStart" placeholder="Начало" style="flex: 1;">
+                    <input type="time" id="scheduleEnd" placeholder="Конец" style="flex: 1;">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="scheduleIsCommon">
+                        <span>Общая репетиция (для всех групп)</span>
+                    </label>
+                </div>
+                <button onclick="saveScheduleLesson()">💾 Сохранить репетицию</button>
+            </div>
+            
+            <div>
+                <h3>Все репетиции</h3>
+                <button onclick="loadAllSchedule()" style="margin-bottom: 10px;">🔄 Обновить</button>
+                <div id="scheduleListAdmin">Загрузка...</div>
+            </div>
+        </div>
+
+        <!-- 📰 НОВОСТИ -->
         <div class="card">
             <h2>📰 Управление новостями</h2>
 
@@ -323,6 +416,17 @@
 
         document.getElementById('adminName').textContent = userData.name;
 
+        function goToLobby() {
+            window.location.href = 'lobby.html';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ========== КЛЮЧИ ==========
         async function generateKeys() {
             const count = document.getElementById('keyCount').value;
             const role = document.getElementById('keyRole').value;
@@ -351,6 +455,7 @@
             }
         }
 
+        // ========== ПОЛЬЗОВАТЕЛИ ==========
         async function loadUsers() {
             try {
                 const response = await fetch(`/api/admin/users?adminEmail=${userData.email}`);
@@ -365,7 +470,7 @@
                             <td>${escapeHtml(user.email)}</td>
                             <td>${user.role === 'admin' ? '👑 Админ' : '👤 Пользователь'}</td>
                             <td>${new Date(user.created_at).toLocaleDateString()}</td>
-                            <td><button onclick="deleteUser(${user.id}, '${escapeHtml(user.email)}')" style="background: var(--danger); padding: 4px 10px;">🗑️</button></td>
+                            <td><button onclick="deleteUser(${user.id}, '${escapeHtml(user.email)}')" class="btn-danger" style="padding: 4px 10px;">🗑️</button></td>
                         </tr>`;
                     });
                     html += '</tbody></table>';
@@ -378,8 +483,170 @@
             }
         }
 
-        function goToLobby() {
-            window.location.href = 'lobby.html';
+        async function deleteUser(userId, userEmail) {
+            if (!confirm(`Удалить пользователя ${userEmail}? Это действие необратимо.`)) return;
+
+            try {
+                const response = await fetch('/api/admin/delete-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        adminEmail: userData.email,
+                        userId: userId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('✅ Пользователь удалён');
+                    loadUsers();
+                } else {
+                    alert('❌ ' + result.error);
+                }
+            } catch (err) {
+                alert('Ошибка сервера');
+            }
+        }
+
+        // ========== РАСПИСАНИЕ ==========
+        async function loadScheduleGroups() {
+            try {
+                const res = await fetch('/api/schedule/groups');
+                const data = await res.json();
+                if (data.success) {
+                    const select = document.getElementById('scheduleGroup');
+                    select.innerHTML = data.groups.map(g => 
+                        `<option value="${g.id}">${g.name}</option>`
+                    ).join('');
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function saveScheduleLesson() {
+            const groupId = document.getElementById('scheduleGroup').value;
+            const dayOfWeek = parseInt(document.getElementById('scheduleDay').value);
+            const startTime = document.getElementById('scheduleStart').value;
+            const endTime = document.getElementById('scheduleEnd').value;
+            const isCommon = document.getElementById('scheduleIsCommon').checked;
+            
+            if (!startTime) {
+                alert('Укажите время начала');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/admin/schedule', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        adminEmail: userData.email,
+                        groupId: groupId || null,
+                        dayOfWeek,
+                        startTime,
+                        endTime: endTime || null,
+                        title: 'Репетиция',
+                        description: '',
+                        isCommon
+                    })
+                });
+                
+                const data = await res.json();
+                if (data.success) {
+                    alert('✅ Репетиция добавлена');
+                    loadAllSchedule();
+                    document.getElementById('scheduleStart').value = '';
+                    document.getElementById('scheduleEnd').value = '';
+                    document.getElementById('scheduleIsCommon').checked = false;
+                } else {
+                    alert('❌ ' + data.error);
+                }
+            } catch(e) { alert('Ошибка сервера'); }
+        }
+
+        async function loadAllSchedule() {
+            try {
+                const res = await fetch('/api/schedule');
+                const data = await res.json();
+                
+                if (data.success) {
+                    const container = document.getElementById('scheduleListAdmin');
+                    const dayNames = ['', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+                    
+                    if (data.lessons.length === 0) {
+                        container.innerHTML = '<p>Репетиций пока нет</p>';
+                        return;
+                    }
+                    
+                    let html = '';
+                    data.lessons.forEach(l => {
+                        const timeStr = l.end_time 
+                            ? `${l.start_time.substring(0,5)}–${l.end_time.substring(0,5)}`
+                            : l.start_time.substring(0,5);
+                        
+                        const statusColor = l.status === 'cancelled' ? 'var(--danger)' : 'var(--success)';
+                        const statusText = l.status === 'active' ? '✅ Идёт' : '❌ Отменена';
+                        const commonBadge = l.is_common ? ' 🌐 Общая' : '';
+                        
+                        html += `<div class="schedule-item">
+                            <div class="info">
+                                <strong>${l.group_name || 'Общая'}${commonBadge}</strong>
+                                <span style="color: var(--text-secondary);"> — ${dayNames[l.day_of_week]}, ${timeStr}</span>
+                                <span style="color: ${statusColor}; font-weight: 600; margin-left: 10px;">${statusText}</span>
+                            </div>
+                            <div class="actions">
+                                ${l.status === 'active' 
+                                    ? `<button onclick="cancelLesson(${l.id})" class="btn-warning" style="padding: 6px 12px;">Отменить</button>`
+                                    : `<button onclick="restoreLesson(${l.id})" class="btn-success" style="padding: 6px 12px;">Восстановить</button>`
+                                }
+                                <button onclick="deleteScheduleLesson(${l.id})" class="btn-danger" style="padding: 6px 12px;">🗑️</button>
+                            </div>
+                        </div>`;
+                    });
+                    
+                    container.innerHTML = html;
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function cancelLesson(id) {
+            try {
+                const res = await fetch(`/api/admin/schedule/${id}/status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminEmail: userData.email, status: 'cancelled' })
+                });
+                const data = await res.json();
+                if (data.success) loadAllSchedule();
+                else alert('❌ ' + data.error);
+            } catch(e) { console.error(e); }
+        }
+
+        async function restoreLesson(id) {
+            try {
+                const res = await fetch(`/api/admin/schedule/${id}/status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminEmail: userData.email, status: 'active' })
+                });
+                const data = await res.json();
+                if (data.success) loadAllSchedule();
+                else alert('❌ ' + data.error);
+            } catch(e) { console.error(e); }
+        }
+
+        async function deleteScheduleLesson(id) {
+            if (!confirm('Удалить репетицию навсегда?')) return;
+            try {
+                const res = await fetch(`/api/admin/schedule/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminEmail: userData.email })
+                });
+                const data = await res.json();
+                if (data.success) loadAllSchedule();
+                else alert('❌ ' + data.error);
+            } catch(e) { console.error(e); }
         }
 
         // ========== НОВОСТИ ==========
@@ -402,7 +669,7 @@
                                         <div style="font-size: 12px; color: var(--text-secondary);">${escapeHtml(news.content)}</div>
                                         <div style="font-size: 10px; color: var(--text-secondary); margin-top: 5px;">${date}</div>
                                     </div>
-                                    <button onclick="deleteNews(${news.id})" style="background: var(--danger); padding: 6px 12px;">🗑️</button>
+                                    <button onclick="deleteNews(${news.id})" class="btn-danger" style="padding: 6px 12px;">🗑️</button>
                                 </div>
                             </div>
                         `;
@@ -476,40 +743,11 @@
             }
         }
 
-        async function deleteUser(userId, userEmail) {
-            if (!confirm(`Удалить пользователя ${userEmail}? Это действие необратимо.`)) return;
-
-            try {
-                const response = await fetch('/api/admin/delete-user', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        adminEmail: userData.email,
-                        userId: userId
-                    })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    alert('✅ Пользователь удалён');
-                    loadUsers();
-                } else {
-                    alert('❌ ' + result.error);
-                }
-            } catch (err) {
-                alert('Ошибка сервера');
-            }
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
+        // ========== ИНИЦИАЛИЗАЦИЯ ==========
         loadUsers();
         loadNewsAdmin();
+        loadScheduleGroups();
+        loadAllSchedule();
     </script>
 </body>
 </html>
