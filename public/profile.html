@@ -14,22 +14,60 @@
             box-sizing: border-box;
         }
 
+        /* Светлая тема */
+        :root,
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --text-primary: #333333;
+            --text-secondary: #999999;
+            --accent: #667eea;
+            --accent-hover: #764ba2;
+            --border-color: #f0f0f0;
+            --card-bg: #ffffff;
+            --card-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            --header-bg: #ffffff;
+            --danger-color: #ff4757;
+            --modal-overlay: rgba(0,0,0,0.5);
+            --avatar-border: #667eea;
+        }
+
+        /* Тёмная тема */
+        [data-theme="dark"] {
+            --bg-primary: #1e1e2e;
+            --bg-secondary: #2a2a3e;
+            --text-primary: #e4e6eb;
+            --text-secondary: #b0b3b8;
+            --accent: #7c8aff;
+            --accent-hover: #9b8aff;
+            --border-color: #3e4042;
+            --card-bg: #2a2a3e;
+            --card-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            --header-bg: #2a2a3e;
+            --danger-color: #ff6b6b;
+            --modal-overlay: rgba(0,0,0,0.7);
+            --avatar-border: #7c8aff;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f5f5;
+            background: var(--bg-secondary);
             min-height: 100vh;
+            color: var(--text-primary);
+            transition: background 0.3s, color 0.3s;
         }
 
         .header {
-            background: white;
+            background: var(--header-bg);
             padding: 15px 20px;
             display: flex;
             align-items: center;
             gap: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: var(--card-shadow);
             position: sticky;
             top: 0;
             z-index: 100;
+            transition: background 0.3s;
         }
 
         .back-btn {
@@ -37,13 +75,13 @@
             border: none;
             font-size: 24px;
             cursor: pointer;
-            color: #667eea;
+            color: var(--accent);
             padding: 5px;
         }
 
         .header h1 {
             font-size: 20px;
-            color: #333;
+            color: var(--text-primary);
         }
 
         .content {
@@ -54,14 +92,15 @@
 
         /* Аватар секция */
         .avatar-section {
-            background: white;
+            background: var(--card-bg);
             border-radius: 20px;
             padding: 30px 20px;
             margin-bottom: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: var(--card-shadow);
+            transition: background 0.3s;
         }
 
         .avatar-wrapper {
@@ -74,7 +113,7 @@
             height: 120px;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid #667eea;
+            border: 3px solid var(--avatar-border);
         }
 
         .avatar-placeholder {
@@ -88,7 +127,7 @@
             color: white;
             font-weight: bold;
             font-size: 48px;
-            border: 3px solid white;
+            border: 3px solid var(--avatar-border);
         }
 
         .avatar-edit-btn {
@@ -97,38 +136,46 @@
             right: 0;
             width: 36px;
             height: 36px;
-            background: #667eea;
+            background: var(--accent);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             cursor: pointer;
-            border: 3px solid white;
+            border: 3px solid var(--card-bg);
             font-size: 18px;
+            transition: background 0.3s;
         }
 
         .avatar-name {
             font-size: 24px;
             font-weight: bold;
-            color: #333;
+            color: var(--text-primary);
             margin-bottom: 5px;
         }
 
         /* Секция с информацией */
         .info-section {
-            background: white;
+            background: var(--card-bg);
             border-radius: 20px;
             padding: 10px 0;
             margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: var(--card-shadow);
+            transition: background 0.3s;
         }
 
         .info-item {
             padding: 15px 20px;
             display: flex;
             align-items: center;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .info-item:hover {
+            background: var(--bg-secondary);
         }
 
         .info-item:last-child {
@@ -146,19 +193,58 @@
 
         .info-label {
             font-size: 12px;
-            color: #999;
+            color: var(--text-secondary);
             margin-bottom: 2px;
         }
 
         .info-value {
             font-size: 16px;
-            color: #333;
+            color: var(--text-primary);
         }
 
         .info-action {
-            color: #667eea;
+            color: var(--accent);
             font-size: 14px;
             cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .info-action:hover {
+            background: var(--bg-secondary);
+        }
+
+        /* Тема — кнопка-переключатель */
+        .theme-switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .theme-switch-track {
+            width: 50px;
+            height: 28px;
+            background: var(--accent);
+            border-radius: 14px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .theme-switch-thumb {
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            transition: left 0.3s;
+        }
+
+        [data-theme="dark"] .theme-switch-thumb {
+            left: 25px;
         }
 
         /* Модалка редактирования */
@@ -168,7 +254,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: var(--modal-overlay);
             display: none;
             align-items: center;
             justify-content: center;
@@ -180,25 +266,28 @@
         }
 
         .modal-content {
-            background: white;
+            background: var(--card-bg);
             border-radius: 20px;
             padding: 25px;
             width: 90%;
             max-width: 400px;
+            transition: background 0.3s;
         }
 
         .modal-content h3 {
             margin-bottom: 20px;
-            color: #333;
+            color: var(--text-primary);
         }
 
         .modal-content input {
             width: 100%;
             padding: 12px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--border-color);
             border-radius: 10px;
             font-size: 16px;
             margin-bottom: 20px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
         }
 
         .modal-actions {
@@ -216,17 +305,17 @@
         }
 
         .btn-primary {
-            background: #667eea;
+            background: var(--accent);
             color: white;
         }
 
         .btn-secondary {
-            background: #e0e0e0;
-            color: #333;
+            background: var(--border-color);
+            color: var(--text-primary);
         }
 
         .btn-danger {
-            background: #ff4757;
+            background: var(--danger-color);
             color: white;
         }
 
@@ -276,12 +365,28 @@
             </div>
         </div>
 
+        <!-- Настройки -->
+        <div class="info-section">
+            <div class="info-item" onclick="toggleTheme()">
+                <div class="info-icon">🎨</div>
+                <div class="info-content">
+                    <div class="info-label">Тема оформления</div>
+                    <div class="info-value" id="themeLabel">Светлая</div>
+                </div>
+                <div class="theme-switch">
+                    <div class="theme-switch-track">
+                        <div class="theme-switch-thumb"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Действия -->
         <div class="info-section">
             <div class="info-item" onclick="logout()">
                 <div class="info-icon">🚪</div>
                 <div class="info-content">
-                    <div class="info-value" style="color: #ff4757;">Выйти</div>
+                    <div class="info-value" style="color: var(--danger-color);">Выйти</div>
                 </div>
             </div>
         </div>
@@ -308,11 +413,70 @@
 
         let emailVisible = false;
 
-        // Инициализация
+        // ========== ТЕМА ==========
+        function getCurrentTheme() {
+            return localStorage.getItem('theme') || 'light';
+        }
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            updateThemeUI();
+        }
+
+        function toggleTheme() {
+            const current = getCurrentTheme();
+            const newTheme = current === 'light' ? 'dark' : 'light';
+            applyTheme(newTheme);
+            saveThemeToServer(newTheme);
+        }
+
+        function updateThemeUI() {
+            const theme = getCurrentTheme();
+            document.getElementById('themeLabel').textContent = theme === 'light' ? 'Светлая' : 'Тёмная';
+            // Обновляем meta theme-color
+            const metaTheme = document.querySelector('meta[name="theme-color"]');
+            if (metaTheme) {
+                metaTheme.content = theme === 'light' ? '#667eea' : '#1a1a2e';
+            }
+        }
+
+        async function saveThemeToServer(theme) {
+            try {
+                await fetch('/api/user/settings/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        userId: userData.id, 
+                        key: 'theme', 
+                        value: theme 
+                    })
+                });
+            } catch(e) {
+                console.error('Ошибка сохранения темы:', e);
+            }
+        }
+
+        async function loadThemeFromServer() {
+            try {
+                const res = await fetch(`/api/user/settings?userId=${userData.id}&key=theme`);
+                const data = await res.json();
+                if (data.success && data.value) {
+                    applyTheme(data.value);
+                } else {
+                    applyTheme(getCurrentTheme());
+                }
+            } catch(e) {
+                applyTheme(getCurrentTheme());
+            }
+        }
+
+        // ========== ИНИЦИАЛИЗАЦИЯ ==========
         function init() {
             document.getElementById('profileName').textContent = userData.name;
             document.getElementById('displayName').textContent = userData.name;
             updateAvatar();
+            loadThemeFromServer();
         }
 
         function updateAvatar() {
@@ -404,7 +568,6 @@
                 if (data.success) {
                     userData.avatar = data.url;
                     
-                    // Сохраняем в БД
                     await fetch('/api/update-avatar', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
