@@ -403,6 +403,10 @@
             <span class="emoji">💬</span>
             <span>Чат</span>
         </div>
+        <div class="sidebar-item" onclick="goToSchedule()">
+            <span class="emoji">📅</span>
+            <span>Расписание</span>
+        </div>
         <div class="sidebar-item" onclick="goToProfile()">
             <span class="emoji">👤</span>
             <span>Профиль</span>
@@ -520,6 +524,10 @@
 
         function goToMessenger() {
             window.location.href = 'messenger.html';
+        }
+        function goToSchedule() {
+            window.location.href = 'schedule.html';
+            closeMenu();
         }
 
         function goToNews() {
