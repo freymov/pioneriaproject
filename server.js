@@ -29,7 +29,6 @@ const vapidKeys = {
     privateKey: process.env.VAPID_PRIVATE_KEY
 };
 
-// Проверка, что ключи есть
 if (!vapidKeys.publicKey || !vapidKeys.privateKey) {
     console.error('❌ ОШИБКА: VAPID ключи не найдены в переменных окружения!');
     console.error('Добавь VAPID_PUBLIC_KEY и VAPID_PRIVATE_KEY в Environment Variables на Render');
@@ -238,7 +237,6 @@ async function initDatabase() {
             )
         `);
         
-        // Таблица для push-подписок
         await pool.query(`
             CREATE TABLE IF NOT EXISTS push_subscriptions (
                 id SERIAL PRIMARY KEY,
@@ -248,7 +246,7 @@ async function initDatabase() {
                 UNIQUE(user_id)
             )
         `);
-        // Таблица для пользовательских настроек (темы и т.д.)
+
         await pool.query(`
             CREATE TABLE IF NOT EXISTS user_settings (
                 user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -257,10 +255,52 @@ async function initDatabase() {
                 PRIMARY KEY (user_id, setting_key)
             )
         `);
-                
-        // Добавляем колонку avatar_url, если её нет (для старых баз)
-        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT`);
+
+        // ========== ТАБЛИЦЫ РАСПИСАНИЯ ==========
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS schedule_groups (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                color VARCHAR(7) DEFAULT '#667eea',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS schedule_lessons (
+                id SERIAL PRIMARY KEY,
+                group_id INTEGER REFERENCES schedule_groups(id) ON DELETE CASCADE,
+                day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 1 AND 7),
+                start_time TIME NOT NULL,
+                end_time TIME,
+                title VARCHAR(255) NOT NULL DEFAULT 'Репетиция',
+                description TEXT,
+                is_common BOOLEAN DEFAULT FALSE,
+                status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'cancelled')),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        // Добавляем колонки для совместимости со старыми базами
+        try {
+            await pool.query(`ALTER TABLE schedule_lessons ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active'`);
+        } catch(e) {}
         
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT`);
+
+        // Заполняем группы расписания
+        const groupsExist = await pool.query('SELECT COUNT(*) FROM schedule_groups');
+        if (parseInt(groupsExist.rows[0].count) === 0) {
+            await pool.query(`
+                INSERT INTO schedule_groups (name, color) VALUES 
+                ('Утренняя группа', '#f59e0b'),
+                ('Группа 16:00', '#667eea'),
+                ('Группа 17:30', '#8b5cf6')
+            `);
+            console.log('✅ Созданы группы расписания');
+        }
+        
+        // Админ-ключ
         const existing = await pool.query(
             "SELECT * FROM invite_keys WHERE key_code = 'ADMIN-PIONERIA-2025'"
         );
@@ -284,7 +324,7 @@ initDatabase();
 
 // ========== API ==========
 
-// PUSH-уведомления
+// PUSH
 app.get('/api/push/public-key', (req, res) => {
     res.json({ publicKey: vapidKeys.publicKey });
 });
@@ -311,6 +351,7 @@ app.post('/api/push/subscribe', async (req, res) => {
     }
 });
 
+// Регистрация
 app.post('/api/register', async (req, res) => {
     const { name, email, password, accessKey } = req.body;
     
@@ -357,6 +398,7 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
+// Отправка кода верификации
 app.post('/api/send-verification', async (req, res) => {
     const { email } = req.body;
     
@@ -391,6 +433,7 @@ app.post('/api/send-verification', async (req, res) => {
     }
 });
 
+// Подтверждение email
 app.post('/api/verify-email', async (req, res) => {
     const { email, code } = req.body;
     
@@ -421,6 +464,7 @@ app.post('/api/verify-email', async (req, res) => {
     }
 });
 
+// Вход
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
     
@@ -461,6 +505,7 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+// Генерация ключей
 app.post('/api/admin/generate-keys', async (req, res) => {
     const { adminEmail, count, role } = req.body;
     
@@ -491,6 +536,7 @@ app.post('/api/admin/generate-keys', async (req, res) => {
     }
 });
 
+// Список пользователей
 app.get('/api/admin/users', async (req, res) => {
     const { adminEmail } = req.query;
     
@@ -515,6 +561,7 @@ app.get('/api/admin/users', async (req, res) => {
     }
 });
 
+// Удаление пользователя
 app.post('/api/admin/delete-user', async (req, res) => {
     const { adminEmail, userId } = req.body;
     
@@ -541,6 +588,7 @@ app.post('/api/admin/delete-user', async (req, res) => {
     }
 });
 
+// Все пользователи (для чатов)
 app.get('/api/users', async (req, res) => {
     try {
         const users = await pool.query(
@@ -553,6 +601,7 @@ app.get('/api/users', async (req, res) => {
     }
 });
 
+// Создать или получить чат
 app.post('/api/get-or-create-chat', async (req, res) => {
     const { userId, otherUserId } = req.body;
     
@@ -586,6 +635,7 @@ app.post('/api/get-or-create-chat', async (req, res) => {
     }
 });
 
+// Список чатов
 app.get('/api/chats', async (req, res) => {
     const { userId } = req.query;
     
@@ -633,6 +683,7 @@ app.get('/api/chats', async (req, res) => {
     }
 });
 
+// Отметить прочитанным
 app.post('/api/mark-read', async (req, res) => {
     const { chatId, userId } = req.body;
     
@@ -648,6 +699,7 @@ app.post('/api/mark-read', async (req, res) => {
     }
 });
 
+// Новости
 app.get('/api/news', async (req, res) => {
     try {
         const result = await pool.query(
@@ -712,6 +764,7 @@ app.delete('/api/admin/news/:id', async (req, res) => {
     }
 });
 
+// Удаление сообщения
 app.post('/api/delete-message', async (req, res) => {
     const { messageId, userId, userRole, imageUrl } = req.body;
     
@@ -752,6 +805,7 @@ app.post('/api/delete-message', async (req, res) => {
     }
 });
 
+// Обновление имени
 app.post('/api/update-name', async (req, res) => {
     const { userId, newName, oldName } = req.body;
     
@@ -779,7 +833,7 @@ app.post('/api/update-name', async (req, res) => {
     }
 });
 
-// ========== ОБНОВЛЕНИЕ АВАТАРА ==========
+// Обновление аватара
 app.post('/api/update-avatar', async (req, res) => {
     const { userId, avatarUrl } = req.body;
     
@@ -805,6 +859,7 @@ app.post('/api/update-avatar', async (req, res) => {
     }
 });
 
+// Последнее сообщение общего чата
 app.get('/api/general-last-message', async (req, res) => {
     try {
         const result = await pool.query(
@@ -826,6 +881,7 @@ app.get('/api/general-last-message', async (req, res) => {
     }
 });
 
+// Редактирование сообщения
 app.post('/api/edit-message', async (req, res) => {
     const { messageId, newText, userId, userRole } = req.body;
     
@@ -861,6 +917,7 @@ app.post('/api/edit-message', async (req, res) => {
     }
 });
 
+// Закрепление сообщения
 app.post('/api/pin-message', async (req, res) => {
     const { messageId, chatId, userId, userRole } = req.body;
     
@@ -900,6 +957,7 @@ app.post('/api/pin-message', async (req, res) => {
     }
 });
 
+// Получить закреплённые
 app.get('/api/get-pinned', async (req, res) => {
     const { chatId } = req.query;
     
@@ -931,6 +989,7 @@ app.get('/api/get-pinned', async (req, res) => {
     }
 });
 
+// Создать группу
 app.post('/api/create-group', async (req, res) => {
     const { name, creatorId, members } = req.body;
     
@@ -960,6 +1019,7 @@ app.post('/api/create-group', async (req, res) => {
     }
 });
 
+// Переименовать группу
 app.post('/api/rename-group', async (req, res) => {
     const { chatId, newName, userId, userRole } = req.body;
     
@@ -991,6 +1051,7 @@ app.post('/api/rename-group', async (req, res) => {
     }
 });
 
+// Группы пользователя
 app.get('/api/user-groups', async (req, res) => {
     const { userId } = req.query;
     
@@ -1013,6 +1074,7 @@ app.get('/api/user-groups', async (req, res) => {
     }
 });
 
+// Настройки общего чата
 app.get('/api/general-settings', async (req, res) => {
     try {
         const result = await pool.query(
@@ -1052,6 +1114,7 @@ app.post('/api/admin/update-general-chat', async (req, res) => {
         res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
+
 // ========== ПОЛЬЗОВАТЕЛЬСКИЕ НАСТРОЙКИ ==========
 app.post('/api/user/settings/save', async (req, res) => {
     const { userId, key, value } = req.body;
@@ -1083,6 +1146,107 @@ app.get('/api/user/settings', async (req, res) => {
         res.json({ success: true, value });
     } catch (err) {
         console.error('❌ Ошибка загрузки настройки:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+// ========== API РАСПИСАНИЯ ==========
+
+// Получить группы расписания
+app.get('/api/schedule/groups', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM schedule_groups ORDER BY id');
+        res.json({ success: true, groups: result.rows });
+    } catch (err) {
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+// Получить расписание
+app.get('/api/schedule', async (req, res) => {
+    const { groupId } = req.query;
+    
+    try {
+        let lessons;
+        if (groupId) {
+            lessons = await pool.query(`
+                SELECT sl.*, sg.name as group_name, sg.color as group_color
+                FROM schedule_lessons sl
+                JOIN schedule_groups sg ON sl.group_id = sg.id
+                WHERE sl.group_id = $1 OR sl.is_common = true
+                ORDER BY sl.day_of_week, sl.start_time
+            `, [groupId]);
+        } else {
+            lessons = await pool.query(`
+                SELECT sl.*, sg.name as group_name, sg.color as group_color
+                FROM schedule_lessons sl
+                JOIN schedule_groups sg ON sl.group_id = sg.id
+                ORDER BY sl.day_of_week, sl.start_time
+            `);
+        }
+        
+        res.json({ success: true, lessons: lessons.rows });
+    } catch (err) {
+        console.error('Ошибка загрузки расписания:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+// Добавить урок (админ)
+app.post('/api/admin/schedule', async (req, res) => {
+    const { adminEmail, groupId, dayOfWeek, startTime, endTime, title, description, isCommon } = req.body;
+    
+    try {
+        const admin = await pool.query('SELECT * FROM users WHERE email = $1 AND role = $2', [adminEmail, 'admin']);
+        if (admin.rows.length === 0) {
+            return res.json({ success: false, error: 'Нет прав' });
+        }
+        
+        const result = await pool.query(`
+            INSERT INTO schedule_lessons (group_id, day_of_week, start_time, end_time, title, description, is_common)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING id
+        `, [groupId, dayOfWeek, startTime, endTime, title || 'Репетиция', description || '', isCommon || false]);
+        
+        res.json({ success: true, id: result.rows[0].id });
+    } catch (err) {
+        console.error('Ошибка добавления урока:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+// Удалить урок (админ)
+app.delete('/api/admin/schedule/:id', async (req, res) => {
+    const { adminEmail } = req.body;
+    const lessonId = req.params.id;
+    
+    try {
+        const admin = await pool.query('SELECT * FROM users WHERE email = $1 AND role = $2', [adminEmail, 'admin']);
+        if (admin.rows.length === 0) {
+            return res.json({ success: false, error: 'Нет прав' });
+        }
+        
+        await pool.query('DELETE FROM schedule_lessons WHERE id = $1', [lessonId]);
+        res.json({ success: true });
+    } catch (err) {
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+// Изменить статус урока (отменить/восстановить)
+app.post('/api/admin/schedule/:id/status', async (req, res) => {
+    const { adminEmail, status } = req.body;
+    const lessonId = req.params.id;
+    
+    try {
+        const admin = await pool.query('SELECT * FROM users WHERE email = $1 AND role = $2', [adminEmail, 'admin']);
+        if (admin.rows.length === 0) {
+            return res.json({ success: false, error: 'Нет прав' });
+        }
+        
+        await pool.query('UPDATE schedule_lessons SET status = $1 WHERE id = $2', [status, lessonId]);
+        res.json({ success: true });
+    } catch (err) {
         res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
