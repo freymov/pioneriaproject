@@ -14,28 +14,55 @@
             box-sizing: border-box;
         }
 
+        /* Светлая тема (по умолчанию) */
+        :root,
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-body: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --accent: #667eea;
+            --accent-hover: #764ba2;
+            --border-color: #e0e0e0;
+            --container-bg: #ffffff;
+        }
+
+        /* Тёмная тема */
+        [data-theme="dark"] {
+            --bg-primary: #1e1e2e;
+            --bg-body: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --text-primary: #e4e6eb;
+            --text-secondary: #b0b3b8;
+            --accent: #7c8aff;
+            --accent-hover: #9b8aff;
+            --border-color: #3e4042;
+            --container-bg: #2a2a3e;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--bg-body);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
+            transition: background 0.3s;
         }
 
         .container {
-            background: white;
+            background: var(--container-bg);
             border-radius: 20px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
             width: 100%;
             max-width: 400px;
             padding: 30px 20px;
+            transition: background 0.3s;
         }
 
         h1 {
             text-align: center;
-            color: #333;
+            color: var(--text-primary);
             margin-bottom: 30px;
             font-size: 24px;
         }
@@ -43,7 +70,7 @@
         .tabs {
             display: flex;
             margin-bottom: 30px;
-            border-bottom: 2px solid #f0f0f0;
+            border-bottom: 2px solid var(--border-color);
         }
 
         .tab {
@@ -51,15 +78,15 @@
             text-align: center;
             padding: 12px;
             cursor: pointer;
-            color: #666;
+            color: var(--text-secondary);
             font-weight: 500;
             transition: all 0.3s;
             font-size: 16px;
         }
 
         .tab.active {
-            color: #667eea;
-            border-bottom: 2px solid #667eea;
+            color: var(--accent);
+            border-bottom: 2px solid var(--accent);
             margin-bottom: -2px;
         }
 
@@ -78,7 +105,7 @@
         label {
             display: block;
             margin-bottom: 8px;
-            color: #333;
+            color: var(--text-primary);
             font-weight: 500;
             font-size: 14px;
         }
@@ -86,22 +113,23 @@
         input {
             width: 100%;
             padding: 12px 15px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--border-color);
             border-radius: 10px;
             font-size: 16px;
             transition: border-color 0.3s;
-            -webkit-appearance: none;
+            background: var(--bg-primary);
+            color: var(--text-primary);
         }
 
         input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--accent);
         }
 
         button {
             width: 100%;
             padding: 14px;
-            background: #667eea;
+            background: var(--accent);
             color: white;
             border: none;
             border-radius: 10px;
@@ -113,7 +141,7 @@
         }
 
         button:hover {
-            background: #764ba2;
+            background: var(--accent-hover);
         }
 
         button.secondary {
@@ -229,6 +257,12 @@
 
     <script>
         let pendingEmail = null;
+
+        // Применяем сохранённую тему при загрузке
+        (function() {
+            const theme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
 
         // Восстанавливаем форму верификации, если она была прервана
         window.addEventListener('load', () => {
