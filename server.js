@@ -248,7 +248,16 @@ async function initDatabase() {
                 UNIQUE(user_id)
             )
         `);
-        
+        // Таблица для пользовательских настроек (темы и т.д.)
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS user_settings (
+                user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                setting_key VARCHAR(100) NOT NULL,
+                setting_value TEXT NOT NULL,
+                PRIMARY KEY (user_id, setting_key)
+            )
+        `);
+                
         // Добавляем колонку avatar_url, если её нет (для старых баз)
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT`);
         
@@ -1040,6 +1049,40 @@ app.post('/api/admin/update-general-chat', async (req, res) => {
         res.json({ success: true });
     } catch (err) {
         console.error('❌ Ошибка обновления названия:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+// ========== ПОЛЬЗОВАТЕЛЬСКИЕ НАСТРОЙКИ ==========
+app.post('/api/user/settings/save', async (req, res) => {
+    const { userId, key, value } = req.body;
+    
+    try {
+        await pool.query(
+            `INSERT INTO user_settings (user_id, setting_key, setting_value) 
+             VALUES ($1, $2, $3) 
+             ON CONFLICT (user_id, setting_key) DO UPDATE SET setting_value = $3`,
+            [userId, key, value]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        console.error('❌ Ошибка сохранения настройки:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+app.get('/api/user/settings', async (req, res) => {
+    const { userId, key } = req.query;
+    
+    try {
+        const result = await pool.query(
+            'SELECT setting_value FROM user_settings WHERE user_id = $1 AND setting_key = $2',
+            [userId, key]
+        );
+        
+        const value = result.rows.length > 0 ? result.rows[0].setting_value : null;
+        res.json({ success: true, value });
+    } catch (err) {
+        console.error('❌ Ошибка загрузки настройки:', err);
         res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
