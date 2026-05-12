@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <!-- Блокируем рендеринг до применения темы -->
     <script>
         (function() {
             var theme = localStorage.getItem('theme') || 'light';
@@ -11,739 +10,448 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#667eea">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>Админ-панель | Pioneria Project</title>
     <link rel="icon" type="image/jpg" href="/favicon.jpg">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        :root,
-        [data-theme="light"] {
-            --bg-body: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --bg-primary: #ffffff;
-            --bg-secondary: #f5f5f5;
-            --text-primary: #333333;
-            --text-secondary: #666666;
+        :root, [data-theme="light"] {
+            --bg: #f0f2f5;
+            --bg-card: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --text: #1a1a1a;
+            --text-secondary: #666;
             --accent: #667eea;
-            --accent-hover: #764ba2;
-            --border-color: #eeeeee;
-            --card-bg: #ffffff;
-            --card-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            --danger: #ff4444;
-            --danger-hover: #cc0000;
+            --accent-hover: #5a6fd6;
+            --border: #e8e8e8;
+            --danger: #ff4757;
+            --danger-bg: #fff0f0;
             --success: #27ae60;
-            --input-bg: #ffffff;
-            --input-border: #e0e0e0;
-            --warning: #ff9800;
-            --warning-hover: #f57c00;
+            --success-bg: #e8f8e8;
+            --warning: #f59e0b;
+            --warning-bg: #fff8e8;
+            --shadow: 0 2px 12px rgba(0,0,0,0.06);
         }
 
         [data-theme="dark"] {
-            --bg-body: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            --bg-primary: #1e1e2e;
-            --bg-secondary: #2a2a3e;
-            --text-primary: #e4e6eb;
-            --text-secondary: #b0b3b8;
+            --bg: #1a1a2e;
+            --bg-card: #252540;
+            --bg-secondary: #2e2e4a;
+            --text: #e4e6eb;
+            --text-secondary: #a0a3b0;
             --accent: #7c8aff;
-            --accent-hover: #9b8aff;
-            --border-color: #3e4042;
-            --card-bg: #2a2a3e;
-            --card-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            --accent-hover: #6a78f0;
+            --border: #3a3a55;
             --danger: #ff6b6b;
-            --danger-hover: #ee5a5a;
+            --danger-bg: #3a2020;
             --success: #4caf50;
-            --input-bg: #1e1e2e;
-            --input-border: #3e4042;
-            --warning: #ff9800;
-            --warning-hover: #f57c00;
+            --success-bg: #1a3a20;
+            --warning: #f0a030;
+            --warning-bg: #3a3020;
+            --shadow: 0 2px 12px rgba(0,0,0,0.3);
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg-body);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
             min-height: 100vh;
-            padding: 15px;
-            color: var(--text-primary);
+            padding: 12px;
+            color: var(--text);
             transition: background 0.3s, color 0.3s;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+        .container { max-width: 800px; margin: 0 auto; }
 
         .card {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: var(--card-shadow);
-            transition: background 0.3s;
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 14px;
+            box-shadow: var(--shadow);
         }
 
-        h1 {
-            color: var(--accent);
-            margin-bottom: 10px;
-            font-size: 1.6rem;
-        }
-
-        h2 {
-            color: var(--accent);
-            margin-bottom: 15px;
-            font-size: 1.3rem;
-        }
-
-        h3 {
-            color: var(--text-primary);
-            margin-bottom: 10px;
-        }
+        h1 { font-size: 1.3rem; color: var(--accent); margin-bottom: 4px; }
+        h2 { font-size: 1.1rem; color: var(--accent); margin-bottom: 12px; }
+        h3 { font-size: 0.9rem; color: var(--text); margin-bottom: 8px; }
 
         button {
             background: var(--accent);
-            color: white;
+            color: #fff;
             border: none;
-            padding: 10px 20px;
+            padding: 10px 16px;
             border-radius: 10px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
-            transition: background 0.3s;
+            transition: all 0.2s;
         }
-
-        button:hover {
-            background: var(--accent-hover);
-        }
-
-        .back-btn {
-            background: #666;
-            margin-bottom: 20px;
-        }
-
-        .back-btn:hover {
-            background: #555;
-        }
+        button:hover { background: var(--accent-hover); }
+        .back-btn { background: #777; margin-bottom: 12px; }
+        .back-btn:hover { background: #666; }
+        .btn-sm { padding: 6px 12px; font-size: 11px; border-radius: 8px; }
+        .btn-danger { background: var(--danger); }
+        .btn-danger:hover { background: #e03939; }
+        .btn-warning { background: var(--warning); color: #000; }
+        .btn-success { background: var(--success); }
 
         input, select, textarea {
-            padding: 10px;
-            border: 2px solid var(--input-border);
+            padding: 10px 12px;
+            border: 2px solid var(--border);
             border-radius: 10px;
-            font-size: 14px;
+            font-size: 13px;
             width: 100%;
-            background: var(--input-bg);
-            color: var(--text-primary);
-            transition: background 0.3s, border-color 0.3s, color 0.3s;
+            background: var(--bg-card);
+            color: var(--text);
+            font-family: inherit;
         }
-
         input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: var(--accent);
         }
 
-        .form-group {
+        .row {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-            margin-top: 10px;
-        }
-
-        .form-group label {
-            display: flex;
-            align-items: center;
             gap: 8px;
-            cursor: pointer;
-            color: var(--text-primary);
+            align-items: center;
         }
+        .row > * { flex: 1; min-width: 120px; }
 
-        .keys-list {
-            background: var(--bg-secondary);
-            padding: 15px;
-            border-radius: 10px;
-            max-height: 300px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 11px;
-            word-break: break-all;
-            color: var(--text-primary);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        th, td {
-            padding: 8px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-            color: var(--text-primary);
-        }
-
-        th {
-            background: var(--bg-secondary);
-            font-weight: 600;
-        }
-
-        .success {
-            color: var(--success);
-            margin-top: 10px;
-        }
-
-        .error {
-            color: var(--danger);
-            margin-top: 10px;
-        }
-
-        .news-item, .schedule-item {
+        .keys-box {
             background: var(--bg-secondary);
             padding: 12px;
             border-radius: 10px;
-            transition: background 0.3s;
-            margin-bottom: 8px;
+            font-family: monospace;
+            font-size: 11px;
+            word-break: break-all;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+            line-height: 1.6;
         }
 
-        .schedule-item {
+        /* Пользователи — карточки вместо таблицы */
+        .user-card {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 6px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .schedule-item .info {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .schedule-item .actions {
-            display: flex;
             gap: 6px;
+            font-size: 12px;
+        }
+        .user-card .user-info { flex: 1; min-width: who 150px; }
+        .user-card .user-name { font-weight: 600; }
+        .user-card .user-email { color: var(--text-secondary); font-size: 11px; }
+        .user-card .user-meta { font-size: 10px; color: var(--text-secondary); }
+
+        /* Список репетиций */
+        .lesson-row {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            font-size: 12px;
+        }
+        .lesson-row .lesson-status {
+            font-weight: 700;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+        .lesson-row .lesson-status.active { background: var(--success-bg); color: var(--success); }
+        .lesson-row .lesson-status.cancelled { background: var(--danger-bg); color: var(--danger); }
+
+        .news-row {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 6px;
+            font-size: 12px;
         }
 
-        .btn-warning {
-            background: var(--warning);
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
         }
+        .badge.admin { background: #f0e6ff; color: #7c3aed; }
+        .badge.user { background: #e0e7ff; color: #4f46e5; }
+        .badge.common { background: var(--warning-bg); color: #b45309; }
 
-        .btn-warning:hover {
-            background: var(--warning-hover);
-        }
+        .msg { padding: 6px 0; font-size: 12px; }
+        .msg.success { color: var(--success); }
+        .msg.error { color: var(--danger); }
 
-        .btn-danger {
-            background: var(--danger);
+        label.checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 13px;
         }
-
-        .btn-danger:hover {
-            background: var(--danger-hover);
-        }
-
-        .btn-success {
-            background: var(--success);
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-            .card {
-                padding: 15px;
-            }
-            h1 {
-                font-size: 1.4rem;
-            }
-            h2 {
-                font-size: 1.2rem;
-            }
-            .form-group {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            input, select, button {
-                width: 100%;
-            }
-            table {
-                font-size: 11px;
-            }
-            th, td {
-                padding: 6px 4px;
-            }
-            .schedule-item .actions {
-                width: 100%;
-            }
-        }
+        label.checkbox-label input { width: auto; }
 
         @media (max-width: 480px) {
-            table {
-                display: block;
-                overflow-x: auto;
-                white-space: nowrap;
-            }
+            body { padding: 8px; }
+            .card { padding: 14px; margin-bottom: 10px; border-radius: 14px; }
+            h1 { font-size: 1.1rem; }
+            h2 { font-size: 1rem; }
+            button { padding: 10px 14px; font-size: 12px; }
+            .row > * { min-width: 100%; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <button class="back-btn" onclick="goToLobby()">← Вернуться в лобби</button>
+        <button class="back-btn" onclick="goToLobby()">← Лобби</button>
 
         <div class="card">
             <h1>🔧 Админ-панель</h1>
-            <p>Добро пожаловать, <span id="adminName"></span>!</p>
+            <p style="font-size:13px; color: var(--text-secondary);">Добро пожаловать, <span id="adminName"></span></p>
         </div>
 
+        <!-- Ключи -->
         <div class="card">
-            <h2>🔑 Создать ключи доступа</h2>
-            <div class="form-group">
-                <input type="number" id="keyCount" placeholder="Количество" value="1" min="1" max="20">
-                <select id="keyRole">
-                    <option value="user">Обычный пользователь</option>
-                    <option value="admin">Администратор</option>
+            <h2>🔑 Ключи доступа</h2>
+            <div class="row">
+                <input type="number" id="keyCount" value="1" min="1" max="20" style="flex:0.5; min-width:80px;">
+                <select id="keyRole" style="flex:1;">
+                    <option value="user">Пользователь</option>
+                    <option value="admin">Админ</option>
                 </select>
-                <button onclick="generateKeys()">Создать ключи</button>
+                <button onclick="generateKeys()" style="flex:0.8;">Создать</button>
             </div>
-            <div id="keysResult"></div>
-            <div id="generatedKeys" class="keys-list" style="margin-top: 15px;"></div>
+            <div id="keysResult" class="msg"></div>
+            <div id="generatedKeys" class="keys-box"></div>
         </div>
 
+        <!-- Пользователи -->
         <div class="card">
             <h2>👥 Пользователи</h2>
-            <button onclick="loadUsers()" style="margin-bottom: 15px;">Обновить список</button>
-            <div id="usersList">
-                <p>Загрузка...</p>
-            </div>
+            <button onclick="loadUsers()" class="btn-sm" style="margin-bottom:10px;">🔄 Обновить</button>
+            <div id="usersList">Загрузка...</div>
         </div>
 
-        <!-- 📅 РАСПИСАНИЕ -->
+        <!-- Расписание -->
         <div class="card">
-            <h2>📅 Управление расписанием</h2>
-            
-            <div style="margin-bottom: 20px;">
-                <h3>Добавить репетицию</h3>
-                <div class="form-group">
-                    <select id="scheduleGroup">
-                        <option value="">Выберите группу</option>
-                    </select>
-                    <select id="scheduleDay">
-                        <option value="1">Понедельник</option>
-                        <option value="2">Вторник</option>
-                        <option value="3">Среда</option>
-                        <option value="4">Четверг</option>
-                        <option value="5">Пятница</option>
-                        <option value="6">Суббота</option>
-                        <option value="7">Воскресенье</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <input type="time" id="scheduleStart" placeholder="Начало" style="flex: 1;">
-                    <input type="time" id="scheduleEnd" placeholder="Конец" style="flex: 1;">
-                </div>
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="scheduleIsCommon">
-                        <span>Общая репетиция (для всех групп)</span>
-                    </label>
-                </div>
-                <button onclick="saveScheduleLesson()">💾 Сохранить репетицию</button>
+            <h2>📅 Расписание</h2>
+            <h3>Добавить репетицию</h3>
+            <div class="row" style="margin-bottom: 6px;">
+                <select id="scheduleGroup"><option value="">Группа</option></select>
+                <select id="scheduleDay">
+                    <option value="1">Пн</option><option value="2">Вт</option>
+                    <option value="3">Ср</option><option value="4">Чт</option>
+                    <option value="5">Пт</option><option value="6">Сб</option>
+                </select>
             </div>
-            
-            <div>
-                <h3>Все репетиции</h3>
-                <button onclick="loadAllSchedule()" style="margin-bottom: 10px;">🔄 Обновить</button>
-                <div id="scheduleListAdmin">Загрузка...</div>
+            <div class="row" style="margin-bottom: 6px;">
+                <input type="time" id="scheduleStart" style="flex:1;">
+                <input type="time" id="scheduleEnd" style="flex:1;">
             </div>
+            <label class="checkbox-label" style="margin-bottom: 8px;">
+                <input type="checkbox" id="scheduleIsCommon"> Общая репетиция
+            </label>
+            <button onclick="saveScheduleLesson()" style="width:100%;">💾 Сохранить</button>
+
+            <h3 style="margin-top: 14px;">Все репетиции</h3>
+            <button onclick="loadAllSchedule()" class="btn-sm" style="margin-bottom:8px;">🔄 Обновить</button>
+            <div id="scheduleListAdmin">Загрузка...</div>
         </div>
 
-        <!-- 📰 НОВОСТИ -->
+        <!-- Новости -->
         <div class="card">
-            <h2>📰 Управление новостями</h2>
+            <h2>📰 Новости</h2>
+            <h3>Создать</h3>
+            <input type="text" id="newsTitle" placeholder="Заголовок" style="margin-bottom:6px;">
+            <textarea id="newsContent" rows="2" placeholder="Текст" style="margin-bottom:6px;"></textarea>
+            <button onclick="createNews()" style="width:100%;">➕ Опубликовать</button>
 
-            <div style="margin-bottom: 20px;">
-                <h3>Создать новость</h3>
-                <input type="text" id="newsTitle" placeholder="Заголовок" style="margin-bottom: 10px;">
-                <textarea id="newsContent" placeholder="Текст новости" rows="3" style="margin-bottom: 10px;"></textarea>
-                <button onclick="createNews()">➕ Создать</button>
-            </div>
-
-            <div>
-                <h3>Существующие новости</h3>
-                <div id="newsListAdmin" style="max-height: 300px; overflow-y: auto;">
-                    <p>Загрузка...</p>
-                </div>
-            </div>
+            <h3 style="margin-top:14px;">Опубликованные</h3>
+            <div id="newsListAdmin">Загрузка...</div>
         </div>
     </div>
 
     <script>
         const userData = JSON.parse(localStorage.getItem('user') || '{}');
-
         if (!userData.name || userData.role !== 'admin') {
-            alert('Доступ только для администраторов');
             window.location.href = 'lobby.html';
         }
 
-        // ========== ТЕМА ==========
-        function getCurrentTheme() {
-            return localStorage.getItem('theme') || 'light';
-        }
-
-        function applyTheme(theme) {
+        // Тема
+        (function(){
+            const theme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', theme);
-            const metaTheme = document.querySelector('meta[name="theme-color"]');
-            if (metaTheme) {
-                metaTheme.content = theme === 'light' ? '#667eea' : '#1a1a2e';
-            }
-        }
-
-        async function loadTheme() {
-            try {
-                const res = await fetch(`/api/user/settings?userId=${userData.id}&key=theme`);
-                const data = await res.json();
-                if (data.success && data.value) {
-                    applyTheme(data.value);
-                    localStorage.setItem('theme', data.value);
-                } else {
-                    applyTheme(getCurrentTheme());
-                }
-            } catch(e) {
-                applyTheme(getCurrentTheme());
-            }
-        }
-
-        loadTheme();
+            fetch(`/api/user/settings?userId=${userData.id}&key=theme`)
+                .then(r=>r.json()).then(d=>{if(d.success&&d.value)document.documentElement.setAttribute('data-theme',d.value);});
+        })();
 
         document.getElementById('adminName').textContent = userData.name;
+        function goToLobby(){window.location.href='lobby.html';}
+        function esc(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
 
-        function goToLobby() {
-            window.location.href = 'lobby.html';
+        // Ключи
+        async function generateKeys(){
+            const count=document.getElementById('keyCount').value;
+            const role=document.getElementById('keyRole').value;
+            try{
+                const r=await fetch('/api/admin/generate-keys',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,count,role})});
+                const d=await r.json();
+                if(d.success){
+                    document.getElementById('generatedKeys').innerHTML='<strong>Ключи:</strong><br>'+d.keys.join('<br>');
+                    document.getElementById('keysResult').innerHTML='<div class="msg success">✅ Создано</div>';
+                    setTimeout(()=>document.getElementById('keysResult').innerHTML='',3000);
+                }else{document.getElementById('keysResult').innerHTML='<div class="msg error">❌ '+d.error+'</div>';}
+            }catch(e){document.getElementById('keysResult').innerHTML='<div class="msg error">Ошибка</div>';}
         }
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // ========== КЛЮЧИ ==========
-        async function generateKeys() {
-            const count = document.getElementById('keyCount').value;
-            const role = document.getElementById('keyRole').value;
-
-            try {
-                const response = await fetch('/api/admin/generate-keys', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ adminEmail: userData.email, count, role })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    const keysDiv = document.getElementById('generatedKeys');
-                    keysDiv.innerHTML = '<strong>Созданные ключи:</strong><br>' + result.keys.join('<br>');
-                    document.getElementById('keysResult').innerHTML = '<div class="success">✅ Ключи созданы!</div>';
-                    setTimeout(() => {
-                        document.getElementById('keysResult').innerHTML = '';
-                    }, 3000);
-                } else {
-                    document.getElementById('keysResult').innerHTML = '<div class="error">❌ ' + result.error + '</div>';
-                }
-            } catch (err) {
-                document.getElementById('keysResult').innerHTML = '<div class="error">❌ Ошибка сервера</div>';
-            }
-        }
-
-        // ========== ПОЛЬЗОВАТЕЛИ ==========
-        async function loadUsers() {
-            try {
-                const response = await fetch(`/api/admin/users?adminEmail=${userData.email}`);
-                const result = await response.json();
-
-                if (result.success && result.users) {
-                    let html = '<table><thead><tr><th>ID</th><th>Имя</th><th>Email</th><th>Роль</th><th>Дата</th><th>Действия</th></tr></thead><tbody>';
-                    result.users.forEach(user => {
-                        html += `<tr>
-                            <td>${user.id}</td>
-                            <td>${escapeHtml(user.name)}</td>
-                            <td>${escapeHtml(user.email)}</td>
-                            <td>${user.role === 'admin' ? '👑 Админ' : '👤 Пользователь'}</td>
-                            <td>${new Date(user.created_at).toLocaleDateString()}</td>
-                            <td><button onclick="deleteUser(${user.id}, '${escapeHtml(user.email)}')" class="btn-danger" style="padding: 4px 10px;">🗑️</button></td>
-                        </tr>`;
-                    });
-                    html += '</tbody></table>';
-                    document.getElementById('usersList').innerHTML = html;
-                } else {
-                    document.getElementById('usersList').innerHTML = '<p>Ошибка загрузки</p>';
-                }
-            } catch (err) {
-                document.getElementById('usersList').innerHTML = '<p>Ошибка сервера</p>';
-            }
-        }
-
-        async function deleteUser(userId, userEmail) {
-            if (!confirm(`Удалить пользователя ${userEmail}? Это действие необратимо.`)) return;
-
-            try {
-                const response = await fetch('/api/admin/delete-user', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        adminEmail: userData.email,
-                        userId: userId
-                    })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    alert('✅ Пользователь удалён');
-                    loadUsers();
-                } else {
-                    alert('❌ ' + result.error);
-                }
-            } catch (err) {
-                alert('Ошибка сервера');
-            }
-        }
-
-        // ========== РАСПИСАНИЕ ==========
-        async function loadScheduleGroups() {
-            try {
-                const res = await fetch('/api/schedule/groups');
-                const data = await res.json();
-                if (data.success) {
-                    const select = document.getElementById('scheduleGroup');
-                    select.innerHTML = data.groups.map(g => 
-                        `<option value="${g.id}">${g.name}</option>`
-                    ).join('');
-                }
-            } catch(e) { console.error(e); }
-        }
-
-        async function saveScheduleLesson() {
-            const groupId = document.getElementById('scheduleGroup').value;
-            const dayOfWeek = parseInt(document.getElementById('scheduleDay').value);
-            const startTime = document.getElementById('scheduleStart').value;
-            const endTime = document.getElementById('scheduleEnd').value;
-            const isCommon = document.getElementById('scheduleIsCommon').checked;
-            
-            if (!startTime) {
-                alert('Укажите время начала');
-                return;
-            }
-            
-            try {
-                const res = await fetch('/api/admin/schedule', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        adminEmail: userData.email,
-                        groupId: groupId || null,
-                        dayOfWeek,
-                        startTime,
-                        endTime: endTime || null,
-                        title: 'Репетиция',
-                        description: '',
-                        isCommon
-                    })
-                });
-                
-                const data = await res.json();
-                if (data.success) {
-                    alert('✅ Репетиция добавлена');
-                    loadAllSchedule();
-                    document.getElementById('scheduleStart').value = '';
-                    document.getElementById('scheduleEnd').value = '';
-                    document.getElementById('scheduleIsCommon').checked = false;
-                } else {
-                    alert('❌ ' + data.error);
-                }
-            } catch(e) { alert('Ошибка сервера'); }
-        }
-
-        async function loadAllSchedule() {
-            try {
-                const res = await fetch('/api/schedule');
-                const data = await res.json();
-                
-                if (data.success) {
-                    const container = document.getElementById('scheduleListAdmin');
-                    const dayNames = ['', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-                    
-                    if (data.lessons.length === 0) {
-                        container.innerHTML = '<p>Репетиций пока нет</p>';
-                        return;
-                    }
-                    
-                    let html = '';
-                    data.lessons.forEach(l => {
-                        const timeStr = l.end_time 
-                            ? `${l.start_time.substring(0,5)}–${l.end_time.substring(0,5)}`
-                            : l.start_time.substring(0,5);
-                        
-                        const statusColor = l.status === 'cancelled' ? 'var(--danger)' : 'var(--success)';
-                        const statusText = l.status === 'active' ? '✅ Идёт' : '❌ Отменена';
-                        const commonBadge = l.is_common ? ' 🌐 Общая' : '';
-                        
-                        html += `<div class="schedule-item">
-                            <div class="info">
-                                <strong>${l.group_name || 'Общая'}${commonBadge}</strong>
-                                <span style="color: var(--text-secondary);"> — ${dayNames[l.day_of_week]}, ${timeStr}</span>
-                                <span style="color: ${statusColor}; font-weight: 600; margin-left: 10px;">${statusText}</span>
+        // Пользователи (карточки)
+        async function loadUsers(){
+            try{
+                const r=await fetch('/api/admin/users?adminEmail='+userData.email);
+                const d=await r.json();
+                if(d.success&&d.users){
+                    let h='';
+                    d.users.forEach(u=>{
+                        h+=`<div class="user-card">
+                            <div class="user-info">
+                                <span class="user-name">${esc(u.name)}</span>
+                                <span class="badge ${u.role==='admin'?'admin':'user'}">${u.role==='admin'?'👑 Админ':'👤 Юзер'}</span>
+                                <br><span class="user-email">${esc(u.email)}</span>
+                                <br><span class="user-meta">ID ${u.id} · ${new Date(u.created_at).toLocaleDateString('ru-RU')}</span>
                             </div>
-                            <div class="actions">
-                                ${l.status === 'active' 
-                                    ? `<button onclick="cancelLesson(${l.id})" class="btn-warning" style="padding: 6px 12px;">Отменить</button>`
-                                    : `<button onclick="restoreLesson(${l.id})" class="btn-success" style="padding: 6px 12px;">Восстановить</button>`
-                                }
-                                <button onclick="deleteScheduleLesson(${l.id})" class="btn-danger" style="padding: 6px 12px;">🗑️</button>
+                            <button class="btn-sm btn-danger" onclick="deleteUser(${u.id},'${esc(u.email)}')">🗑</button>
+                        </div>`;
+                    });
+                    document.getElementById('usersList').innerHTML=h;
+                }else{document.getElementById('usersList').innerHTML='<p>Ошибка</p>';}
+            }catch(e){document.getElementById('usersList').innerHTML='<p>Ошибка сервера</p>';}
+        }
+
+        async function deleteUser(id,email){
+            if(!confirm('Удалить '+email+'?'))return;
+            try{
+                const r=await fetch('/api/admin/delete-user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,userId:id})});
+                const d=await r.json();
+                d.success?(alert('Удалён'),loadUsers()):alert(d.error);
+            }catch(e){alert('Ошибка');}
+        }
+
+        // Расписание
+        async function loadScheduleGroups(){
+            try{
+                const r=await fetch('/api/schedule/groups');
+                const d=await r.json();
+                if(d.success){
+                    document.getElementById('scheduleGroup').innerHTML=d.groups.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
+                }
+            }catch(e){}
+        }
+
+        async function saveScheduleLesson(){
+            const gid=document.getElementById('scheduleGroup').value;
+            const day=parseInt(document.getElementById('scheduleDay').value);
+            const st=document.getElementById('scheduleStart').value;
+            const et=document.getElementById('scheduleEnd').value;
+            const common=document.getElementById('scheduleIsCommon').checked;
+            if(!st){alert('Укажите время');return;}
+            try{
+                const r=await fetch('/api/admin/schedule',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,groupId:gid||null,dayOfWeek:day,startTime:st,endTime:et||null,title:'Репетиция',description:'',isCommon:common})});
+                const d=await r.json();
+                d.success?(alert('✅ Добавлено'),loadAllSchedule(),document.getElementById('scheduleStart').value='',document.getElementById('scheduleEnd').value='',document.getElementById('scheduleIsCommon').checked=false):alert('❌ '+d.error);
+            }catch(e){alert('Ошибка');}
+        }
+
+        async function loadAllSchedule(){
+            try{
+                const r=await fetch('/api/schedule');
+                const d=await r.json();
+                const dn=['','Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+                if(d.success){
+                    if(!d.lessons.length){document.getElementById('scheduleListAdmin').innerHTML='<p style="font-size:12px;color:var(--text-secondary);">Нет репетиций</p>';return;}
+                    let h='';
+                    d.lessons.forEach(l=>{
+                        const t=l.end_time?`${l.start_time.substring(0,5)}–${l.end_time.substring(0,5)}`:l.start_time.substring(0,5);
+                        const st=l.status==='active'?'active':'cancelled';
+                        const stText=l.status==='active'?'Идёт':'Отменена';
+                        const commonBadge=l.is_common?' <span class="badge common">Общая</span>':'';
+                        h+=`<div class="lesson-row">
+                            <div style="flex:1;min-width:140px;">
+                                <strong>${l.group_name||'Общая'}${commonBadge}</strong>
+                                <span style="color:var(--text-secondary);"> — ${dn[l.day_of_week]}, ${t}</span>
+                                <span class="lesson-status ${st}">${stText}</span>
+                            </div>
+                            <div style="display:flex;gap:4px;">
+                                ${l.status==='active'?`<button class="btn-sm btn-warning" onclick="cancelLesson(${l.id})">Отм.</button>`:`<button class="btn-sm btn-success" onclick="restoreLesson(${l.id})">Восст.</button>`}
+                                <button class="btn-sm btn-danger" onclick="deleteScheduleLesson(${l.id})">🗑</button>
                             </div>
                         </div>`;
                     });
-                    
-                    container.innerHTML = html;
+                    document.getElementById('scheduleListAdmin').innerHTML=h;
                 }
-            } catch(e) { console.error(e); }
+            }catch(e){}
         }
 
-        async function cancelLesson(id) {
-            try {
-                const res = await fetch(`/api/admin/schedule/${id}/status`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ adminEmail: userData.email, status: 'cancelled' })
-                });
-                const data = await res.json();
-                if (data.success) loadAllSchedule();
-                else alert('❌ ' + data.error);
-            } catch(e) { console.error(e); }
-        }
+        async function cancelLesson(id){try{await fetch(`/api/admin/schedule/${id}/status`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,status:'cancelled'})});loadAllSchedule();}catch(e){}}
+        async function restoreLesson(id){try{await fetch(`/api/admin/schedule/${id}/status`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,status:'active'})});loadAllSchedule();}catch(e){}}
+        async function deleteScheduleLesson(id){if(!confirm('Удалить?'))return;try{await fetch(`/api/admin/schedule/${id}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email})});loadAllSchedule();}catch(e){}}
 
-        async function restoreLesson(id) {
-            try {
-                const res = await fetch(`/api/admin/schedule/${id}/status`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ adminEmail: userData.email, status: 'active' })
-                });
-                const data = await res.json();
-                if (data.success) loadAllSchedule();
-                else alert('❌ ' + data.error);
-            } catch(e) { console.error(e); }
-        }
-
-        async function deleteScheduleLesson(id) {
-            if (!confirm('Удалить репетицию навсегда?')) return;
-            try {
-                const res = await fetch(`/api/admin/schedule/${id}`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ adminEmail: userData.email })
-                });
-                const data = await res.json();
-                if (data.success) loadAllSchedule();
-                else alert('❌ ' + data.error);
-            } catch(e) { console.error(e); }
-        }
-
-        // ========== НОВОСТИ ==========
-        async function loadNewsAdmin() {
-            try {
-                const response = await fetch('/api/news');
-                const result = await response.json();
-
-                const newsContainer = document.getElementById('newsListAdmin');
-
-                if (result.success && result.news.length > 0) {
-                    let html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
-                    result.news.forEach(news => {
-                        const date = new Date(news.created_at).toLocaleDateString('ru-RU');
-                        html += `
-                            <div class="news-item">
-                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                                    <div style="flex: 1;">
-                                        <strong>${escapeHtml(news.title)}</strong>
-                                        <div style="font-size: 12px; color: var(--text-secondary);">${escapeHtml(news.content)}</div>
-                                        <div style="font-size: 10px; color: var(--text-secondary); margin-top: 5px;">${date}</div>
-                                    </div>
-                                    <button onclick="deleteNews(${news.id})" class="btn-danger" style="padding: 6px 12px;">🗑️</button>
-                                </div>
+        // Новости
+        async function loadNewsAdmin(){
+            try{
+                const r=await fetch('/api/news');
+                const d=await r.json();
+                if(d.success&&d.news.length){
+                    let h='';
+                    d.news.forEach(n=>{
+                        h+=`<div class="news-row">
+                            <div style="flex:1;">
+                                <strong>${esc(n.title)}</strong>
+                                <div style="color:var(--text-secondary);font-size:11px;">${esc(n.content)}</div>
+                                <div style="color:var(--text-secondary);font-size:10px;margin-top:2px;">${new Date(n.created_at).toLocaleDateString('ru-RU')}</div>
                             </div>
-                        `;
+                            <button class="btn-sm btn-danger" onclick="deleteNews(${n.id})">🗑</button>
+                        </div>`;
                     });
-                    html += '</div>';
-                    newsContainer.innerHTML = html;
-                } else {
-                    newsContainer.innerHTML = '<p>Новостей пока нет</p>';
-                }
-            } catch (err) {
-                console.error('Ошибка:', err);
-                document.getElementById('newsListAdmin').innerHTML = '<p>Ошибка загрузки</p>';
-            }
+                    document.getElementById('newsListAdmin').innerHTML=h;
+                }else{document.getElementById('newsListAdmin').innerHTML='<p style="font-size:12px;color:var(--text-secondary);">Новостей нет</p>';}
+            }catch(e){}
         }
 
-        async function createNews() {
-            const title = document.getElementById('newsTitle').value.trim();
-            const content = document.getElementById('newsContent').value.trim();
-
-            if (!title || !content) {
-                alert('Заполните заголовок и текст новости');
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/admin/news', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        adminEmail: userData.email,
-                        title,
-                        content
-                    })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    alert('✅ Новость создана');
-                    document.getElementById('newsTitle').value = '';
-                    document.getElementById('newsContent').value = '';
-                    loadNewsAdmin();
-                } else {
-                    alert('❌ ' + result.error);
-                }
-            } catch (err) {
-                alert('Ошибка сервера');
-            }
+        async function createNews(){
+            const t=document.getElementById('newsTitle').value.trim();
+            const c=document.getElementById('newsContent').value.trim();
+            if(!t||!c){alert('Заполните');return;}
+            try{
+                const r=await fetch('/api/admin/news',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,title:t,content:c})});
+                const d=await r.json();
+                d.success?(alert('✅'),document.getElementById('newsTitle').value='',document.getElementById('newsContent').value='',loadNewsAdmin()):alert('❌ '+d.error);
+            }catch(e){alert('Ошибка');}
         }
 
-        async function deleteNews(newsId) {
-            if (!confirm('Удалить новость?')) return;
-
-            try {
-                const response = await fetch(`/api/admin/news/${newsId}`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ adminEmail: userData.email })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    alert('✅ Новость удалена');
-                    loadNewsAdmin();
-                } else {
-                    alert('❌ ' + result.error);
-                }
-            } catch (err) {
-                alert('Ошибка сервера');
-            }
+        async function deleteNews(id){
+            if(!confirm('Удалить?'))return;
+            try{await fetch(`/api/admin/news/${id}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email})});loadNewsAdmin();}catch(e){}
         }
 
-        // ========== ИНИЦИАЛИЗАЦИЯ ==========
+        // Инициализация
         loadUsers();
         loadNewsAdmin();
         loadScheduleGroups();
