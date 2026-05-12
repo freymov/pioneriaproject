@@ -2,54 +2,66 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>Расписание — Pioneria</title>
     <link rel="icon" type="image/jpg" href="/favicon.jpg">
+    <meta name="theme-color" content="#667eea">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root, [data-theme="light"] {
             --bg-body: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --bg-card: #ffffff;
-            --bg-cell: #f5f5f5;
-            --bg-cell-active: #667eea;
-            --bg-cell-cancelled: #ff4444;
+            --bg-lesson: #f0f4ff;
+            --bg-today: #e8f0ff;
             --text-primary: #333333;
             --text-secondary: #666666;
-            --text-white: #ffffff;
-            --border-color: #e0e0e0;
+            --text-muted: #999999;
             --accent: #667eea;
+            --accent-light: #eef0ff;
+            --border-color: #e8e8e8;
+            --danger: #ff4757;
+            --danger-bg: #fff0f0;
+            --warning: #f59e0b;
+            --warning-bg: #fff8e8;
             --modal-overlay: rgba(0,0,0,0.5);
+            --shadow: 0 2px 12px rgba(0,0,0,0.08);
         }
 
         [data-theme="dark"] {
             --bg-body: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             --bg-card: #2a2a3e;
-            --bg-cell: #3a3a4e;
-            --bg-cell-active: #7c8aff;
-            --bg-cell-cancelled: #cc3333;
+            --bg-lesson: #2a2f50;
+            --bg-today: #2a3550;
             --text-primary: #e4e6eb;
             --text-secondary: #b0b3b8;
-            --text-white: #ffffff;
-            --border-color: #3e4042;
+            --text-muted: #8a8d91;
             --accent: #7c8aff;
+            --accent-light: #2a2f50;
+            --border-color: #3e4042;
+            --danger: #ff6b6b;
+            --danger-bg: #3a2020;
+            --warning: #f0a030;
+            --warning-bg: #3a3020;
             --modal-overlay: rgba(0,0,0,0.7);
+            --shadow: 0 2px 12px rgba(0,0,0,0.3);
         }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             background: var(--bg-body);
             min-height: 100vh;
-            padding: 15px;
+            padding: 12px;
             color: var(--text-primary);
+            -webkit-tap-highlight-color: transparent;
         }
 
         .header {
             display: flex;
             align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-            max-width: 700px;
+            gap: 12px;
+            margin-bottom: 16px;
+            max-width: 600px;
             margin-left: auto;
             margin-right: auto;
         }
@@ -57,103 +69,215 @@
         .back-btn {
             background: var(--bg-card);
             border: none;
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
-            padding: 10px 14px;
-            border-radius: 10px;
+            padding: 12px 14px;
+            border-radius: 12px;
             color: var(--accent);
+            box-shadow: var(--shadow);
+            flex-shrink: 0;
         }
 
         .header h2 {
             flex: 1;
+            font-size: 1.2rem;
         }
 
         .group-select {
-            padding: 10px 14px;
-            border-radius: 10px;
+            padding: 12px 14px;
+            border-radius: 12px;
             border: 2px solid var(--border-color);
             background: var(--bg-card);
             color: var(--text-primary);
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
+            box-shadow: var(--shadow);
+            max-width: 180px;
+            -webkit-appearance: none;
         }
 
         .container {
-            max-width: 700px;
+            max-width: 600px;
             margin: 0 auto;
         }
 
-        .schedule-table {
-            width: 100%;
+        /* Карточки дней */
+        .week-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .day-card {
             background: var(--bg-card);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid transparent;
+            transition: all 0.2s;
         }
 
-        .schedule-table table {
-            width: 100%;
-            border-collapse: collapse;
+        .day-card.today {
+            background: var(--bg-today);
+            border-left-color: var(--accent);
         }
 
-        .schedule-table th {
-            padding: 14px 8px;
-            text-align: center;
-            font-size: 13px;
-            color: var(--text-secondary);
-            border-bottom: 2px solid var(--border-color);
-            font-weight: 600;
+        .day-card.weekend {
+            opacity: 0.6;
         }
 
-        .schedule-table th.today {
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .day-name {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--text-primary);
+        }
+
+        .day-card.today .day-name {
             color: var(--accent);
-            font-weight: 800;
         }
 
-        .schedule-table td {
-            padding: 16px 10px;
-            text-align: center;
+        .day-date {
             font-size: 13px;
-            border-bottom: 1px solid var(--border-color);
-            transition: background 0.2s;
+            color: var(--text-muted);
         }
 
-        .schedule-table tr:last-child td {
-            border-bottom: none;
+        .today-badge {
+            background: var(--accent);
+            color: white;
+            font-size: 10px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+            text-transform: uppercase;
         }
 
-        .lesson-cell {
-            background: var(--bg-cell-active);
-            color: var(--text-white);
-            border-radius: 8px;
-            padding: 8px 10px;
-            font-weight: 600;
-            font-size: 12px;
-            display: inline-block;
-            animation: popIn 0.2s ease;
+        /* Уроки в дне */
+        .lessons-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
-        .lesson-cell.cancelled {
-            background: var(--bg-cell-cancelled);
+        .lesson-card {
+            background: var(--bg-lesson);
+            border-radius: 12px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+
+        .lesson-card.cancelled {
+            background: var(--danger-bg);
+            opacity: 0.75;
+        }
+
+        .lesson-card.common {
+            background: var(--warning-bg);
+        }
+
+        .lesson-time {
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--accent);
+            white-space: nowrap;
+            min-width: 55px;
+        }
+
+        .lesson-card.cancelled .lesson-time {
+            color: var(--danger);
             text-decoration: line-through;
-            opacity: 0.8;
         }
 
-        .lesson-cell.common {
-            background: #f59e0b;
+        .lesson-card.common .lesson-time {
+            color: var(--warning);
         }
 
-        .empty-cell {
-            color: var(--text-secondary);
-            font-size: 20px;
+        .lesson-info {
+            flex: 1;
         }
 
-        .day-label {
+        .lesson-title {
             font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
         }
 
-        /* Модалка первого выбора */
+        .lesson-card.cancelled .lesson-title {
+            color: var(--danger);
+        }
+
+        .lesson-badge {
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-weight: 700;
+            color: white;
+            white-space: nowrap;
+        }
+
+        .lesson-badge.active {
+            background: var(--accent);
+        }
+
+        .lesson-badge.cancelled {
+            background: var(--danger);
+        }
+
+        .lesson-badge.common {
+            background: var(--warning);
+        }
+
+        .empty-day {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+            padding: 8px 0;
+        }
+
+        .no-schedule {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+
+        .legend {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 16px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .legend span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .legend-dot.active { background: var(--accent); }
+        .legend-dot.cancelled { background: var(--danger); }
+        .legend-dot.common { background: var(--warning); }
+
+        /* Модалка */
         .modal {
             position: fixed;
             top: 0; left: 0;
@@ -168,28 +292,35 @@
         .modal-content {
             background: var(--bg-card);
             border-radius: 20px;
-            padding: 30px 25px;
+            padding: 28px 22px;
             width: 90%;
-            max-width: 350px;
+            max-width: 340px;
             text-align: center;
         }
 
         .modal-content h3 {
-            margin-bottom: 20px;
+            margin-bottom: 8px;
             color: var(--text-primary);
+            font-size: 1.2rem;
+        }
+
+        .modal-content .subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            font-size: 13px;
         }
 
         .modal-content button {
             display: block;
             width: 100%;
             padding: 14px;
-            margin-bottom: 10px;
-            border: none;
+            margin-bottom: 8px;
+            border: 2px solid var(--border-color);
             border-radius: 12px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            background: var(--bg-cell);
+            background: var(--bg-card);
             color: var(--text-primary);
             transition: all 0.2s;
         }
@@ -197,22 +328,18 @@
         .modal-content button:hover {
             background: var(--accent);
             color: white;
+            border-color: var(--accent);
         }
 
-        @keyframes popIn {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        @media (max-width: 480px) {
-            .schedule-table th, .schedule-table td {
-                padding: 10px 4px;
-                font-size: 11px;
-            }
-            .lesson-cell {
-                font-size: 10px;
-                padding: 6px 8px;
-            }
+        @media (max-width: 400px) {
+            body { padding: 8px; }
+            .header { gap: 8px; margin-bottom: 12px; }
+            .header h2 { font-size: 1rem; }
+            .group-select { font-size: 12px; padding: 10px 12px; max-width: 150px; }
+            .day-card { padding: 12px; }
+            .lesson-card { padding: 10px 12px; gap: 8px; }
+            .lesson-time { font-size: 11px; min-width: 48px; }
+            .lesson-title { font-size: 12px; }
         }
     </style>
 </head>
@@ -232,8 +359,13 @@
     </div>
 
     <div class="container">
-        <div class="schedule-table" id="scheduleTable">
+        <div class="week-grid" id="scheduleContent">
             Загрузка...
+        </div>
+        <div class="legend">
+            <span><span class="legend-dot active"></span> Репетиция</span>
+            <span><span class="legend-dot cancelled"></span> Отменена</span>
+            <span><span class="legend-dot common"></span> Общая</span>
         </div>
     </div>
 
@@ -241,9 +373,7 @@
     <div class="modal" id="groupModal" style="display: none;">
         <div class="modal-content">
             <h3>🎵 Выбери свою группу</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;">
-                Это нужно, чтобы показывать твоё расписание
-            </p>
+            <p class="subtitle">Это нужно, чтобы показывать твоё расписание</p>
             <div id="groupButtons"></div>
         </div>
     </div>
@@ -253,20 +383,53 @@
         let groups = [];
         let selectedGroupId = null;
         let allLessons = [];
-        let today = new Date().getDay() || 7;
 
-        const dayNames = ['', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+        const dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+        const fullDayNames = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
 
         function goBack() { window.location.href = 'lobby.html'; }
+
+        // Получить даты текущей недели (Пн-Сб)
+        function getWeekDates() {
+            const today = new Date();
+            const currentDay = today.getDay(); // 0=Вс, 1=Пн...
+            // Отступ до понедельника (если сегодня Вс, берём прошлый Пн)
+            const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
+            
+            const monday = new Date(today);
+            monday.setDate(today.getDate() + mondayOffset);
+            monday.setHours(0, 0, 0, 0);
+            
+            const dates = [];
+            for (let i = 0; i < 6; i++) {
+                const d = new Date(monday);
+                d.setDate(monday.getDate() + i);
+                dates.push(d);
+            }
+            return dates;
+        }
+
+        function formatDate(date) {
+            return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+        }
+
+        function isToday(date) {
+            const today = new Date();
+            return date.getDate() === today.getDate() &&
+                   date.getMonth() === today.getMonth() &&
+                   date.getFullYear() === today.getFullYear();
+        }
+
+        function isWeekend(date) {
+            return date.getDay() === 0;
+        }
 
         async function init() {
             await loadGroups();
             
-            // Проверяем, выбран ли уже группа
             const savedGroupId = localStorage.getItem(STORAGE_KEY);
             
             if (!savedGroupId || !groups.find(g => g.id == savedGroupId)) {
-                // Первый вход — показываем модалку
                 showGroupModal();
             } else {
                 selectedGroupId = parseInt(savedGroupId);
@@ -328,55 +491,82 @@
                 const data = await res.json();
                 if (data.success) {
                     allLessons = data.lessons;
-                    renderTable();
+                    renderSchedule();
                 }
             } catch(e) { console.error(e); }
         }
 
-        function renderTable() {
-            const container = document.getElementById('scheduleTable');
+        function renderSchedule() {
+            const container = document.getElementById('scheduleContent');
+            const weekDates = getWeekDates();
             
-            let html = '<table>';
+            let html = '';
             
-            // Заголовок — дни недели
-            html += '<tr><th></th>';
-            for (let d = 1; d <= 6; d++) {
-                const isToday = d === today;
-                html += `<th class="${isToday ? 'today' : ''}">${dayNames[d]}</th>`;
-            }
-            html += '</tr>';
-            
-            // Одна строка с репетициями
-            html += '<tr><td class="day-label">Репетиция</td>';
-            for (let d = 1; d <= 6; d++) {
-                const lesson = allLessons.find(l => l.day_of_week === d);
+            weekDates.forEach((date, index) => {
+                const dayOfWeek = (index + 1) % 7; // 1=Пн ... 6=Сб
+                if (dayOfWeek === 0) dayOfWeek = 7; // поправка
+                const actualDayOfWeek = date.getDay() || 7; // 1-7
                 
-                if (lesson) {
-                    let cellClass = 'lesson-cell';
-                    if (lesson.status === 'cancelled') cellClass += ' cancelled';
-                    if (lesson.is_common) cellClass += ' common';
-                    
-                    const timeStr = lesson.end_time 
-                        ? `${lesson.start_time.substring(0,5)}–${lesson.end_time.substring(0,5)}`
-                        : lesson.start_time.substring(0,5);
-                    
-                    const label = lesson.status === 'cancelled' 
-                        ? `${timeStr} (отменена)` 
-                        : timeStr;
-                    
-                    html += `<td><span class="${cellClass}">${label}</span></td>`;
-                } else {
-                    html += '<td><span class="empty-cell">·</span></td>';
+                // Находим ВСЕ уроки в этот день
+                const dayLessons = allLessons.filter(l => l.day_of_week === actualDayOfWeek);
+                
+                const todayClass = isToday(date) ? 'today' : '';
+                const weekendClass = isWeekend(date) ? 'weekend' : '';
+                
+                html += `<div class="day-card ${todayClass} ${weekendClass}">`;
+                
+                // Заголовок дня
+                html += '<div class="day-header">';
+                html += `<span class="day-name">${fullDayNames[actualDayOfWeek]}</span>`;
+                html += `<span class="day-date">${formatDate(date)}</span>`;
+                if (isToday(date)) {
+                    html += '<span class="today-badge">Сегодня</span>';
                 }
-            }
-            html += '</tr>';
-            
-            html += '</table>';
-            
-            // Подсказка
-            html += '<div style="padding: 12px; text-align: center; font-size: 12px; color: var(--text-secondary);">';
-            html += '🟣 Репетиция &nbsp;&nbsp; 🔴 Отменена &nbsp;&nbsp; 🟠 Общая';
-            html += '</div>';
+                html += '</div>';
+                
+                // Уроки
+                html += '<div class="lessons-list">';
+                
+                if (dayLessons.length === 0) {
+                    html += '<div class="empty-day">Нет репетиций</div>';
+                } else {
+                    dayLessons.forEach(lesson => {
+                        let cardClass = 'lesson-card';
+                        if (lesson.status === 'cancelled') cardClass += ' cancelled';
+                        if (lesson.is_common) cardClass += ' common';
+                        
+                        let badgeClass = 'lesson-badge';
+                        let badgeText = '';
+                        if (lesson.status === 'cancelled') {
+                            badgeClass += ' cancelled';
+                            badgeText = 'Отменена';
+                        } else if (lesson.is_common) {
+                            badgeClass += ' common';
+                            badgeText = 'Общая';
+                        } else {
+                            badgeClass += ' active';
+                            badgeText = lesson.group_name || '';
+                        }
+                        
+                        const timeStr = lesson.end_time 
+                            ? `${lesson.start_time.substring(0,5)}–${lesson.end_time.substring(0,5)}`
+                            : lesson.start_time.substring(0,5);
+                        
+                        html += `
+                            <div class="${cardClass}">
+                                <div class="lesson-time">${timeStr}</div>
+                                <div class="lesson-info">
+                                    <div class="lesson-title">${lesson.title || 'Репетиция'}</div>
+                                </div>
+                                <span class="${badgeClass}">${badgeText}</span>
+                            </div>
+                        `;
+                    });
+                }
+                
+                html += '</div>';
+                html += '</div>';
+            });
             
             container.innerHTML = html;
         }
