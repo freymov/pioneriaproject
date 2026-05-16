@@ -235,11 +235,19 @@ async function initDatabase() {
             )
         `);
 
-        // Удаляем старую таблицу с неправильным constraint
-        await pool.query(`DROP TABLE IF EXISTS schedule_lessons CASCADE`);
+        // Проверяем старый constraint и фиксим
+        const checkResult = await pool.query(`
+            SELECT constraint_name FROM information_schema.check_constraints 
+            WHERE constraint_name = 'schedule_lessons_day_of_week_check'
+        `);
+        
+        if (checkResult.rows.length > 0) {
+            // Удаляем старый constraint
+            await pool.query(`ALTER TABLE schedule_lessons DROP CONSTRAINT schedule_lessons_day_of_week_check`);
+        }
 
         await pool.query(`
-            CREATE TABLE schedule_lessons (
+            CREATE TABLE IF NOT EXISTS schedule_lessons (
                 id SERIAL PRIMARY KEY,
                 group_id INTEGER REFERENCES schedule_groups(id) ON DELETE CASCADE,
                 day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),
