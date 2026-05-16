@@ -44,7 +44,6 @@
 
         .app { display: flex; height: 100%; width: 100%; }
 
-        /* Сайдбар */
         .sidebar {
             width: 340px; background: var(--bg);
             border-right: 1px solid var(--border);
@@ -75,14 +74,14 @@
             background: var(--accent); color: #fff;
             display: flex; align-items: center; justify-content: center;
             font-weight: 700; font-size: 17px; flex-shrink: 0;
+            overflow: hidden;
         }
         .chat-avatar img { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; }
         .chat-info { flex: 1; min-width: 0; }
-        .chat-name { font-weight: 600; font-size: 13px; }
+        .chat-name { font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 6px; }
         .chat-last { font-size: 11px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .unread { background: var(--accent); color: #fff; border-radius: 10px; padding: 1px 6px; font-size: 10px; font-weight: 700; }
 
-        /* Чат */
         .chat-view {
             flex: 1; display: flex; flex-direction: column;
             height: 100%; background: var(--bg-chat); position: relative;
@@ -110,7 +109,9 @@
             background: var(--accent); color: #fff;
             display: flex; align-items: center; justify-content: center;
             font-weight: 700; font-size: 14px; flex-shrink: 0; cursor: pointer;
+            overflow: hidden;
         }
+        .chat-header-avatar img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; }
         .chat-header-info { flex: 1; min-width: 0; cursor: pointer; }
         .chat-header-name { font-weight: 600; font-size: 13px; }
         .chat-header-status { font-size: 10px; color: var(--text2); }
@@ -120,11 +121,21 @@
             position: relative; z-index: 1; -webkit-overflow-scrolling: touch;
         }
 
-        .msg-row { display: flex; margin-bottom: 3px; }
+        .msg-row { display: flex; margin-bottom: 4px; align-items: flex-end; gap: 6px; }
         .msg-row.own { justify-content: flex-end; }
         .msg-row.system { justify-content: center; }
+        
+        .msg-avatar-small {
+            width: 26px; height: 26px; border-radius: 50%;
+            background: var(--accent); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 10px; flex-shrink: 0;
+            overflow: hidden; margin-bottom: 2px;
+        }
+        .msg-avatar-small img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; }
+        
         .msg-bubble {
-            max-width: 75%; padding: 7px 10px; border-radius: 14px;
+            max-width: 70%; padding: 7px 10px; border-radius: 14px;
             font-size: 13px; line-height: 1.4; word-wrap: break-word;
             box-shadow: 0 1px 2px rgba(0,0,0,0.04); cursor: pointer;
             animation: fadeIn 0.15s ease;
@@ -132,11 +143,11 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
         .msg-row.own .msg-bubble { background: var(--msg-sent); color: var(--msg-sent-text); border-bottom-right-radius: 4px; }
         .msg-row.rec .msg-bubble { background: var(--msg-rec); color: var(--msg-rec-text); border-bottom-left-radius: 4px; }
-        .msg-row.system .msg-bubble { background: transparent; color: var(--text2); font-size: 11px; font-style: italic; box-shadow: none; }
+        .msg-row.system .msg-bubble { background: transparent; color: var(--text2); font-size: 11px; font-style: italic; box-shadow: none; max-width: 90%; }
         .msg-sender { font-weight: 700; font-size: 10px; margin-bottom: 1px; }
         .msg-row.rec .msg-sender { color: var(--accent); }
         .msg-time { font-size: 9px; opacity: 0.6; text-align: right; margin-top: 2px; }
-        .msg-image { max-width: 180px; max-height: 180px; border-radius: 8px; margin-top: 3px; }
+        .msg-image { max-width: 180px; max-height: 180px; border-radius: 8px; margin-top: 3px; cursor: pointer; }
 
         .input-area {
             padding: 8px 12px; background: var(--bg);
@@ -157,7 +168,6 @@
         }
         .attach-btn { background: var(--bg2) !important; color: var(--text2) !important; }
 
-        /* Action sheet */
         .as-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: var(--overlay); z-index: 100;
@@ -182,7 +192,6 @@
             cursor: pointer; color: var(--text2); font-family: inherit;
         }
 
-        /* Модалки */
         .modal {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: var(--overlay); z-index: 200;
@@ -210,13 +219,12 @@
             .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 100%; z-index: 50; }
             .sidebar.hidden { transform: translateX(-100%); }
             .back-arrow { display: block; }
-            .msg-bubble { max-width: 85%; }
+            .msg-bubble { max-width: 80%; }
         }
     </style>
 </head>
 <body>
     <div class="app">
-        <!-- Сайдбар -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <h2>💬 Чаты</h2>
@@ -229,7 +237,6 @@
             <div class="chats-list" id="chatsList"></div>
         </div>
 
-        <!-- Чат -->
         <div class="chat-view" id="chatView">
             <div class="wallpaper"></div>
             <div class="chat-header">
@@ -251,7 +258,6 @@
 
     <input type="file" id="imageInput" accept="image/*" style="display:none;">
 
-    <!-- Action sheet -->
     <div class="as-overlay" id="asOverlay" onclick="closeAS()">
         <div class="as-sheet" onclick="event.stopPropagation()">
             <button class="as-btn" onclick="editMsg()">✏️ Изменить</button>
@@ -261,7 +267,6 @@
         </div>
     </div>
 
-    <!-- Модалки -->
     <div class="modal" id="userModal"><div class="modal-card">
         <h3>Новый диалог</h3>
         <input type="text" id="userSearch" placeholder="Поиск...">
@@ -295,17 +300,14 @@
         const userData = JSON.parse(localStorage.getItem('user') || '{}');
         if (!userData.name) window.location.href = 'login.html';
 
-        // Тема
         (function(){
             const t = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', t);
-            fetch(`/api/user/settings?userId=${userData.id}&key=theme`)
-                .then(r=>r.json()).then(d=>{if(d.success&&d.value)document.documentElement.setAttribute('data-theme',d.value);});
         })();
 
         let currentChatId = null, currentChatType = 'general', currentChatName = 'Старший хор «Пионерия»';
         let socket = null, allChats = [], allUsers = [], userAvatars = {};
-        let selectedMsgId = null, editingMsgId = null, pinnedMessages = new Set();
+        let selectedMsgId = null, editingMsgId = null;
 
         const $ = id => document.getElementById(id);
         function esc(t){ const d=document.createElement('div'); d.textContent=t||''; return d.innerHTML; }
@@ -322,7 +324,11 @@
             return d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
         }
 
-        // Загрузка чатов
+        function getUserAvatarHTML(uid, uname){
+            if(userAvatars[uid]) return `<img src="${userAvatars[uid]}">`;
+            return (uname||'?')[0].toUpperCase();
+        }
+
         async function loadChats(){
             try{
                 const [uRes,gRes,cRes]=await Promise.all([
@@ -382,7 +388,7 @@
             if(currentChatId===id&&socket?.connected)return;
             currentChatId=id;currentChatName=name;currentChatType=type;
             $('chatTitle').textContent=name;
-            $('chatAvatar').textContent=name[0];
+            $('chatAvatar').innerHTML=getUserAvatarHTML(null,name);
             $('chatStatus').textContent=type==='group'?'Группа':(type==='general'?'Общий чат':'Личный чат');
             hideSidebar();
             $('messagesContainer').innerHTML='';
@@ -408,7 +414,7 @@
 
             socket.on('message edited',d=>{
                 const el=document.querySelector(`[data-id="${d.messageId}"] .msg-text`);
-                if(el)el.textContent=d.newText;
+                if(el){el.textContent=d.newText;el.parentElement.querySelector('.msg-time').innerHTML+= ' (ред.)';}
             });
 
             socket.on('message deleted',mid=>{
@@ -416,15 +422,8 @@
                 if(el)el.remove();
             });
 
-            socket.on('message pinned',d=>{
-                if(d.pinned)pinnedMessages.add(d.messageId);
-                else pinnedMessages.delete(d.messageId);
-            });
-
             if(id!==null){
-                try{
-                    fetch('/api/mark-read',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId:id,userId:userData.id})});
-                }catch(e){}
+                try{fetch('/api/mark-read',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId:id,userId:userData.id})});}catch(e){}
             }
 
             renderChats();
@@ -432,16 +431,20 @@
 
         function addMsg(data){
             const c=$('messagesContainer');
+            if(c.querySelector('div[style]'))c.innerHTML='';
+            
             const own=data.user_id===userData.id;
             const sys=data.name==='Система';
 
             const row=document.createElement('div');
             row.className=`msg-row ${sys?'system':(own?'own':'rec')}`;
             row.setAttribute('data-id',data.id);
+            if(data.image_url)row.setAttribute('data-image-url',data.image_url);
 
             const time=formatTime(data.timestamp);
+            const avHtml= (!sys&&!own) ? `<div class="msg-avatar-small">${getUserAvatarHTML(data.user_id,data.name)}</div>` : '';
 
-            let html=`<div class="msg-bubble" onclick="selectMsg('${data.id}')">`;
+            let html= avHtml + `<div class="msg-bubble" onclick="selectMsg('${data.id}')">`;
             if(!sys&&!own)html+=`<div class="msg-sender">${esc(data.name)}</div>`;
             if(data.text?.startsWith('📷')){
                 html+=`<img src="${data.text.replace('📷 ','')}" class="msg-image">`;
@@ -466,33 +469,48 @@
         }
 
         async function saveEdit(){
-            const t=$('editText').value.trim();if(!t)return;
-            await fetch('/api/edit-message',{
-                method:'POST',headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({messageId:editingMsgId,newText:t,userId:userData.id,userRole:userData.role})
-            });
+            const t=$('editText').value.trim();if(!t){alert('Введите текст');return;}
+            try{
+                const res=await fetch('/api/edit-message',{
+                    method:'POST',headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({messageId:editingMsgId,newText:t,userId:userData.id,userRole:userData.role})
+                });
+                const d=await res.json();
+                if(!d.success)alert(d.error||'Ошибка');
+            }catch(e){console.error(e);}
             closeM('editModal');editingMsgId=null;
         }
 
         async function pinMsg(){
             closeAS();
-            await fetch('/api/pin-message',{
-                method:'POST',headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({messageId:selectedMsgId,chatId:currentChatId,userId:userData.id,userRole:userData.role})
-            });
+            try{
+                const res=await fetch('/api/pin-message',{
+                    method:'POST',headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({messageId:selectedMsgId,chatId:currentChatId,userId:userData.id,userRole:userData.role})
+                });
+                const d=await res.json();
+                if(d.success)alert(d.pinned?'📌 Закреплено':'📌 Откреплено');
+                else alert(d.error||'Ошибка');
+            }catch(e){console.error(e);}
         }
 
         async function deleteMsg(){
-            if(!confirm('Удалить?')){closeAS();return;}
+            if(!confirm('Удалить сообщение?')){closeAS();return;}
             closeAS();
-            await fetch('/api/delete-message',{
-                method:'POST',headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({messageId:selectedMsgId,userId:userData.id,userRole:userData.role})
-            });
+            const msgEl=document.querySelector(`[data-id="${selectedMsgId}"]`);
+            const imageUrl=msgEl?msgEl.getAttribute('data-image-url')||'':'';
+            try{
+                const res=await fetch('/api/delete-message',{
+                    method:'POST',headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({messageId:selectedMsgId,userId:userData.id,userRole:userData.role,imageUrl})
+                });
+                const d=await res.json();
+                if(!d.success)alert(d.error||'Ошибка');
+            }catch(e){console.error(e);}
         }
 
         function send(text,img){
-            if(!socket?.connected)return;
+            if(!socket?.connected){alert('Нет соединения');return;}
             socket.emit('chat message',{text:img?`📷 ${img}`:text,chatId:currentChatId,chatType:currentChatType});
             $('msgInput').value='';
         }
