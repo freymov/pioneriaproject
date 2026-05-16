@@ -31,6 +31,8 @@
             --success-bg: #e8f8e8;
             --warning: #f59e0b;
             --warning-bg: #fff8e8;
+            --concert: #22c55e;
+            --concert-bg: #e8fce8;
             --shadow: 0 2px 12px rgba(0,0,0,0.06);
         }
 
@@ -49,6 +51,8 @@
             --success-bg: #1a3a20;
             --warning: #f0a030;
             --warning-bg: #3a3020;
+            --concert: #4ade80;
+            --concert-bg: #1a3020;
             --shadow: 0 2px 12px rgba(0,0,0,0.3);
         }
 
@@ -132,7 +136,6 @@
             line-height: 1.6;
         }
 
-        /* Пользователи — карточки вместо таблицы */
         .user-card {
             background: var(--bg-secondary);
             border-radius: 10px;
@@ -145,12 +148,11 @@
             gap: 6px;
             font-size: 12px;
         }
-        .user-card .user-info { flex: 1; min-width: who 150px; }
+        .user-card .user-info { flex: 1; min-width: 150px; }
         .user-card .user-name { font-weight: 600; }
         .user-card .user-email { color: var(--text-secondary); font-size: 11px; }
         .user-card .user-meta { font-size: 10px; color: var(--text-secondary); }
 
-        /* Список репетиций */
         .lesson-row {
             background: var(--bg-secondary);
             border-radius: 10px;
@@ -171,6 +173,14 @@
         }
         .lesson-row .lesson-status.active { background: var(--success-bg); color: var(--success); }
         .lesson-row .lesson-status.cancelled { background: var(--danger-bg); color: var(--danger); }
+        .lesson-row .lesson-type {
+            font-weight: 700;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+        .lesson-row .lesson-type.rehearsal { background: #eef0ff; color: var(--accent); }
+        .lesson-row .lesson-type.concert { background: var(--concert-bg); color: var(--concert); }
 
         .news-row {
             background: var(--bg-secondary);
@@ -195,6 +205,7 @@
         .badge.admin { background: #f0e6ff; color: #7c3aed; }
         .badge.user { background: #e0e7ff; color: #4f46e5; }
         .badge.common { background: var(--warning-bg); color: #b45309; }
+        .badge.concert { background: var(--concert-bg); color: #15803d; }
 
         .msg { padding: 6px 0; font-size: 12px; }
         .msg.success { color: var(--success); }
@@ -253,13 +264,18 @@
         <!-- Расписание -->
         <div class="card">
             <h2>📅 Расписание</h2>
-            <h3>Добавить репетицию</h3>
+            <h3>Добавить событие</h3>
             <div class="row" style="margin-bottom: 6px;">
                 <select id="scheduleGroup"><option value="">Группа</option></select>
                 <select id="scheduleDay">
+                    <option value="0">Вс</option>
                     <option value="1">Пн</option><option value="2">Вт</option>
                     <option value="3">Ср</option><option value="4">Чт</option>
                     <option value="5">Пт</option><option value="6">Сб</option>
+                </select>
+                <select id="scheduleEventType" style="flex:0.8;">
+                    <option value="rehearsal">🎵 Репетиция</option>
+                    <option value="concert">🎤 Концерт</option>
                 </select>
             </div>
             <div class="row" style="margin-bottom: 6px;">
@@ -267,11 +283,11 @@
                 <input type="time" id="scheduleEnd" style="flex:1;">
             </div>
             <label class="checkbox-label" style="margin-bottom: 8px;">
-                <input type="checkbox" id="scheduleIsCommon"> Общая репетиция
+                <input type="checkbox" id="scheduleIsCommon"> Общая (для всех групп)
             </label>
             <button onclick="saveScheduleLesson()" style="width:100%;">💾 Сохранить</button>
 
-            <h3 style="margin-top: 14px;">Все репетиции</h3>
+            <h3 style="margin-top: 14px;">Все события</h3>
             <button onclick="loadAllSchedule()" class="btn-sm" style="margin-bottom:8px;">🔄 Обновить</button>
             <div id="scheduleListAdmin">Загрузка...</div>
         </div>
@@ -322,7 +338,7 @@
             }catch(e){document.getElementById('keysResult').innerHTML='<div class="msg error">Ошибка</div>';}
         }
 
-        // Пользователи (карточки)
+        // Пользователи
         async function loadUsers(){
             try{
                 const r=await fetch('/api/admin/users?adminEmail='+userData.email);
@@ -371,11 +387,32 @@
             const st=document.getElementById('scheduleStart').value;
             const et=document.getElementById('scheduleEnd').value;
             const common=document.getElementById('scheduleIsCommon').checked;
+            const eventType=document.getElementById('scheduleEventType').value;
             if(!st){alert('Укажите время');return;}
             try{
-                const r=await fetch('/api/admin/schedule',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,groupId:gid||null,dayOfWeek:day,startTime:st,endTime:et||null,title:'Репетиция',description:'',isCommon:common})});
+                const r=await fetch('/api/admin/schedule',{
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({
+                        adminEmail:userData.email,
+                        groupId:gid||null,
+                        dayOfWeek:day,
+                        startTime:st,
+                        endTime:et||null,
+                        title:eventType==='concert'?'Концерт':'Репетиция',
+                        description:'',
+                        isCommon:common,
+                        eventType:eventType
+                    })
+                });
                 const d=await r.json();
-                d.success?(alert('✅ Добавлено'),loadAllSchedule(),document.getElementById('scheduleStart').value='',document.getElementById('scheduleEnd').value='',document.getElementById('scheduleIsCommon').checked=false):alert('❌ '+d.error);
+                d.success?(
+                    alert('✅ Добавлено'),
+                    loadAllSchedule(),
+                    document.getElementById('scheduleStart').value='',
+                    document.getElementById('scheduleEnd').value='',
+                    document.getElementById('scheduleIsCommon').checked=false
+                ):alert('❌ '+d.error);
             }catch(e){alert('Ошибка');}
         }
 
@@ -383,18 +420,24 @@
             try{
                 const r=await fetch('/api/schedule');
                 const d=await r.json();
-                const dn=['','Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+                const dn=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
                 if(d.success){
-                    if(!d.lessons.length){document.getElementById('scheduleListAdmin').innerHTML='<p style="font-size:12px;color:var(--text-secondary);">Нет репетиций</p>';return;}
+                    if(!d.lessons.length){
+                        document.getElementById('scheduleListAdmin').innerHTML='<p style="font-size:12px;color:var(--text-secondary);">Нет событий</p>';
+                        return;
+                    }
                     let h='';
                     d.lessons.forEach(l=>{
                         const t=l.end_time?`${l.start_time.substring(0,5)}–${l.end_time.substring(0,5)}`:l.start_time.substring(0,5);
                         const st=l.status==='active'?'active':'cancelled';
-                        const stText=l.status==='active'?'Идёт':'Отменена';
+                        const stText=l.status==='active'?'Активно':'Отменено';
+                        const etype=l.event_type||'rehearsal';
+                        const typeLabel=etype==='concert'?'🎤 Концерт':'🎵 Репетиция';
                         const commonBadge=l.is_common?' <span class="badge common">Общая</span>':'';
                         h+=`<div class="lesson-row">
                             <div style="flex:1;min-width:140px;">
                                 <strong>${l.group_name||'Общая'}${commonBadge}</strong>
+                                <span class="lesson-type ${etype}">${typeLabel}</span>
                                 <span style="color:var(--text-secondary);"> — ${dn[l.day_of_week]}, ${t}</span>
                                 <span class="lesson-status ${st}">${stText}</span>
                             </div>
