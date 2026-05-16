@@ -62,7 +62,6 @@
             min-height: 100vh;
             padding: 12px;
             color: var(--text);
-            transition: background 0.3s, color 0.3s;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -89,14 +88,12 @@
             cursor: pointer;
             font-size: 13px;
             font-weight: 600;
-            transition: all 0.2s;
         }
         button:hover { background: var(--accent-hover); }
         .back-btn { background: #777; margin-bottom: 12px; }
         .back-btn:hover { background: #666; }
         .btn-sm { padding: 6px 12px; font-size: 11px; border-radius: 8px; }
         .btn-danger { background: var(--danger); }
-        .btn-danger:hover { background: #e03939; }
         .btn-warning { background: var(--warning); color: #000; }
         .btn-success { background: var(--success); }
 
@@ -119,7 +116,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            align-items: center;
+            margin-bottom: 8px;
         }
         .row > * { flex: 1; min-width: 100px; }
 
@@ -136,7 +133,7 @@
             line-height: 1.6;
         }
 
-        .user-card {
+        .user-card, .lesson-row, .news-row {
             background: var(--bg-secondary);
             border-radius: 10px;
             padding: 10px 12px;
@@ -153,55 +150,17 @@
         .user-card .user-email { color: var(--text-secondary); font-size: 11px; }
         .user-card .user-meta { font-size: 10px; color: var(--text-secondary); }
 
-        .lesson-row {
-            background: var(--bg-secondary);
-            border-radius: 10px;
-            padding: 10px 12px;
-            margin-bottom: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 6px;
-            font-size: 12px;
-        }
-        .lesson-row .lesson-status {
+        .lesson-status, .lesson-type, .badge {
             font-weight: 700;
             font-size: 10px;
             padding: 2px 8px;
             border-radius: 20px;
+            white-space: nowrap;
         }
-        .lesson-row .lesson-status.active { background: var(--success-bg); color: var(--success); }
-        .lesson-row .lesson-status.cancelled { background: var(--danger-bg); color: var(--danger); }
-        .lesson-row .lesson-type {
-            font-weight: 700;
-            font-size: 10px;
-            padding: 2px 8px;
-            border-radius: 20px;
-        }
-        .lesson-row .lesson-type.rehearsal { background: #eef0ff; color: var(--accent); }
-        .lesson-row .lesson-type.concert { background: var(--concert-bg); color: #15803d; }
-
-        .news-row {
-            background: var(--bg-secondary);
-            border-radius: 10px;
-            padding: 10px 12px;
-            margin-bottom: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            gap: 6px;
-            font-size: 12px;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 700;
-        }
+        .lesson-status.active { background: var(--success-bg); color: var(--success); }
+        .lesson-status.cancelled { background: var(--danger-bg); color: var(--danger); }
+        .lesson-type.rehearsal { background: #eef0ff; color: var(--accent); }
+        .lesson-type.concert { background: var(--concert-bg); color: #15803d; }
         .badge.admin { background: #f0e6ff; color: #7c3aed; }
         .badge.user { background: #e0e7ff; color: #4f46e5; }
         .badge.common { background: var(--warning-bg); color: #b45309; }
@@ -264,22 +223,20 @@
         <div class="card">
             <h2>📅 Расписание</h2>
             <h3>Добавить событие</h3>
-            <div class="row" style="margin-bottom: 6px;">
+            <div class="row">
                 <select id="scheduleEventType" onchange="onEventTypeChange()">
                     <option value="rehearsal">🎵 Репетиция</option>
                     <option value="concert">🎤 Концерт</option>
                 </select>
                 <select id="scheduleDay">
-                    <option value="0">Вс</option>
-                    <option value="1">Пн</option><option value="2">Вт</option>
-                    <option value="3">Ср</option><option value="4">Чт</option>
-                    <option value="5">Пт</option><option value="6">Сб</option>
+                    <option value="0">Вс</option><option value="1">Пн</option><option value="2">Вт</option>
+                    <option value="3">Ср</option><option value="4">Чт</option><option value="5">Пт</option><option value="6">Сб</option>
                 </select>
             </div>
-            <div class="row" style="margin-bottom: 6px;" id="groupRow">
+            <div class="row" id="groupRow">
                 <select id="scheduleGroup"><option value="">Группа</option></select>
             </div>
-            <div class="row" style="margin-bottom: 6px;">
+            <div class="row">
                 <input type="time" id="scheduleStart" style="flex:1;" placeholder="Начало">
                 <input type="time" id="scheduleEnd" style="flex:1;" placeholder="Конец">
             </div>
@@ -308,96 +265,74 @@
 
     <script>
         const userData = JSON.parse(localStorage.getItem('user') || '{}');
-        if (!userData.name || userData.role !== 'admin') {
-            window.location.href = 'lobby.html';
-        }
+        if (!userData.name || userData.role !== 'admin') window.location.href = 'lobby.html';
 
-        // Тема
         (function(){
-            const theme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', theme);
-            fetch(`/api/user/settings?userId=${userData.id}&key=theme`)
-                .then(r=>r.json()).then(d=>{if(d.success&&d.value)document.documentElement.setAttribute('data-theme',d.value);});
+            document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
         })();
 
         document.getElementById('adminName').textContent = userData.name;
         function goToLobby(){window.location.href='lobby.html';}
         function esc(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
 
-        // Переключение типа события
         function onEventTypeChange() {
             const type = document.getElementById('scheduleEventType').value;
-            const groupRow = document.getElementById('groupRow');
-            const commonLabel = document.getElementById('commonLabel');
-            const endInput = document.getElementById('scheduleEnd');
-            
+            document.getElementById('groupRow').style.display = type === 'concert' ? 'none' : 'flex';
+            document.getElementById('commonLabel').style.display = type === 'concert' ? 'none' : 'flex';
+            document.getElementById('scheduleEnd').style.display = type === 'concert' ? 'none' : '';
             if (type === 'concert') {
-                groupRow.style.display = 'none';
-                commonLabel.style.display = 'none';
-                endInput.style.display = 'none';
-                endInput.value = '';
-            } else {
-                groupRow.style.display = 'flex';
-                commonLabel.style.display = 'flex';
-                endInput.style.display = '';
+                document.getElementById('scheduleEnd').value = '';
+                document.getElementById('scheduleIsCommon').checked = false;
             }
         }
 
         // Ключи
         async function generateKeys(){
-            const count=document.getElementById('keyCount').value;
-            const role=document.getElementById('keyRole').value;
+            const c=document.getElementById('keyCount').value, r=document.getElementById('keyRole').value;
             try{
-                const r=await fetch('/api/admin/generate-keys',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,count,role})});
-                const d=await r.json();
-                if(d.success){
-                    document.getElementById('generatedKeys').innerHTML='<strong>Ключи:</strong><br>'+d.keys.join('<br>');
-                    document.getElementById('keysResult').innerHTML='<div class="msg success">✅ Создано</div>';
-                    setTimeout(()=>document.getElementById('keysResult').innerHTML='',3000);
-                }else{document.getElementById('keysResult').innerHTML='<div class="msg error">❌ '+d.error+'</div>';}
-            }catch(e){document.getElementById('keysResult').innerHTML='<div class="msg error">Ошибка</div>';}
+                const res=await fetch('/api/admin/generate-keys',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,count:c,role:r})});
+                const d=await res.json();
+                d.success?(
+                    document.getElementById('generatedKeys').innerHTML='<strong>Ключи:</strong><br>'+d.keys.join('<br>'),
+                    document.getElementById('keysResult').innerHTML='<div class="msg success">✅ Создано</div>',
+                    setTimeout(()=>document.getElementById('keysResult').innerHTML='',3000)
+                ):document.getElementById('keysResult').innerHTML='<div class="msg error">❌ '+d.error+'</div>';
+            }catch(e){}
         }
 
         // Пользователи
         async function loadUsers(){
             try{
-                const r=await fetch('/api/admin/users?adminEmail='+userData.email);
-                const d=await r.json();
+                const res=await fetch('/api/admin/users?adminEmail='+userData.email);
+                const d=await res.json();
                 if(d.success&&d.users){
-                    let h='';
-                    d.users.forEach(u=>{
-                        h+=`<div class="user-card">
+                    document.getElementById('usersList').innerHTML=d.users.map(u=>
+                        `<div class="user-card">
                             <div class="user-info">
                                 <span class="user-name">${esc(u.name)}</span>
-                                <span class="badge ${u.role==='admin'?'admin':'user'}">${u.role==='admin'?'👑 Админ':'👤 Юзер'}</span>
+                                <span class="badge ${u.role}">${u.role==='admin'?'👑 Админ':'👤 Юзер'}</span>
                                 <br><span class="user-email">${esc(u.email)}</span>
                                 <br><span class="user-meta">ID ${u.id} · ${new Date(u.created_at).toLocaleDateString('ru-RU')}</span>
                             </div>
                             <button class="btn-sm btn-danger" onclick="deleteUser(${u.id},'${esc(u.email)}')">🗑</button>
-                        </div>`;
-                    });
-                    document.getElementById('usersList').innerHTML=h;
-                }else{document.getElementById('usersList').innerHTML='<p>Ошибка</p>';}
-            }catch(e){document.getElementById('usersList').innerHTML='<p>Ошибка сервера</p>';}
+                        </div>`
+                    ).join('');
+                }
+            }catch(e){}
         }
 
         async function deleteUser(id,email){
             if(!confirm('Удалить '+email+'?'))return;
-            try{
-                const r=await fetch('/api/admin/delete-user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,userId:id})});
-                const d=await r.json();
-                d.success?(alert('Удалён'),loadUsers()):alert(d.error);
-            }catch(e){alert('Ошибка');}
+            await fetch('/api/admin/delete-user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,userId:id})});
+            loadUsers();
         }
 
         // Расписание
         async function loadScheduleGroups(){
             try{
-                const r=await fetch('/api/schedule/groups');
-                const d=await r.json();
-                if(d.success){
-                    document.getElementById('scheduleGroup').innerHTML=d.groups.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
-                }
+                const res=await fetch('/api/schedule/groups');
+                const d=await res.json();
+                if(d.success) document.getElementById('scheduleGroup').innerHTML=d.groups.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
             }catch(e){}
         }
 
@@ -407,134 +342,103 @@
             const st = document.getElementById('scheduleStart').value;
             const et = document.getElementById('scheduleEnd').value;
             
-            let gid = null;
-            let common = false;
+            if(!st){alert('Укажите время');return;}
             
-            if (eventType === 'rehearsal') {
-                const gidVal = document.getElementById('scheduleGroup').value;
-                gid = gidVal ? parseInt(gidVal) : null;
-                common = document.getElementById('scheduleIsCommon').checked;
-            }
+            // Для концерта: группа 1 + общая
+            const gid = eventType === 'concert' ? 1 : (document.getElementById('scheduleGroup').value || null);
+            const common = eventType === 'concert' ? true : document.getElementById('scheduleIsCommon').checked;
             
-            if (!st) { alert('Укажите время начала'); return; }
-            
-            const body = {
-                adminEmail: userData.email,
-                groupId: gid,
-                dayOfWeek: day,
-                startTime: st,
-                endTime: et || null,
-                title: eventType === 'concert' ? 'Концерт' : 'Репетиция',
-                description: '',
-                isCommon: common,
-                eventType: eventType
-            };
-            
-            console.log('📤 Отправляю:', body);
-            
-            try {
-                const r = await fetch('/api/admin/schedule', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
+            try{
+                const res=await fetch('/api/admin/schedule',{
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({
+                        adminEmail:userData.email,
+                        groupId:parseInt(gid),
+                        dayOfWeek:day,
+                        startTime:st,
+                        endTime:et||null,
+                        title:eventType==='concert'?'Концерт':'Репетиция',
+                        description:'',
+                        isCommon:common,
+                        eventType:eventType
+                    })
                 });
-                const d = await r.json();
-                console.log('📥 Ответ:', d);
-                
-                if (d.success) {
+                const d=await res.json();
+                if(d.success){
                     alert('✅ Добавлено');
                     loadAllSchedule();
-                    document.getElementById('scheduleStart').value = '';
-                    document.getElementById('scheduleEnd').value = '';
-                    document.getElementById('scheduleIsCommon').checked = false;
-                } else {
-                    alert('❌ ' + (d.error || 'Ошибка'));
-                }
-            } catch(e) {
-                console.error('Ошибка:', e);
-                alert('Ошибка сервера');
-            }
+                    document.getElementById('scheduleStart').value='';
+                    document.getElementById('scheduleEnd').value='';
+                    document.getElementById('scheduleIsCommon').checked=false;
+                }else alert('❌ '+(d.error||'Ошибка'));
+            }catch(e){alert('Ошибка сервера');}
         }
 
         async function loadAllSchedule(){
             try{
-                const r=await fetch('/api/schedule');
-                const d=await r.json();
+                const res=await fetch('/api/schedule');
+                const d=await res.json();
                 const dn=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
-                if(d.success){
-                    if(!d.lessons.length){
-                        document.getElementById('scheduleListAdmin').innerHTML='<p style="font-size:12px;color:var(--text-secondary);">Нет событий</p>';
-                        return;
-                    }
-                    let h='';
-                    d.lessons.forEach(l=>{
+                if(d.success&&d.lessons.length){
+                    document.getElementById('scheduleListAdmin').innerHTML=d.lessons.map(l=>{
                         const t=l.end_time?`${l.start_time.substring(0,5)}–${l.end_time.substring(0,5)}`:l.start_time.substring(0,5);
                         const st=l.status==='active'?'active':'cancelled';
-                        const stText=l.status==='active'?'Активно':'Отменено';
-                        const etype=l.event_type||'rehearsal';
-                        const typeLabel=etype==='concert'?'🎤 Концерт':'🎵 Репетиция';
-                        const commonBadge=l.is_common?' <span class="badge common">Общая</span>':'';
-                        h+=`<div class="lesson-row">
+                        const et=l.event_type||'rehearsal';
+                        return `<div class="lesson-row">
                             <div style="flex:1;min-width:140px;">
-                                <strong>${l.group_name||'Концерт'}${commonBadge}</strong>
-                                <span class="lesson-type ${etype}">${typeLabel}</span>
+                                <strong>${l.group_name||'Концерт'}</strong>${l.is_common?' <span class="badge common">Общая</span>':''}
+                                <span class="lesson-type ${et}">${et==='concert'?'🎤 Концерт':'🎵 Репетиция'}</span>
                                 <span style="color:var(--text-secondary);"> — ${dn[l.day_of_week]}, ${t}</span>
-                                <span class="lesson-status ${st}">${stText}</span>
+                                <span class="lesson-status ${st}">${l.status==='active'?'Активно':'Отменено'}</span>
                             </div>
                             <div style="display:flex;gap:4px;">
                                 ${l.status==='active'?`<button class="btn-sm btn-warning" onclick="cancelLesson(${l.id})">Отм.</button>`:`<button class="btn-sm btn-success" onclick="restoreLesson(${l.id})">Восст.</button>`}
                                 <button class="btn-sm btn-danger" onclick="deleteScheduleLesson(${l.id})">🗑</button>
                             </div>
                         </div>`;
-                    });
-                    document.getElementById('scheduleListAdmin').innerHTML=h;
+                    }).join('');
+                }else{
+                    document.getElementById('scheduleListAdmin').innerHTML='<p style="font-size:12px;color:var(--text-secondary);">Нет событий</p>';
                 }
             }catch(e){}
         }
 
-        async function cancelLesson(id){try{await fetch(`/api/admin/schedule/${id}/status`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,status:'cancelled'})});loadAllSchedule();}catch(e){}}
-        async function restoreLesson(id){try{await fetch(`/api/admin/schedule/${id}/status`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,status:'active'})});loadAllSchedule();}catch(e){}}
-        async function deleteScheduleLesson(id){if(!confirm('Удалить?'))return;try{await fetch(`/api/admin/schedule/${id}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email})});loadAllSchedule();}catch(e){}}
+        async function cancelLesson(id){await fetch(`/api/admin/schedule/${id}/status`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,status:'cancelled'})});loadAllSchedule();}
+        async function restoreLesson(id){await fetch(`/api/admin/schedule/${id}/status`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,status:'active'})});loadAllSchedule();}
+        async function deleteScheduleLesson(id){if(!confirm('Удалить?'))return;await fetch(`/api/admin/schedule/${id}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email})});loadAllSchedule();}
 
         // Новости
         async function loadNewsAdmin(){
             try{
-                const r=await fetch('/api/news');
-                const d=await r.json();
+                const res=await fetch('/api/news');
+                const d=await res.json();
                 if(d.success&&d.news.length){
-                    let h='';
-                    d.news.forEach(n=>{
-                        h+=`<div class="news-row">
+                    document.getElementById('newsListAdmin').innerHTML=d.news.map(n=>
+                        `<div class="news-row">
                             <div style="flex:1;">
                                 <strong>${esc(n.title)}</strong>
                                 <div style="color:var(--text-secondary);font-size:11px;">${esc(n.content)}</div>
                                 <div style="color:var(--text-secondary);font-size:10px;margin-top:2px;">${new Date(n.created_at).toLocaleDateString('ru-RU')}</div>
                             </div>
                             <button class="btn-sm btn-danger" onclick="deleteNews(${n.id})">🗑</button>
-                        </div>`;
-                    });
-                    document.getElementById('newsListAdmin').innerHTML=h;
-                }else{document.getElementById('newsListAdmin').innerHTML='<p style="font-size:12px;color:var(--text-secondary);">Новостей нет</p>';}
+                        </div>`
+                    ).join('');
+                }else document.getElementById('newsListAdmin').innerHTML='<p style="font-size:12px;color:var(--text-secondary);">Новостей нет</p>';
             }catch(e){}
         }
 
         async function createNews(){
-            const t=document.getElementById('newsTitle').value.trim();
-            const c=document.getElementById('newsContent').value.trim();
+            const t=document.getElementById('newsTitle').value.trim(), c=document.getElementById('newsContent').value.trim();
             if(!t||!c){alert('Заполните');return;}
-            try{
-                const r=await fetch('/api/admin/news',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,title:t,content:c})});
-                const d=await r.json();
-                d.success?(alert('✅'),document.getElementById('newsTitle').value='',document.getElementById('newsContent').value='',loadNewsAdmin()):alert('❌ '+d.error);
-            }catch(e){alert('Ошибка');}
+            await fetch('/api/admin/news',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,title:t,content:c})});
+            document.getElementById('newsTitle').value=''; document.getElementById('newsContent').value='';
+            loadNewsAdmin();
         }
 
-        async function deleteNews(id){
-            if(!confirm('Удалить?'))return;
-            try{await fetch(`/api/admin/news/${id}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email})});loadNewsAdmin();}catch(e){}
-        }
+        async function deleteNews(id){if(!confirm('Удалить?'))return;await fetch(`/api/admin/news/${id}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email})});loadNewsAdmin();}
 
-        // Инициализация
+        // Старт
         loadUsers();
         loadNewsAdmin();
         loadScheduleGroups();
