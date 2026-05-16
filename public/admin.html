@@ -121,7 +121,7 @@
             gap: 8px;
             align-items: center;
         }
-        .row > * { flex: 1; min-width: 120px; }
+        .row > * { flex: 1; min-width: 100px; }
 
         .keys-box {
             background: var(--bg-secondary);
@@ -167,7 +167,7 @@
         }
         .lesson-row .lesson-status {
             font-weight: 700;
-            font-size: 11px;
+            font-size: 10px;
             padding: 2px 8px;
             border-radius: 20px;
         }
@@ -180,7 +180,7 @@
             border-radius: 20px;
         }
         .lesson-row .lesson-type.rehearsal { background: #eef0ff; color: var(--accent); }
-        .lesson-row .lesson-type.concert { background: var(--concert-bg); color: var(--concert); }
+        .lesson-row .lesson-type.concert { background: var(--concert-bg); color: #15803d; }
 
         .news-row {
             background: var(--bg-secondary);
@@ -205,7 +205,6 @@
         .badge.admin { background: #f0e6ff; color: #7c3aed; }
         .badge.user { background: #e0e7ff; color: #4f46e5; }
         .badge.common { background: var(--warning-bg); color: #b45309; }
-        .badge.concert { background: var(--concert-bg); color: #15803d; }
 
         .msg { padding: 6px 0; font-size: 12px; }
         .msg.success { color: var(--success); }
@@ -266,23 +265,25 @@
             <h2>📅 Расписание</h2>
             <h3>Добавить событие</h3>
             <div class="row" style="margin-bottom: 6px;">
-                <select id="scheduleGroup"><option value="">Группа</option></select>
+                <select id="scheduleEventType" onchange="onEventTypeChange()">
+                    <option value="rehearsal">🎵 Репетиция</option>
+                    <option value="concert">🎤 Концерт</option>
+                </select>
                 <select id="scheduleDay">
                     <option value="0">Вс</option>
                     <option value="1">Пн</option><option value="2">Вт</option>
                     <option value="3">Ср</option><option value="4">Чт</option>
                     <option value="5">Пт</option><option value="6">Сб</option>
                 </select>
-                <select id="scheduleEventType" style="flex:0.8;">
-                    <option value="rehearsal">🎵 Репетиция</option>
-                    <option value="concert">🎤 Концерт</option>
-                </select>
+            </div>
+            <div class="row" style="margin-bottom: 6px;" id="groupRow">
+                <select id="scheduleGroup"><option value="">Группа</option></select>
             </div>
             <div class="row" style="margin-bottom: 6px;">
-                <input type="time" id="scheduleStart" style="flex:1;">
-                <input type="time" id="scheduleEnd" style="flex:1;">
+                <input type="time" id="scheduleStart" style="flex:1;" placeholder="Начало">
+                <input type="time" id="scheduleEnd" style="flex:1;" placeholder="Конец">
             </div>
-            <label class="checkbox-label" style="margin-bottom: 8px;">
+            <label class="checkbox-label" style="margin-bottom: 8px;" id="commonLabel">
                 <input type="checkbox" id="scheduleIsCommon"> Общая (для всех групп)
             </label>
             <button onclick="saveScheduleLesson()" style="width:100%;">💾 Сохранить</button>
@@ -322,6 +323,25 @@
         document.getElementById('adminName').textContent = userData.name;
         function goToLobby(){window.location.href='lobby.html';}
         function esc(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+
+        // Переключение типа события
+        function onEventTypeChange() {
+            const type = document.getElementById('scheduleEventType').value;
+            const groupRow = document.getElementById('groupRow');
+            const commonLabel = document.getElementById('commonLabel');
+            const endInput = document.getElementById('scheduleEnd');
+            
+            if (type === 'concert') {
+                groupRow.style.display = 'none';
+                commonLabel.style.display = 'none';
+                endInput.style.display = 'none';
+                endInput.value = '';
+            } else {
+                groupRow.style.display = 'flex';
+                commonLabel.style.display = 'flex';
+                endInput.style.display = '';
+            }
+        }
 
         // Ключи
         async function generateKeys(){
@@ -382,13 +402,15 @@
         }
 
         async function saveScheduleLesson(){
-            const gid=document.getElementById('scheduleGroup').value;
-            const day=parseInt(document.getElementById('scheduleDay').value);
-            const st=document.getElementById('scheduleStart').value;
-            const et=document.getElementById('scheduleEnd').value;
-            const common=document.getElementById('scheduleIsCommon').checked;
-            const eventType=document.getElementById('scheduleEventType').value;
-            if(!st){alert('Укажите время');return;}
+            const eventType = document.getElementById('scheduleEventType').value;
+            const day = parseInt(document.getElementById('scheduleDay').value);
+            const st = document.getElementById('scheduleStart').value;
+            const et = document.getElementById('scheduleEnd').value;
+            const gid = eventType === 'concert' ? null : document.getElementById('scheduleGroup').value;
+            const common = eventType === 'concert' ? false : document.getElementById('scheduleIsCommon').checked;
+            
+            if(!st){alert('Укажите время начала');return;}
+            
             try{
                 const r=await fetch('/api/admin/schedule',{
                     method:'POST',
@@ -406,14 +428,16 @@
                     })
                 });
                 const d=await r.json();
-                d.success?(
-                    alert('✅ Добавлено'),
-                    loadAllSchedule(),
-                    document.getElementById('scheduleStart').value='',
-                    document.getElementById('scheduleEnd').value='',
-                    document.getElementById('scheduleIsCommon').checked=false
-                ):alert('❌ '+d.error);
-            }catch(e){alert('Ошибка');}
+                if(d.success){
+                    alert('✅ Добавлено');
+                    loadAllSchedule();
+                    document.getElementById('scheduleStart').value='';
+                    document.getElementById('scheduleEnd').value='';
+                    document.getElementById('scheduleIsCommon').checked=false;
+                }else{
+                    alert('❌ '+d.error);
+                }
+            }catch(e){alert('Ошибка сервера');}
         }
 
         async function loadAllSchedule(){
@@ -436,7 +460,7 @@
                         const commonBadge=l.is_common?' <span class="badge common">Общая</span>':'';
                         h+=`<div class="lesson-row">
                             <div style="flex:1;min-width:140px;">
-                                <strong>${l.group_name||'Общая'}${commonBadge}</strong>
+                                <strong>${l.group_name||'Концерт'}${commonBadge}</strong>
                                 <span class="lesson-type ${etype}">${typeLabel}</span>
                                 <span style="color:var(--text-secondary);"> — ${dn[l.day_of_week]}, ${t}</span>
                                 <span class="lesson-status ${st}">${stText}</span>
