@@ -406,38 +406,54 @@
             const day = parseInt(document.getElementById('scheduleDay').value);
             const st = document.getElementById('scheduleStart').value;
             const et = document.getElementById('scheduleEnd').value;
-            const gid = eventType === 'concert' ? null : document.getElementById('scheduleGroup').value;
-            const common = eventType === 'concert' ? false : document.getElementById('scheduleIsCommon').checked;
             
-            if(!st){alert('Укажите время начала');return;}
+            let gid = null;
+            let common = false;
             
-            try{
-                const r=await fetch('/api/admin/schedule',{
-                    method:'POST',
-                    headers:{'Content-Type':'application/json'},
-                    body:JSON.stringify({
-                        adminEmail:userData.email,
-                        groupId:gid||null,
-                        dayOfWeek:day,
-                        startTime:st,
-                        endTime:et||null,
-                        title:eventType==='concert'?'Концерт':'Репетиция',
-                        description:'',
-                        isCommon:common,
-                        eventType:eventType
-                    })
+            if (eventType === 'rehearsal') {
+                const gidVal = document.getElementById('scheduleGroup').value;
+                gid = gidVal ? parseInt(gidVal) : null;
+                common = document.getElementById('scheduleIsCommon').checked;
+            }
+            
+            if (!st) { alert('Укажите время начала'); return; }
+            
+            const body = {
+                adminEmail: userData.email,
+                groupId: gid,
+                dayOfWeek: day,
+                startTime: st,
+                endTime: et || null,
+                title: eventType === 'concert' ? 'Концерт' : 'Репетиция',
+                description: '',
+                isCommon: common,
+                eventType: eventType
+            };
+            
+            console.log('📤 Отправляю:', body);
+            
+            try {
+                const r = await fetch('/api/admin/schedule', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
                 });
-                const d=await r.json();
-                if(d.success){
+                const d = await r.json();
+                console.log('📥 Ответ:', d);
+                
+                if (d.success) {
                     alert('✅ Добавлено');
                     loadAllSchedule();
-                    document.getElementById('scheduleStart').value='';
-                    document.getElementById('scheduleEnd').value='';
-                    document.getElementById('scheduleIsCommon').checked=false;
-                }else{
-                    alert('❌ '+d.error);
+                    document.getElementById('scheduleStart').value = '';
+                    document.getElementById('scheduleEnd').value = '';
+                    document.getElementById('scheduleIsCommon').checked = false;
+                } else {
+                    alert('❌ ' + (d.error || 'Ошибка'));
                 }
-            }catch(e){alert('Ошибка сервера');}
+            } catch(e) {
+                console.error('Ошибка:', e);
+                alert('Ошибка сервера');
+            }
         }
 
         async function loadAllSchedule(){
