@@ -255,7 +255,6 @@ async function initDatabase() {
                 PRIMARY KEY (user_id, setting_key)
             )
         `);
-
         // ========== ТАБЛИЦЫ РАСПИСАНИЯ ==========
         await pool.query(`
             CREATE TABLE IF NOT EXISTS schedule_groups (
@@ -265,30 +264,34 @@ async function initDatabase() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
-
+        
         await pool.query(`
             CREATE TABLE IF NOT EXISTS schedule_lessons (
                 id SERIAL PRIMARY KEY,
                 group_id INTEGER REFERENCES schedule_groups(id) ON DELETE CASCADE,
-                day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 1 AND 7),
+                day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),
                 start_time TIME NOT NULL,
                 end_time TIME,
                 title VARCHAR(255) NOT NULL DEFAULT 'Репетиция',
                 description TEXT,
                 is_common BOOLEAN DEFAULT FALSE,
                 status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'cancelled')),
+                event_type VARCHAR(20) DEFAULT 'rehearsal',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
-
-        // Добавляем колонки для совместимости со старыми базами
+        
+        // Совместимость со старыми базами
         try {
             await pool.query(`ALTER TABLE schedule_lessons ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active'`);
+        } catch(e) {}
+        try {
+            await pool.query(`ALTER TABLE schedule_lessons ADD COLUMN IF NOT EXISTS event_type VARCHAR(20) DEFAULT 'rehearsal'`);
         } catch(e) {}
         
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT`);
 
-        // Заполняем группы расписания
+        // Заполняем группы
         const groupsExist = await pool.query('SELECT COUNT(*) FROM schedule_groups');
         if (parseInt(groupsExist.rows[0].count) === 0) {
             await pool.query(`
@@ -299,6 +302,7 @@ async function initDatabase() {
             `);
             console.log('✅ Созданы группы расписания');
         }
+        
         
         // Админ-ключ
         const existing = await pool.query(
@@ -1152,7 +1156,7 @@ app.get('/api/user/settings', async (req, res) => {
 
 // ========== API РАСПИСАНИЯ ==========
 
-// Получить группы расписания
+// Получить группы
 app.get('/api/schedule/groups', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM schedule_groups ORDER BY id');
@@ -1194,7 +1198,7 @@ app.get('/api/schedule', async (req, res) => {
 
 // Добавить урок (админ)
 app.post('/api/admin/schedule', async (req, res) => {
-    const { adminEmail, groupId, dayOfWeek, startTime, endTime, title, description, isCommon } = req.body;
+    const { adminEmail, groupId, dayOfWeek, startTime, endTime, title, description, isCommon, eventType } = req.body;
     
     try {
         const admin = await pool.query('SELECT * FROM users WHERE email = $1 AND role = $2', [adminEmail, 'admin']);
@@ -1203,10 +1207,10 @@ app.post('/api/admin/schedule', async (req, res) => {
         }
         
         const result = await pool.query(`
-            INSERT INTO schedule_lessons (group_id, day_of_week, start_time, end_time, title, description, is_common)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            INSERT INTO schedule_lessons (group_id, day_of_week, start_time, end_time, title, description, is_common, event_type)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING id
-        `, [groupId, dayOfWeek, startTime, endTime, title || 'Репетиция', description || '', isCommon || false]);
+        `, [groupId, dayOfWeek, startTime, endTime, title || 'Репетиция', description || '', isCommon || false, eventType || 'rehearsal']);
         
         res.json({ success: true, id: result.rows[0].id });
     } catch (err) {
@@ -1233,7 +1237,7 @@ app.delete('/api/admin/schedule/:id', async (req, res) => {
     }
 });
 
-// Изменить статус урока (отменить/восстановить)
+// Изменить статус (отменить/восстановить)
 app.post('/api/admin/schedule/:id/status', async (req, res) => {
     const { adminEmail, status } = req.body;
     const lessonId = req.params.id;
