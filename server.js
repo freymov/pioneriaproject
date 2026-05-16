@@ -825,7 +825,7 @@ io.on('connection', async (socket) => {
             for (const p of participants.rows) {
                 io.to(`user_${p.user_id}`).emit('message', messageData);
                 if (p.user_id !== userId) {
-                    sendPushNotification(p.user_id, `💬 ${currentChatName || 'Чат'} · ${userName}`, text?.substring(0, 100) || 'Новое сообщение');
+                    sendPushNotification(p.user_id, `💬 Чат · ${userName}`, text?.substring(0, 100) || 'Новое сообщение');
                 }
             }
         } else {
