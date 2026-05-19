@@ -315,7 +315,10 @@
         function showSidebar(){ $('sidebar').classList.remove('hidden'); }
         function hideSidebar(){ if(window.innerWidth<=768) $('sidebar').classList.add('hidden'); }
         function closeM(id){ $(id).classList.remove('show'); }
-        function closeAS(){ $('asOverlay').classList.remove('show'); selectedMsgId=null; }
+        function closeAS(){ 
+            $('asOverlay').classList.remove('show'); 
+            // НЕ обнуляем selectedMsgId здесь!
+        }
 
         function formatTime(ts){
             if(!ts) return '';
@@ -414,7 +417,7 @@
 
             socket.on('message edited',d=>{
                 const el=document.querySelector(`[data-id="${d.messageId}"] .msg-text`);
-                if(el){el.textContent=d.newText;el.parentElement.querySelector('.msg-time').innerHTML+= ' (ред.)';}
+                if(el){el.textContent=d.newText;}
             });
 
             socket.on('message deleted',mid=>{
@@ -438,13 +441,13 @@
 
             const row=document.createElement('div');
             row.className=`msg-row ${sys?'system':(own?'own':'rec')}`;
-            row.setAttribute('data-id',String(data.id));
+            row.setAttribute('data-id',data.id);
             if(data.image_url)row.setAttribute('data-image-url',data.image_url);
 
             const time=formatTime(data.timestamp);
             const avHtml= (!sys&&!own) ? `<div class="msg-avatar-small">${getUserAvatarHTML(data.user_id,data.name)}</div>` : '';
 
-            let html= avHtml + `<div class="msg-bubble" onclick="selectMsg('${data.id}')">`;
+            let html= avHtml + `<div class="msg-bubble" onclick="selectMsg(${data.id})">`;
             if(!sys&&!own)html+=`<div class="msg-sender">${esc(data.name)}</div>`;
             if(data.text?.startsWith('📷')){
                 html+=`<img src="${data.text.replace('📷 ','')}" class="msg-image">`;
@@ -459,21 +462,30 @@
             c.scrollTop=c.scrollHeight;
         }
 
-        function selectMsg(id){selectedMsgId=id;$('asOverlay').classList.add('show');}
+        function selectMsg(id){
+            console.log('selectMsg id:', id, typeof id);
+            selectedMsgId = id;
+            $('asOverlay').classList.add('show');
+        }
 
         function editMsg(){
-            closeAS();editingMsgId=selectedMsgId;
-            const el=document.querySelector(`[data-id="${selectedMsgId}"] .msg-text`);
+            const msgId = selectedMsgId;
+            console.log('editMsg msgId:', msgId);
+            closeAS();
+            editingMsgId = msgId;
+            const el=document.querySelector(`.msg-row[data-id="${msgId}"] .msg-text`);
             $('editText').value=el?el.textContent:'';
             $('editModal').classList.add('show');
         }
 
         async function saveEdit(){
             const t=$('editText').value.trim();if(!t){alert('Введите текст');return;}
+            const msgId = editingMsgId;
+            console.log('saveEdit msgId:', msgId);
             try{
                 const res=await fetch('/api/edit-message',{
                     method:'POST',headers:{'Content-Type':'application/json'},
-                    body:JSON.stringify({messageId:parseInt(editingMsgId),newText:t,userId:userData.id,userRole:userData.role})
+                    body:JSON.stringify({messageId:msgId,newText:t,userId:userData.id,userRole:userData.role})
                 });
                 const d=await res.json();
                 if(!d.success)alert(d.error||'Ошибка');
@@ -482,11 +494,13 @@
         }
 
         async function pinMsg(){
+            const msgId = selectedMsgId;
+            console.log('pinMsg msgId:', msgId);
             closeAS();
             try{
                 const res=await fetch('/api/pin-message',{
                     method:'POST',headers:{'Content-Type':'application/json'},
-                    body:JSON.stringify({messageId:parseInt(selectedMsgId),chatId:currentChatId,userId:userData.id,userRole:userData.role})
+                    body:JSON.stringify({messageId:msgId,chatId:currentChatId,userId:userData.id,userRole:userData.role})
                 });
                 const d=await res.json();
                 if(d.success)alert(d.pinned?'📌 Закреплено':'📌 Откреплено');
@@ -495,14 +509,16 @@
         }
 
         async function deleteMsg(){
+            const msgId = selectedMsgId;
+            console.log('deleteMsg msgId:', msgId);
             if(!confirm('Удалить сообщение?')){closeAS();return;}
             closeAS();
-            const msgEl=document.querySelector(`[data-id="${selectedMsgId}"]`);
+            const msgEl=document.querySelector(`.msg-row[data-id="${msgId}"]`);
             const imageUrl=msgEl?msgEl.getAttribute('data-image-url')||'':'';
             try{
                 const res=await fetch('/api/delete-message',{
                     method:'POST',headers:{'Content-Type':'application/json'},
-                    body:JSON.stringify({messageId:parseInt(selectedMsgId),userId:userData.id,userRole:userData.role,imageUrl})
+                    body:JSON.stringify({messageId:msgId,userId:userData.id,userRole:userData.role,imageUrl})
                 });
                 const d=await res.json();
                 if(!d.success)alert(d.error||'Ошибка');
@@ -587,5 +603,7 @@
 
         loadChats();
     </script>
+</body>
+</html>
 </body>
 </html>
