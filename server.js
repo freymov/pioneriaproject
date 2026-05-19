@@ -584,7 +584,7 @@ app.post('/api/edit-message', async (req, res) => {
     }
 });
 
-aapp.post('/api/pin-message', async (req, res) => {
+app.post('/api/pin-message', async (req, res) => {
     console.log('📥 PIN запрос, body:', JSON.stringify(req.body));
     const { messageId, chatId, userId, userRole } = req.body;
     console.log('  messageId:', messageId, 'chatId:', chatId);
