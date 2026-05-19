@@ -498,22 +498,41 @@ app.delete('/api/admin/news/:id', async (req, res) => {
 });
 
 app.post('/api/delete-message', async (req, res) => {
+    console.log('📥 DELETE запрос, body:', JSON.stringify(req.body));
     const { messageId, userId, userRole, imageUrl } = req.body;
+    console.log('  messageId:', messageId, '(тип:', typeof messageId, ')');
+    console.log('  userId:', userId, 'userRole:', userRole);
+    
     try {
         const msg = await pool.query('SELECT * FROM messages WHERE id = $1', [messageId]);
-        if (msg.rows.length === 0) return res.json({ success: false, error: 'Не найдено' });
+        console.log('  Найдено сообщений:', msg.rows.length);
+        
+        if (msg.rows.length === 0) {
+            console.log('  ❌ Сообщение не найдено в БД');
+            return res.json({ success: false, error: 'Не найдено' });
+        }
+        
         const message = msg.rows[0];
-        if (message.user_id !== userId && userRole !== 'admin') return res.json({ success: false, error: 'Нет прав' });
-        if (imageUrl && imageUrl.includes('cloudinary.com')) {
+        console.log('  Автор сообщения user_id:', message.user_id, 'мой userId:', userId);
+        
+        if (message.user_id !== userId && userRole !== 'admin') {
+            console.log('  ❌ Нет прав на удаление');
+            return res.json({ success: false, error: 'Нет прав' });
+        }
+        
+        if (imageUrl && imageUrl !== '' && imageUrl.includes('cloudinary.com')) {
             try {
                 const publicId = imageUrl.split('/').pop().split('.')[0];
                 await cloudinary.uploader.destroy(`pioneria_chat/${publicId}`);
             } catch (err) {}
         }
+        
         await pool.query('DELETE FROM messages WHERE id = $1', [messageId]);
         io.emit('message deleted', messageId);
+        console.log('  ✅ Сообщение удалено');
         res.json({ success: true });
     } catch (err) {
+        console.error('  ❌ ОШИБКА:', err.message);
         res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
