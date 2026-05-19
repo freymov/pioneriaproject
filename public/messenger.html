@@ -428,7 +428,7 @@
             if(id!==null){
                 try{fetch('/api/mark-read',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId:id,userId:userData.id})});}catch(e){}
             }
-
+            loadPinned();
             renderChats();
         }
 
