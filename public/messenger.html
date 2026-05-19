@@ -315,10 +315,7 @@
         function showSidebar(){ $('sidebar').classList.remove('hidden'); }
         function hideSidebar(){ if(window.innerWidth<=768) $('sidebar').classList.add('hidden'); }
         function closeM(id){ $(id).classList.remove('show'); }
-        function closeAS(){ 
-            $('asOverlay').classList.remove('show'); 
-            // НЕ обнуляем selectedMsgId здесь!
-        }
+        function closeAS(){ $('asOverlay').classList.remove('show'); }
 
         function formatTime(ts){
             if(!ts) return '';
@@ -332,6 +329,45 @@
             return (uname||'?')[0].toUpperCase();
         }
 
+        // ====== ЗАКРЕПЛЁННЫЕ (должны быть объявлены ДО selectChat) ======
+        async function loadPinned(){
+            try{
+                const url = currentChatId === null ? '/api/get-pinned?chatId=general' : `/api/get-pinned?chatId=${currentChatId}`;
+                const r = await fetch(url);
+                const d = await r.json();
+                
+                if(d.success && d.pinned && d.pinned.length > 0){
+                    $('pinnedBar').style.display = 'block';
+                    $('pinnedCount').textContent = d.pinned.length;
+                    
+                    $('pinnedList').innerHTML = d.pinned.map(p => {
+                        const txt = p.text || '';
+                        const short = txt.length > 40 ? txt.substring(0,40)+'...' : txt;
+                        return `<div class="pinned-item" onclick="scrollToMsg(${p.message_id})">
+                            📌 <strong>${esc(p.user_name)}:</strong> ${esc(short)}
+                        </div>`;
+                    }).join('');
+                } else {
+                    $('pinnedBar').style.display = 'none';
+                }
+            }catch(e){}
+        }
+
+        function togglePinned(){
+            const list = $('pinnedList');
+            list.style.display = list.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function scrollToMsg(msgId){
+            const el = document.querySelector(`.msg-row[data-id="${msgId}"]`);
+            if(el){
+                el.scrollIntoView({behavior:'smooth', block:'center'});
+                el.style.background = 'var(--pinned-bg)';
+                setTimeout(()=> el.style.background = '', 2000);
+            }
+        }
+
+        // ====== ЧАТЫ ======
         async function loadChats(){
             try{
                 const [uRes,gRes,cRes]=await Promise.all([
@@ -416,20 +452,21 @@
             });
 
             socket.on('message edited',d=>{
-                const el=document.querySelector(`[data-id="${d.messageId}"] .msg-text`);
-                if(el){el.textContent=d.newText;}
+                const el=document.querySelector(`.msg-row[data-id="${d.messageId}"] .msg-text`);
+                if(el)el.textContent=d.newText;
             });
 
             socket.on('message deleted',mid=>{
-                const el=document.querySelector(`[data-id="${mid}"]`);
+                const el=document.querySelector(`.msg-row[data-id="${mid}"]`);
                 if(el)el.remove();
             });
 
             if(id!==null){
                 try{fetch('/api/mark-read',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId:id,userId:userData.id})});}catch(e){}
             }
-            loadPinned();
+
             renderChats();
+            loadPinned();
         }
 
         function addMsg(data){
@@ -463,14 +500,12 @@
         }
 
         function selectMsg(id){
-            console.log('selectMsg id:', id, typeof id);
             selectedMsgId = id;
             $('asOverlay').classList.add('show');
         }
 
         function editMsg(){
             const msgId = selectedMsgId;
-            console.log('editMsg msgId:', msgId);
             closeAS();
             editingMsgId = msgId;
             const el=document.querySelector(`.msg-row[data-id="${msgId}"] .msg-text`);
@@ -481,7 +516,6 @@
         async function saveEdit(){
             const t=$('editText').value.trim();if(!t){alert('Введите текст');return;}
             const msgId = editingMsgId;
-            console.log('saveEdit msgId:', msgId);
             try{
                 const res=await fetch('/api/edit-message',{
                     method:'POST',headers:{'Content-Type':'application/json'},
@@ -495,7 +529,6 @@
 
         async function pinMsg(){
             const msgId = selectedMsgId;
-            console.log('pinMsg msgId:', msgId);
             closeAS();
             try{
                 const res=await fetch('/api/pin-message',{
@@ -503,14 +536,15 @@
                     body:JSON.stringify({messageId:msgId,chatId:currentChatId,userId:userData.id,userRole:userData.role})
                 });
                 const d=await res.json();
-                if(d.success)alert(d.pinned?'📌 Закреплено':'📌 Откреплено');
-                else alert(d.error||'Ошибка');
+                if(d.success){
+                    alert(d.pinned?'📌 Закреплено':'📌 Откреплено');
+                    loadPinned();
+                }else alert(d.error||'Ошибка');
             }catch(e){console.error(e);}
         }
 
         async function deleteMsg(){
             const msgId = selectedMsgId;
-            console.log('deleteMsg msgId:', msgId);
             if(!confirm('Удалить сообщение?')){closeAS();return;}
             closeAS();
             const msgEl=document.querySelector(`.msg-row[data-id="${msgId}"]`);
