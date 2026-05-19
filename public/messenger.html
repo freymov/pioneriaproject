@@ -438,7 +438,7 @@
 
             const row=document.createElement('div');
             row.className=`msg-row ${sys?'system':(own?'own':'rec')}`;
-            row.setAttribute('data-id',data.id);
+            row.setAttribute('data-id',String(data.id));
             if(data.image_url)row.setAttribute('data-image-url',data.image_url);
 
             const time=formatTime(data.timestamp);
@@ -473,7 +473,7 @@
             try{
                 const res=await fetch('/api/edit-message',{
                     method:'POST',headers:{'Content-Type':'application/json'},
-                    body:JSON.stringify({messageId:editingMsgId,newText:t,userId:userData.id,userRole:userData.role})
+                    body:JSON.stringify({messageId:parseInt(editingMsgId),newText:t,userId:userData.id,userRole:userData.role})
                 });
                 const d=await res.json();
                 if(!d.success)alert(d.error||'Ошибка');
@@ -486,7 +486,7 @@
             try{
                 const res=await fetch('/api/pin-message',{
                     method:'POST',headers:{'Content-Type':'application/json'},
-                    body:JSON.stringify({messageId:selectedMsgId,chatId:currentChatId,userId:userData.id,userRole:userData.role})
+                    body:JSON.stringify({messageId:parseInt(selectedMsgId),chatId:currentChatId,userId:userData.id,userRole:userData.role})
                 });
                 const d=await res.json();
                 if(d.success)alert(d.pinned?'📌 Закреплено':'📌 Откреплено');
@@ -502,7 +502,7 @@
             try{
                 const res=await fetch('/api/delete-message',{
                     method:'POST',headers:{'Content-Type':'application/json'},
-                    body:JSON.stringify({messageId:selectedMsgId,userId:userData.id,userRole:userData.role,imageUrl})
+                    body:JSON.stringify({messageId:parseInt(selectedMsgId),userId:userData.id,userRole:userData.role,imageUrl})
                 });
                 const d=await res.json();
                 if(!d.success)alert(d.error||'Ошибка');
