@@ -54,33 +54,33 @@
             padding: 14px 16px; border-bottom: 1px solid var(--border);
             display: flex; justify-content: space-between; align-items: center;
         }
-        .sidebar-header h2 { font-size: 17px; font-weight: 700; }
+        .sidebar-header h2 { font-size: 18px; font-weight: 700; }
         .sidebar-header button {
             background: var(--accent); color: #fff; border: none;
-            padding: 7px 12px; border-radius: 18px; font-size: 12px;
+            padding: 8px 14px; border-radius: 20px; font-size: 13px;
             font-weight: 600; cursor: pointer; margin-left: 4px;
         }
         .lobby-btn { background: transparent !important; color: var(--accent) !important; }
 
         .chats-list { flex: 1; overflow-y: auto; }
         .chat-item {
-            display: flex; align-items: center; gap: 10px;
-            padding: 10px 16px; cursor: pointer;
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 16px; cursor: pointer;
             transition: background 0.15s; border-bottom: 1px solid var(--border);
         }
         .chat-item:hover, .chat-item.active { background: var(--bg2); }
         .chat-avatar {
-            width: 46px; height: 46px; border-radius: 50%;
+            width: 50px; height: 50px; border-radius: 50%;
             background: var(--accent); color: #fff;
             display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 17px; flex-shrink: 0;
+            font-weight: 700; font-size: 19px; flex-shrink: 0;
             overflow: hidden;
         }
-        .chat-avatar img { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; }
+        .chat-avatar img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; }
         .chat-info { flex: 1; min-width: 0; }
-        .chat-name { font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 6px; }
-        .chat-last { font-size: 11px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .unread { background: var(--accent); color: #fff; border-radius: 10px; padding: 1px 6px; font-size: 10px; font-weight: 700; }
+        .chat-name { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+        .chat-last { font-size: 12px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .unread { background: var(--accent); color: #fff; border-radius: 12px; padding: 2px 7px; font-size: 11px; font-weight: 700; }
 
         .chat-view {
             flex: 1; display: flex; flex-direction: column;
@@ -95,75 +95,149 @@
         }
 
         .chat-header {
-            padding: 10px 14px; background: var(--bg);
+            padding: 12px 16px; background: var(--bg);
             border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; gap: 10px;
+            display: flex; align-items: center; gap: 12px;
             flex-shrink: 0; z-index: 2;
         }
         .back-arrow {
             display: none; background: none; border: none;
-            font-size: 20px; cursor: pointer; color: var(--accent); padding: 4px;
+            font-size: 22px; cursor: pointer; color: var(--accent); padding: 4px;
         }
         .chat-header-avatar {
-            width: 34px; height: 34px; border-radius: 50%;
+            width: 38px; height: 38px; border-radius: 50%;
             background: var(--accent); color: #fff;
             display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 14px; flex-shrink: 0; cursor: pointer;
+            font-weight: 700; font-size: 16px; flex-shrink: 0; cursor: pointer;
             overflow: hidden;
         }
-        .chat-header-avatar img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; }
+        .chat-header-avatar img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; }
         .chat-header-info { flex: 1; min-width: 0; cursor: pointer; }
-        .chat-header-name { font-weight: 600; font-size: 13px; }
-        .chat-header-status { font-size: 10px; color: var(--text2); }
+        .chat-header-name { font-weight: 600; font-size: 15px; }
+        .chat-header-status { font-size: 11px; color: var(--text2); }
 
         .messages-container {
-            flex: 1; overflow-y: auto; padding: 10px 14px;
+            flex: 1; overflow-y: auto; padding: 12px 16px;
             position: relative; z-index: 1; -webkit-overflow-scrolling: touch;
         }
 
-        .msg-row { display: flex; margin-bottom: 4px; align-items: flex-end; gap: 6px; }
+        .msg-row { display: flex; margin-bottom: 6px; align-items: flex-end; gap: 8px; }
         .msg-row.own { justify-content: flex-end; }
         .msg-row.system { justify-content: center; }
         
         .msg-avatar-small {
-            width: 26px; height: 26px; border-radius: 50%;
+            width: 30px; height: 30px; border-radius: 50%;
             background: var(--accent); color: #fff;
             display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 10px; flex-shrink: 0;
+            font-weight: 700; font-size: 12px; flex-shrink: 0;
             overflow: hidden; margin-bottom: 2px;
         }
-        .msg-avatar-small img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; }
+        .msg-avatar-small img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
         
         .msg-bubble {
-            max-width: 70%; padding: 7px 10px; border-radius: 14px;
-            font-size: 13px; line-height: 1.4; word-wrap: break-word;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.04); cursor: pointer;
-            animation: fadeIn 0.15s ease;
+            max-width: 70%; padding: 9px 12px; border-radius: 16px;
+            font-size: 14px; line-height: 1.5; word-wrap: break-word;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06); cursor: pointer;
+            animation: fadeIn 0.2s ease;
+            position: relative;
         }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
         .msg-row.own .msg-bubble { background: var(--msg-sent); color: var(--msg-sent-text); border-bottom-right-radius: 4px; }
         .msg-row.rec .msg-bubble { background: var(--msg-rec); color: var(--msg-rec-text); border-bottom-left-radius: 4px; }
-        .msg-row.system .msg-bubble { background: transparent; color: var(--text2); font-size: 11px; font-style: italic; box-shadow: none; max-width: 90%; }
-        .msg-sender { font-weight: 700; font-size: 10px; margin-bottom: 1px; }
+        .msg-row.system .msg-bubble { background: transparent; color: var(--text2); font-size: 12px; font-style: italic; box-shadow: none; max-width: 90%; }
+        .msg-sender { font-weight: 700; font-size: 11px; margin-bottom: 2px; }
         .msg-row.rec .msg-sender { color: var(--accent); }
-        .msg-time { font-size: 9px; opacity: 0.6; text-align: right; margin-top: 2px; }
-        .msg-image { max-width: 180px; max-height: 180px; border-radius: 8px; margin-top: 3px; cursor: pointer; }
+        .msg-time { font-size: 10px; opacity: 0.7; text-align: right; margin-top: 3px; }
+        .msg-image { max-width: 220px; max-height: 220px; border-radius: 10px; margin-top: 4px; cursor: pointer; }
+
+        /* Закреплённые сообщения */
+        .pinned-bar {
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            padding: 8px 16px;
+            cursor: pointer;
+            z-index: 2;
+            position: relative;
+            font-size: 13px;
+            transition: background 0.15s;
+        }
+        .pinned-bar:hover {
+            background: var(--bg2);
+        }
+        .pinned-bar-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--accent);
+            font-weight: 500;
+            user-select: none;
+        }
+        .pinned-icon {
+            font-size: 14px;
+        }
+        .pinned-label {
+            color: var(--text2);
+            font-size: 12px;
+        }
+        .pinned-arrow {
+            margin-left: auto;
+            font-size: 11px;
+            transition: transform 0.2s;
+            color: var(--text2);
+        }
+        .pinned-arrow.open {
+            transform: rotate(90deg);
+        }
+        .pinned-list {
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid var(--border);
+            max-height: 140px;
+            overflow-y: auto;
+        }
+        .pinned-item {
+            padding: 6px 8px;
+            font-size: 12px;
+            color: var(--text);
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border-radius: 6px;
+            transition: background 0.1s;
+        }
+        .pinned-item:hover {
+            background: var(--bg2);
+        }
+        .pinned-item strong {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Подсветка при скролле к закреплённому */
+        @keyframes pinnedHighlight {
+            0% { background: rgba(124, 138, 255, 0.3); }
+            100% { background: transparent; }
+        }
+        .msg-row.pinned-highlight {
+            animation: pinnedHighlight 2s ease;
+        }
 
         .input-area {
-            padding: 8px 12px; background: var(--bg);
+            padding: 10px 14px; background: var(--bg);
             border-top: 1px solid var(--border);
-            display: flex; align-items: center; gap: 8px;
+            display: flex; align-items: center; gap: 10px;
             flex-shrink: 0; z-index: 2;
         }
         .input-area input {
-            flex: 1; padding: 9px 14px; border: 1px solid var(--border);
-            border-radius: 20px; font-size: 14px; background: var(--bg2);
+            flex: 1; padding: 10px 16px; border: 1px solid var(--border);
+            border-radius: 22px; font-size: 15px; background: var(--bg2);
             color: var(--text); outline: none; font-family: inherit;
         }
         .input-area button {
-            width: 36px; height: 36px; border-radius: 50%;
+            width: 40px; height: 40px; border-radius: 50%;
             border: none; background: var(--accent); color: #fff;
-            font-size: 16px; cursor: pointer; flex-shrink: 0;
+            font-size: 18px; cursor: pointer; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
         }
         .attach-btn { background: var(--bg2) !important; color: var(--text2) !important; }
@@ -175,20 +249,20 @@
         }
         .as-overlay.show { display: flex; }
         .as-sheet {
-            background: var(--bg); border-radius: 14px 14px 0 0;
-            width: 100%; max-width: 500px; padding: 6px 0 20px;
-            animation: slideUp 0.2s ease;
+            background: var(--bg); border-radius: 16px 16px 0 0;
+            width: 100%; max-width: 500px; padding: 8px 0 24px;
+            animation: slideUp 0.25s ease;
         }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .as-btn {
-            display: block; width: 100%; padding: 13px 20px;
-            border: none; background: none; font-size: 15px;
+            display: block; width: 100%; padding: 14px 22px;
+            border: none; background: none; font-size: 16px;
             text-align: left; cursor: pointer; color: var(--text); font-family: inherit;
         }
         .as-btn.danger { color: var(--danger); }
         .as-cancel {
-            display: block; width: 100%; padding: 13px;
-            border: none; background: none; font-size: 15px; font-weight: 600;
+            display: block; width: 100%; padding: 14px;
+            border: none; background: none; font-size: 16px; font-weight: 600;
             cursor: pointer; color: var(--text2); font-family: inherit;
         }
 
@@ -199,19 +273,19 @@
         }
         .modal.show { display: flex; }
         .modal-card {
-            background: var(--bg); border-radius: 14px; padding: 18px;
-            width: 90%; max-width: 380px; max-height: 75vh; overflow-y: auto;
+            background: var(--bg); border-radius: 16px; padding: 20px;
+            width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto;
         }
-        .modal-card h3 { margin-bottom: 10px; font-size: 15px; }
+        .modal-card h3 { margin-bottom: 12px; font-size: 17px; }
         .modal-card input, .modal-card textarea {
-            width: 100%; padding: 9px; border: 1px solid var(--border);
-            border-radius: 8px; font-size: 13px; margin-bottom: 6px;
+            width: 100%; padding: 10px; border: 1px solid var(--border);
+            border-radius: 10px; font-size: 14px; margin-bottom: 8px;
             background: var(--bg2); color: var(--text); font-family: inherit;
         }
         .modal-card button {
-            width: 100%; padding: 9px; background: var(--accent);
-            color: #fff; border: none; border-radius: 8px;
-            font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 4px;
+            width: 100%; padding: 10px; background: var(--accent);
+            color: #fff; border: none; border-radius: 10px;
+            font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 6px;
         }
         .modal-card .cbtn { background: var(--bg2); color: var(--text); }
 
@@ -219,7 +293,7 @@
             .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 100%; z-index: 50; }
             .sidebar.hidden { transform: translateX(-100%); }
             .back-arrow { display: block; }
-            .msg-bubble { max-width: 80%; }
+            .msg-bubble { max-width: 85%; }
         }
     </style>
 </head>
@@ -247,6 +321,18 @@
                     <div class="chat-header-status" id="chatStatus">Общий чат</div>
                 </div>
             </div>
+
+            <!-- Закреплённые сообщения -->
+            <div class="pinned-bar" id="pinnedBar" style="display:none;" onclick="togglePinned()">
+                <div class="pinned-bar-header">
+                    <span class="pinned-icon">📌</span>
+                    <span id="pinnedCount">0</span>
+                    <span class="pinned-label">закреплено</span>
+                    <span class="pinned-arrow" id="pinnedArrow">▶</span>
+                </div>
+                <div class="pinned-list" id="pinnedList" style="display:none;"></div>
+            </div>
+
             <div class="messages-container" id="messagesContainer"></div>
             <div class="input-area">
                 <button class="attach-btn" id="attachBtn">📎</button>
@@ -329,41 +415,56 @@
             return (uname||'?')[0].toUpperCase();
         }
 
-        // ====== ЗАКРЕПЛЁННЫЕ (должны быть объявлены ДО selectChat) ======
+        // ====== ЗАКРЕПЛЁННЫЕ ======
         async function loadPinned(){
             try{
-                const url = currentChatId === null ? '/api/get-pinned?chatId=general' : `/api/get-pinned?chatId=${currentChatId}`;
-                const r = await fetch(url);
+                const chatParam = currentChatId === null ? 'general' : currentChatId;
+                const r = await fetch(`/api/get-pinned?chatId=${chatParam}`);
                 const d = await r.json();
                 
+                const bar = $('pinnedBar');
+                if (!bar) return;
+                
                 if(d.success && d.pinned && d.pinned.length > 0){
-                    $('pinnedBar').style.display = 'block';
+                    bar.style.display = 'block';
                     $('pinnedCount').textContent = d.pinned.length;
                     
                     $('pinnedList').innerHTML = d.pinned.map(p => {
                         const txt = p.text || '';
-                        const short = txt.length > 40 ? txt.substring(0,40)+'...' : txt;
-                        return `<div class="pinned-item" onclick="scrollToMsg(${p.message_id})">
+                        const short = txt.length > 50 ? txt.substring(0, 50)+'...' : txt;
+                        return `<div class="pinned-item" onclick="event.stopPropagation(); scrollToMsg(${p.message_id})">
                             📌 <strong>${esc(p.user_name)}:</strong> ${esc(short)}
                         </div>`;
                     }).join('');
                 } else {
-                    $('pinnedBar').style.display = 'none';
+                    bar.style.display = 'none';
+                    $('pinnedList').style.display = 'none';
+                    const arrow = $('pinnedArrow');
+                    if(arrow) arrow.classList.remove('open');
                 }
-            }catch(e){}
+            }catch(e){
+                console.error('Ошибка загрузки закреплённых:', e);
+            }
         }
 
         function togglePinned(){
             const list = $('pinnedList');
-            list.style.display = list.style.display === 'none' ? 'block' : 'none';
+            const arrow = $('pinnedArrow');
+            if(list.style.display === 'none'){
+                list.style.display = 'block';
+                arrow.classList.add('open');
+            } else {
+                list.style.display = 'none';
+                arrow.classList.remove('open');
+            }
         }
 
         function scrollToMsg(msgId){
             const el = document.querySelector(`.msg-row[data-id="${msgId}"]`);
             if(el){
                 el.scrollIntoView({behavior:'smooth', block:'center'});
-                el.style.background = 'var(--pinned-bg)';
-                setTimeout(()=> el.style.background = '', 2000);
+                el.classList.add('pinned-highlight');
+                setTimeout(()=> el.classList.remove('pinned-highlight'), 2200);
             }
         }
 
@@ -487,7 +588,7 @@
             let html= avHtml + `<div class="msg-bubble" onclick="selectMsg(${data.id})">`;
             if(!sys&&!own)html+=`<div class="msg-sender">${esc(data.name)}</div>`;
             if(data.text?.startsWith('📷')){
-                html+=`<img src="${data.text.replace('📷 ','')}" class="msg-image">`;
+                html+=`<img src="${data.text.replace('📷 ','')}" class="msg-image" onclick="event.stopPropagation(); window.open('${data.text.replace('📷 ','')}')">`;
             }else{
                 html+=`<span class="msg-text">${esc(data.text||'')}</span>`;
             }
@@ -530,6 +631,13 @@
         async function pinMsg(){
             const msgId = selectedMsgId;
             closeAS();
+            
+            // Проверка: в общем чате только админ может закреплять
+            if(currentChatId === null && userData.role !== 'admin'){
+                alert('📌 Закреплять сообщения в общем чате может только администратор');
+                return;
+            }
+            
             try{
                 const res=await fetch('/api/pin-message',{
                     method:'POST',headers:{'Content-Type':'application/json'},
@@ -537,7 +645,6 @@
                 });
                 const d=await res.json();
                 if(d.success){
-                    alert(d.pinned?'📌 Закреплено':'📌 Откреплено');
                     loadPinned();
                 }else alert(d.error||'Ошибка');
             }catch(e){console.error(e);}
@@ -637,7 +744,5 @@
 
         loadChats();
     </script>
-</body>
-</html>
 </body>
 </html>
