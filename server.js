@@ -235,14 +235,12 @@ async function initDatabase() {
             )
         `);
 
-        // Проверяем старый constraint и фиксим
         const checkResult = await pool.query(`
             SELECT constraint_name FROM information_schema.check_constraints 
             WHERE constraint_name = 'schedule_lessons_day_of_week_check'
         `);
         
         if (checkResult.rows.length > 0) {
-            // Удаляем старый constraint
             await pool.query(`ALTER TABLE schedule_lessons DROP CONSTRAINT schedule_lessons_day_of_week_check`);
         }
 
@@ -264,7 +262,6 @@ async function initDatabase() {
 
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT`);
 
-        // Группы расписания
         const groupsExist = await pool.query('SELECT COUNT(*) FROM schedule_groups');
         if (parseInt(groupsExist.rows[0].count) === 0) {
             await pool.query(`
@@ -276,7 +273,6 @@ async function initDatabase() {
             console.log('✅ Созданы группы расписания');
         }
 
-        // Админ-ключ
         const existing = await pool.query("SELECT * FROM invite_keys WHERE key_code = 'ADMIN-PIONERIA-2025'");
         if (existing.rows.length === 0) {
             await pool.query("INSERT INTO invite_keys (key_code, role) VALUES ('ADMIN-PIONERIA-2025', 'admin')");
@@ -500,23 +496,17 @@ app.delete('/api/admin/news/:id', async (req, res) => {
 app.post('/api/delete-message', async (req, res) => {
     console.log('📥 DELETE запрос, body:', JSON.stringify(req.body));
     const { messageId, userId, userRole, imageUrl } = req.body;
-    console.log('  messageId:', messageId, '(тип:', typeof messageId, ')');
-    console.log('  userId:', userId, 'userRole:', userRole);
     
     try {
         const msg = await pool.query('SELECT * FROM messages WHERE id = $1', [messageId]);
-        console.log('  Найдено сообщений:', msg.rows.length);
         
         if (msg.rows.length === 0) {
-            console.log('  ❌ Сообщение не найдено в БД');
             return res.json({ success: false, error: 'Не найдено' });
         }
         
         const message = msg.rows[0];
-        console.log('  Автор сообщения user_id:', message.user_id, 'мой userId:', userId);
         
         if (message.user_id !== userId && userRole !== 'admin') {
-            console.log('  ❌ Нет прав на удаление');
             return res.json({ success: false, error: 'Нет прав' });
         }
         
@@ -529,10 +519,10 @@ app.post('/api/delete-message', async (req, res) => {
         
         await pool.query('DELETE FROM messages WHERE id = $1', [messageId]);
         io.emit('message deleted', messageId);
-        console.log('  ✅ Сообщение удалено');
+        console.log('✅ Сообщение удалено');
         res.json({ success: true });
     } catch (err) {
-        console.error('  ❌ ОШИБКА:', err.message);
+        console.error('❌ ОШИБКА:', err.message);
         res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
@@ -587,20 +577,43 @@ app.post('/api/edit-message', async (req, res) => {
 app.post('/api/pin-message', async (req, res) => {
     console.log('📥 PIN запрос, body:', JSON.stringify(req.body));
     const { messageId, chatId, userId, userRole } = req.body;
-    console.log('  messageId:', messageId, 'chatId:', chatId);
-    // ... остальной код
+    
     try {
-        const existing = await pool.query('SELECT * FROM pinned_messages WHERE message_id = $1', [messageId]);
+        // Проверяем, существует ли сообщение
+        const msg = await pool.query('SELECT * FROM messages WHERE id = $1', [messageId]);
+        if (msg.rows.length === 0) {
+            return res.json({ success: false, error: 'Сообщение не найдено' });
+        }
+        
+        // Если chatId НЕ передан (null/undefined) — это общий чат, только админ
+        if ((!chatId || chatId === 'null') && userRole !== 'admin') {
+            return res.json({ success: false, error: 'Только админ может закреплять в общем чате' });
+        }
+        
+        // Приводим chatId к нужному виду: null для общего чата, число для остальных
+        const dbChatId = (!chatId || chatId === 'null' || chatId === 'general') ? null : parseInt(chatId);
+        
+        const existing = await pool.query(
+            'SELECT * FROM pinned_messages WHERE message_id = $1', 
+            [messageId]
+        );
+        
         if (existing.rows.length > 0) {
+            // Открепляем
             await pool.query('DELETE FROM pinned_messages WHERE message_id = $1', [messageId]);
-            io.emit('message pinned', { messageId, pinned: false });
-            res.json({ success: true, pinned: false });
+            io.emit('message pinned', { messageId, pinned: false, chatId: dbChatId });
+            return res.json({ success: true, pinned: false });
         } else {
-            await pool.query('INSERT INTO pinned_messages (message_id, chat_id, pinned_by) VALUES ($1, $2, $3)', [messageId, chatId, userId]);
-            io.emit('message pinned', { messageId, pinned: true });
-            res.json({ success: true, pinned: true });
+            // Закрепляем
+            await pool.query(
+                'INSERT INTO pinned_messages (message_id, chat_id, pinned_by) VALUES ($1, $2, $3)',
+                [messageId, dbChatId, userId]
+            );
+            io.emit('message pinned', { messageId, pinned: true, chatId: dbChatId });
+            return res.json({ success: true, pinned: true });
         }
     } catch (err) {
+        console.error('❌ Ошибка pin:', err);
         res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
@@ -610,12 +623,31 @@ app.get('/api/get-pinned', async (req, res) => {
     try {
         let result;
         if (!chatId || chatId === 'general' || chatId === 'null') {
-            result = await pool.query(`SELECT pm.*, m.text, m.user_name FROM pinned_messages pm JOIN messages m ON pm.message_id = m.id WHERE pm.chat_id IS NULL ORDER BY pm.pinned_at DESC`);
+            // Общий чат — chat_id IS NULL
+            result = await pool.query(
+                `SELECT pm.*, m.text, m.user_name, m.user_id 
+                 FROM pinned_messages pm 
+                 JOIN messages m ON pm.message_id = m.id 
+                 WHERE pm.chat_id IS NULL 
+                 ORDER BY pm.pinned_at DESC`
+            );
         } else {
-            result = await pool.query(`SELECT pm.*, m.text, m.user_name FROM pinned_messages pm JOIN messages m ON pm.message_id = m.id WHERE pm.chat_id = $1 ORDER BY pm.pinned_at DESC`, [chatId]);
+            const numericChatId = parseInt(chatId);
+            if (isNaN(numericChatId)) {
+                return res.json({ success: true, pinned: [] });
+            }
+            result = await pool.query(
+                `SELECT pm.*, m.text, m.user_name, m.user_id 
+                 FROM pinned_messages pm 
+                 JOIN messages m ON pm.message_id = m.id 
+                 WHERE pm.chat_id = $1 
+                 ORDER BY pm.pinned_at DESC`,
+                [numericChatId]
+            );
         }
         res.json({ success: true, pinned: result.rows });
     } catch (err) {
+        console.error('❌ Ошибка get-pinned:', err);
         res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
