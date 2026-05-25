@@ -266,11 +266,64 @@
             border: none;
         }
 
+        /* ====== ПАНЕЛЬ ЭМОДЗИ ====== */
+        .emoji-panel {
+            background: var(--bg);
+            border-top: 1px solid var(--border);
+            z-index: 5;
+            display: none;
+            flex-direction: column;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+        .emoji-panel.show { display: flex; }
+        .emoji-tabs {
+            display: flex; overflow-x: auto;
+            border-bottom: 1px solid var(--border);
+            padding: 0 8px;
+            scrollbar-width: none;
+        }
+        .emoji-tabs::-webkit-scrollbar { display: none; }
+        .emoji-tab {
+            padding: 10px 14px; font-size: 18px;
+            cursor: pointer; border: none; background: none;
+            border-bottom: 2px solid transparent;
+            transition: all 0.15s; flex-shrink: 0;
+            opacity: 0.5;
+        }
+        .emoji-tab.active {
+            border-bottom-color: var(--accent);
+            opacity: 1;
+        }
+        .emoji-tab:hover { opacity: 1; }
+        .emoji-grid {
+            display: grid; grid-template-columns: repeat(8, 1fr);
+            gap: 2px; padding: 8px; max-height: 200px;
+            overflow-y: auto;
+        }
+        .emoji-item {
+            font-size: 24px; padding: 6px; cursor: pointer;
+            border-radius: 8px; text-align: center;
+            transition: background 0.1s, transform 0.1s;
+        }
+        .emoji-item:hover { background: var(--bg2); }
+        .emoji-item:active { transform: scale(1.2); background: var(--accent); }
+        
+        /* Большие эмодзи в сообщениях */
+        .msg-emoji-only {
+            font-size: 48px !important;
+            padding: 4px 8px !important;
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+        .msg-emoji-only .msg-time {
+            font-size: 9px; opacity: 0.5;
+        }
+
         .input-area {
             padding: 10px 14px; background: var(--bg);
             border-top: 1px solid var(--border);
             display: flex; align-items: center; gap: 10px;
-            flex-shrink: 0; z-index: 2;
+            flex-shrink: 0; z-index: 6;
             box-shadow: 0 -1px 3px rgba(0,0,0,0.03);
         }
         .input-area input {
@@ -291,7 +344,7 @@
             transition: all 0.15s; box-shadow: var(--shadow-sm);
         }
         .input-area button:active { transform: scale(0.92); opacity: 0.85; }
-        .attach-btn { background: var(--bg2) !important; color: var(--text2) !important; }
+        .attach-btn, .emoji-btn { background: var(--bg2) !important; color: var(--text2) !important; }
 
         /* Action Sheet */
         .as-overlay {
@@ -361,6 +414,7 @@
             .back-arrow { display: block; }
             .msg-bubble { max-width: 85%; }
             .msg-image { max-width: 220px; max-height: 220px; }
+            .emoji-grid { grid-template-columns: repeat(6, 1fr); }
         }
     </style>
 </head>
@@ -401,10 +455,18 @@
             </div>
 
             <div class="messages-container" id="messagesContainer"></div>
+            
+            <!-- Панель эмодзи -->
+            <div class="emoji-panel" id="emojiPanel">
+                <div class="emoji-tabs" id="emojiTabs"></div>
+                <div class="emoji-grid" id="emojiGrid"></div>
+            </div>
+
             <div class="input-area">
-                <button class="attach-btn" id="attachBtn">📎</button>
+                <button class="emoji-btn" id="emojiBtn" title="Эмодзи">😊</button>
+                <button class="attach-btn" id="attachBtn" title="Фото">📎</button>
                 <input type="text" id="msgInput" placeholder="Сообщение..." autocomplete="off">
-                <button id="sendBtn">➤</button>
+                <button id="sendBtn" title="Отправить">➤</button>
             </div>
         </div>
     </div>
@@ -470,6 +532,98 @@
         let longPressTimer = null;
         let longPressTriggered = false;
 
+        // ====== НАБОР ЭМОДЗИ ======
+        const emojiCategories = {
+            '😀': ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','😉','😌','😍','🥰','😘','😗','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🥴','😵','🤯','🥵','🥶','😎','🤓','🧐','😕','😟','🙁','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','👿','😈','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖'],
+            '🐱': ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🙈','🙉','🙊','🐒','🐔','🐧','🐦','🐤','🐣','🐥','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐜','🦟','🦗','🕷️','🦂','🐢','🐍','🦎','🦖','🦕','🐙','🦑','🦐','🦞','🦀','🐡','🐠','🐟','🐬','🐳','🐋','🦈','🐊','🐅','🐆','🦓','🦍','🦧','🐘','🦛','🦏','🐪','🐫','🦒','🦘','🐃','🐂','🐄','🐎','🐖','🐏','🐑','🦙','🐐','🦌','🐕','🐩','🦮','🐈','🐓','🦃','🦚','🦜','🦢','🦩','🐇','🦝','🦨','🦡','🦦','🦥','🐁','🐀','🐿️','🦔'],
+            '🍕': ['🍏','🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🍆','🥑','🥦','🥬','🥒','🌶️','🫑','🌽','🥕','🫒','🧄','🧅','🥔','🍠','🥐','🍞','🥖','🥨','🧀','🥚','🍳','🧈','🥞','🧇','🥓','🥩','🍗','🍖','🦴','🌭','🍔','🍟','🍕','🫓','🥪','🥙','🧆','🌮','🌯','🫔','🥗','🥘','🫕','🥫','🍝','🍜','🍲','🍛','🍣','🍱','🥟','🦪','🍤','🍙','🍚','🍘','🍥','🥠','🥮','🍢','🍡','🍧','🍨','🍦','🥧','🧁','🍰','🎂','🍮','🍭','🍬','🍫','🍿','🍩','🍪','🌰','🥜','🍯','🥛','🍼','🫖','☕','🍵','🧃','🥤','🧋','🍶','🍺','🍻','🥂','🍷','🫗','🥃','🍸','🍹','🧉','🍾','🧊'],
+            '⚽': ['⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱','🪀','🏓','🏸','🏒','🏑','🥍','🏏','🪃','🥅','⛳','🪁','🏹','🎣','🤿','🥊','🥋','🎽','🛹','🛼','🛷','⛸️','🥌','🎿','⛷️','🏂','🪂','🏋️','🤼','🤸','🤺','⛹️','🤾','🏌️','🏇','🧘','🏄','🏊','🤽','🚣','🧗','🚵','🚴'],
+            '🚗': ['🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🛻','🚚','🚛','🚜','🛵','🏍️','🛺','🚲','🛴','🚨','🚔','🚍','🚘','🚖','🚡','🚠','🚟','🚃','🚋','🚞','🚝','🚄','🚅','🚈','🚆','🚇','🚊','🚉','✈️','🛫','🛬','🛩️','💺','🛰️','🚀','🛸','🚁','🛶','⛵','🚤','🛥️','🛳️','⛴️','🚢','⚓','🪝','🚧','🚦','🚥','🚏','🗺️','🗿','🗽','🗼','🏰','🏯','🏟️','🎡','🎢','🎠','⛲','⛱️','🏖️','🏝️','🏜️','🌋','⛰️','🏔️','🗻','🏕️','⛺','🛖','🏠','🏡','🏘️','🏚️','🏗️','🏢','🏭','🏣','🏤','🏥','🏦','🏨','🏩','🏪','🏫','🏬','🏯','🏰','💒','🗼','🗽'],
+            '❤️': ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','☮️','✝️','☪️','🕉️','☸️','✡️','🔯','🕎','☯️','☦️','🛐','⛎','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','🆔','⚛️','🉑','☢️','☣️','📴','📳','🈶','🈚','🈸','🈺','🈷️','✴️','🆚','💮','🉐','㊙️','㊗️','🈴','🈵','🈹','🈲','🅰️','🅱️','🆎','🆑','🅾️','🆘','❌','⭕','🛑','⛔','📛','🚫','💯','💢','♨️','🚷','🚯','🚳','🚱','🔞','📵','🚭','❗','❕','❓','❔','‼️','⁉️','🔅','🔆','〽️','⚠️','🚸','🔱','⚜️','🔰','♻️','✅','🈯','💹','❇️','✳️','❎','🌐','💠','Ⓜ️','🌀','💤','🏧','🚾','♿','🅿️','🛗','🈳','🈂️','🛂','🛃','🛄','🛅','🚰','🚮','🚹','🚺','🚼','🚻','🚽','🚿','🛁','🛀','🧴','🧸','🪒','🧹','🧺','🧻','🪣','🧼','🪥','🧽','🧯','🛒'],
+            '🎵': ['🎵','🎶','🎼','🎤','🎧','🎷','🎸','🎹','🎺','🎻','🥁','🪘','🎬','🎨','🎭','🎪','🎟️','🎫','🎗️','🎖️','🏆','🏅','🥇','🥈','🥉','⚽','🏀','🏈','⚾','🥎','🎾','🎱','🎳','♟️','🎯','🎮','🕹️','🎰','🎲','🧩','🧸','🪅','🪆','♠️','♥️','♦️','♣️','🃏','🀄','🎴','🎲','🎯','🎳','🎮','🎰'],
+            '💡': ['💡','🔦','📖','📚','📓','📒','📔','📕','📗','📘','📙','📝','📜','📄','📑','🔖','💰','💴','💵','💶','💷','💸','🪙','💳','💎','⚖️','🪜','🔧','🔨','⚒️','🛠️','⛏️','🔩','⚙️','🪛','🔗','⛓️','🪝','🧲','🔫','💣','🧨','🪓','🔪','🗡️','⚔️','🛡️','🚬','⚰️','🪦','⚱️','🏺','🔮','📿','🧿','🪬','💈','⚗️','🔭','🔬','🕳️','🩹','🩺','💊','💉','🩸','🧬','🦠','🧫','🧪','🌡️','🧹','🧺','🧻','🚽','🚰','🚿','🛁','🛀','🧴','🧷','🪥','🧼','🧽','🧯','🛒']
+        };
+        const emojiCategoryNames = {
+            '😀': 'Смайлы', '🐱': 'Животные', '🍕': 'Еда', '⚽': 'Спорт',
+            '🚗': 'Транспорт', '❤️': 'Символы', '🎵': 'Развлечения', '💡': 'Предметы'
+        };
+
+        let emojiPanelOpen = false;
+
+        function initEmojiPanel() {
+            const tabsContainer = document.getElementById('emojiTabs');
+            const gridContainer = document.getElementById('emojiGrid');
+            let activeCategory = Object.keys(emojiCategories)[0];
+
+            // Создаём вкладки
+            tabsContainer.innerHTML = Object.keys(emojiCategories).map(key => 
+                `<button class="emoji-tab ${key === activeCategory ? 'active' : ''}" data-category="${key}">${key}</button>`
+            ).join('');
+
+            // Показываем первую категорию
+            renderEmojiGrid(activeCategory);
+
+            // Обработчики вкладок
+            tabsContainer.querySelectorAll('.emoji-tab').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const category = tab.dataset.category;
+                    tabsContainer.querySelectorAll('.emoji-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    activeCategory = category;
+                    renderEmojiGrid(category);
+                });
+            });
+        }
+
+        function renderEmojiGrid(category) {
+            const grid = document.getElementById('emojiGrid');
+            const emojis = emojiCategories[category] || [];
+            grid.innerHTML = emojis.map(emoji => 
+                `<div class="emoji-item" data-emoji="${emoji}">${emoji}</div>`
+            ).join('');
+
+            // Обработчики клика по эмодзи
+            grid.querySelectorAll('.emoji-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const emoji = item.dataset.emoji;
+                    insertEmoji(emoji);
+                });
+            });
+        }
+
+        function insertEmoji(emoji) {
+            const input = document.getElementById('msgInput');
+            const start = input.selectionStart || 0;
+            const end = input.selectionEnd || 0;
+            const before = input.value.substring(0, start);
+            const after = input.value.substring(end);
+            input.value = before + emoji + after;
+            // Ставим курсор после вставленного эмодзи
+            const newPos = start + emoji.length;
+            input.setSelectionRange(newPos, newPos);
+            input.focus();
+        }
+
+        function toggleEmojiPanel() {
+            const panel = document.getElementById('emojiPanel');
+            emojiPanelOpen = !emojiPanelOpen;
+            if (emojiPanelOpen) {
+                panel.classList.add('show');
+                document.getElementById('emojiBtn').style.color = 'var(--accent)';
+            } else {
+                panel.classList.remove('show');
+                document.getElementById('emojiBtn').style.color = 'var(--text2)';
+            }
+            // Скроллим чат вниз
+            const container = document.getElementById('messagesContainer');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Инициализируем эмодзи при загрузке
+        initEmojiPanel();
+
         const $ = id => document.getElementById(id);
         function esc(t){ const d=document.createElement('div'); d.textContent=t||''; return d.innerHTML; }
         function goToLobby(){ window.location.href='lobby.html'; }
@@ -478,7 +632,6 @@
         function closeM(id){ $(id).classList.remove('show'); }
         function closeAS(){ 
             $('asOverlay').classList.remove('show');
-            // Снимаем выделение
             if(selectedMsgId){
                 const el = document.querySelector(`.msg-row[data-id="${selectedMsgId}"]`);
                 if(el) el.classList.remove('selected');
@@ -670,7 +823,6 @@
             longPressTimer = setTimeout(() => {
                 longPressTriggered = true;
                 selectMsg(msgId, el);
-                // Виброотклик если поддерживается
                 if(navigator.vibrate) navigator.vibrate(10);
             }, 400);
         }
@@ -683,7 +835,6 @@
         }
 
         function selectMsg(id, el){
-            // Снимаем выделение с предыдущего
             if(selectedMsgId && selectedMsgId !== id){
                 const prev = document.querySelector(`.msg-row[data-id="${selectedMsgId}"]`);
                 if(prev) prev.classList.remove('selected');
@@ -693,12 +844,23 @@
             $('asOverlay').classList.add('show');
         }
 
+        // Проверка: состоит ли сообщение только из эмодзи (до 3 штук)
+        function isEmojiOnly(text) {
+            if (!text) return false;
+            const trimmed = text.trim();
+            // Регулярка: эмодзи + возможные пробелы между ними
+            const emojiRegex = /^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)(\s*(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)){0,2}$/u;
+            return emojiRegex.test(trimmed);
+        }
+
         function addMsg(data){
             const c=$('messagesContainer');
             if(c.querySelector('div[style]'))c.innerHTML='';
             
             const own=data.user_id===userData.id;
             const sys=data.name==='Система';
+            const text = data.text || '';
+            const emojiOnly = !sys && !text.startsWith('📷') && isEmojiOnly(text);
 
             const row=document.createElement('div');
             row.className=`msg-row ${sys?'system':(own?'own':'rec')}`;
@@ -708,23 +870,24 @@
             const time=formatTime(data.timestamp);
             const avHtml= (!sys&&!own) ? `<div class="msg-avatar-small">${getUserAvatarHTML(data.user_id,data.name)}</div>` : '';
 
-            let html= avHtml + '<div class="msg-bubble">';
+            let bubbleClass = 'msg-bubble';
+            if(emojiOnly) bubbleClass += ' msg-emoji-only';
+
+            let html= avHtml + `<div class="${bubbleClass}">`;
             if(!sys&&!own)html+=`<div class="msg-sender">${esc(data.name)}</div>`;
-            if(data.text?.startsWith('📷')){
-                const imgUrl = data.text.replace('📷 ','');
+            if(text.startsWith('📷')){
+                const imgUrl = text.replace('📷 ','');
                 html+=`<img src="${imgUrl}" class="msg-image" onclick="event.stopPropagation(); openImageViewer('${imgUrl}')">`;
             }else{
-                html+=`<span class="msg-text">${esc(data.text||'')}</span>`;
+                html+=`<span class="msg-text">${esc(text)}</span>`;
             }
             html+=`<div class="msg-time">${time}${data.edited?' (ред.)':''}</div>`;
             html+=`</div>`;
 
             row.innerHTML=html;
 
-            // Добавляем обработчики long press на весь ряд
             const msgId = data.id;
             row.addEventListener('mousedown', (e) => {
-                // Только если не клик по изображению
                 if(e.target.tagName === 'IMG') return;
                 startLongPress(msgId, row);
             });
@@ -811,9 +974,11 @@
             $('msgInput').value='';
         }
 
+        // ====== ОБРАБОТЧИКИ КНОПОК ======
         $('sendBtn').onclick=()=>{const t=$('msgInput').value.trim();if(t)send(t);};
         $('msgInput').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();const t=$('msgInput').value.trim();if(t)send(t);}};
         $('attachBtn').onclick=()=>$('imageInput').click();
+        $('emojiBtn').onclick=(e)=>{e.stopPropagation(); toggleEmojiPanel();};
         $('imageInput').onchange=async()=>{
             const f=$('imageInput').files[0];if(!f)return;
             const fd=new FormData();fd.append('image',f);
@@ -822,6 +987,13 @@
             if(d.success)send(null,d.url);
             $('imageInput').value='';
         };
+
+        // Закрываем панель эмодзи при клике вне неё
+        document.addEventListener('click', (e) => {
+            if(emojiPanelOpen && !e.target.closest('.emoji-panel') && !e.target.closest('#emojiBtn')) {
+                toggleEmojiPanel();
+            }
+        });
 
         function showNewChat(){
             $('userModal').classList.add('show');
