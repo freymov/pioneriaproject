@@ -17,62 +17,39 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root, [data-theme="light"] {
-            --bg: #f0f2f5;
-            --bg-card: #ffffff;
-            --bg-secondary: #f8f9fa;
-            --text: #1a1a1a;
-            --text-secondary: #666;
-            --accent: #667eea;
-            --accent-hover: #5a6fd6;
-            --border: #e8e8e8;
-            --danger: #ff4757;
-            --danger-bg: #fff0f0;
-            --success: #27ae60;
-            --success-bg: #e8f8e8;
-            --warning: #f59e0b;
-            --warning-bg: #fff8e8;
-            --concert: #22c55e;
-            --concert-bg: #e8fce8;
+            --bg: #f0f2f5; --bg-card: #ffffff; --bg-secondary: #f8f9fa;
+            --text: #1a1a1a; --text-secondary: #666;
+            --accent: #667eea; --accent-hover: #5a6fd6;
+            --border: #e8e8e8; --danger: #ff4757; --danger-bg: #fff0f0;
+            --success: #27ae60; --success-bg: #e8f8e8;
+            --warning: #f59e0b; --warning-bg: #fff8e8;
+            --concert: #22c55e; --concert-bg: #e8fce8;
             --shadow: 0 2px 12px rgba(0,0,0,0.06);
         }
 
         [data-theme="dark"] {
-            --bg: #1a1a2e;
-            --bg-card: #252540;
-            --bg-secondary: #2e2e4a;
-            --text: #e4e6eb;
-            --text-secondary: #a0a3b0;
-            --accent: #7c8aff;
-            --accent-hover: #6a78f0;
-            --border: #3a3a55;
-            --danger: #ff6b6b;
-            --danger-bg: #3a2020;
-            --success: #4caf50;
-            --success-bg: #1a3a20;
-            --warning: #f0a030;
-            --warning-bg: #3a3020;
-            --concert: #4ade80;
-            --concert-bg: #1a3020;
+            --bg: #1a1a2e; --bg-card: #252540; --bg-secondary: #2e2e4a;
+            --text: #e4e6eb; --text-secondary: #a0a3b0;
+            --accent: #7c8aff; --accent-hover: #6a78f0;
+            --border: #3a3a55; --danger: #ff6b6b; --danger-bg: #3a2020;
+            --success: #4caf50; --success-bg: #1a3a20;
+            --warning: #f0a030; --warning-bg: #3a3020;
+            --concert: #4ade80; --concert-bg: #1a3020;
             --shadow: 0 2px 12px rgba(0,0,0,0.3);
         }
 
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
-            background: var(--bg);
-            min-height: 100vh;
-            padding: 12px;
-            color: var(--text);
+            background: var(--bg); min-height: 100vh;
+            padding: 12px; color: var(--text);
             -webkit-tap-highlight-color: transparent;
         }
 
         .container { max-width: 800px; margin: 0 auto; }
 
         .card {
-            background: var(--bg-card);
-            border-radius: 16px;
-            padding: 18px;
-            margin-bottom: 14px;
-            box-shadow: var(--shadow);
+            background: var(--bg-card); border-radius: 16px;
+            padding: 18px; margin-bottom: 14px; box-shadow: var(--shadow);
         }
 
         h1 { font-size: 1.3rem; color: var(--accent); margin-bottom: 4px; }
@@ -80,14 +57,9 @@
         h3 { font-size: 0.9rem; color: var(--text); margin-bottom: 8px; }
 
         button {
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
+            background: var(--accent); color: #fff;
+            border: none; padding: 10px 16px; border-radius: 10px;
+            cursor: pointer; font-size: 13px; font-weight: 600;
         }
         button:hover { background: var(--accent-hover); }
         .back-btn { background: #777; margin-bottom: 12px; }
@@ -98,52 +70,61 @@
         .btn-success { background: var(--success); }
 
         input, select, textarea {
-            padding: 10px 12px;
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            font-size: 13px;
-            width: 100%;
-            background: var(--bg-card);
-            color: var(--text);
-            font-family: inherit;
+            padding: 10px 12px; border: 2px solid var(--border);
+            border-radius: 10px; font-size: 13px; width: 100%;
+            background: var(--bg-card); color: var(--text); font-family: inherit;
         }
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
 
-        .row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
+        .row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
         .row > * { flex: 1; min-width: 100px; }
 
+        /* Чекбоксы дней */
+        .day-checkboxes {
+            display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;
+        }
+        .day-checkbox {
+            display: flex; align-items: center; gap: 4px;
+            padding: 8px 12px; border: 2px solid var(--border);
+            border-radius: 10px; cursor: pointer; font-size: 13px;
+            font-weight: 600; transition: all 0.15s;
+            background: var(--bg-card); color: var(--text);
+            user-select: none;
+        }
+        .day-checkbox:hover { border-color: var(--accent); }
+        .day-checkbox.checked {
+            background: var(--accent); color: #fff; border-color: var(--accent);
+        }
+        .day-checkbox input { display: none; }
+
+        .mode-tabs {
+            display: flex; gap: 0; margin-bottom: 12px;
+            border-radius: 10px; overflow: hidden; border: 2px solid var(--border);
+        }
+        .mode-tab {
+            flex: 1; padding: 10px; text-align: center;
+            cursor: pointer; font-size: 13px; font-weight: 600;
+            background: var(--bg-card); color: var(--text-secondary);
+            border: none; transition: all 0.15s;
+        }
+        .mode-tab.active {
+            background: var(--accent); color: #fff;
+        }
+        .mode-tab:not(.active):hover { background: var(--bg-secondary); }
+
         .keys-box {
-            background: var(--bg-secondary);
-            padding: 12px;
-            border-radius: 10px;
-            font-family: monospace;
-            font-size: 11px;
-            word-break: break-all;
-            max-height: 200px;
-            overflow-y: auto;
-            margin-top: 10px;
-            line-height: 1.6;
+            background: var(--bg-secondary); padding: 12px;
+            border-radius: 10px; font-family: monospace;
+            font-size: 11px; word-break: break-all;
+            max-height: 200px; overflow-y: auto;
+            margin-top: 10px; line-height: 1.6;
         }
 
         .user-card, .lesson-row, .news-row {
-            background: var(--bg-secondary);
-            border-radius: 10px;
-            padding: 10px 12px;
-            margin-bottom: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 6px;
-            font-size: 12px;
+            background: var(--bg-secondary); border-radius: 10px;
+            padding: 10px 12px; margin-bottom: 6px;
+            display: flex; justify-content: space-between;
+            align-items: center; flex-wrap: wrap; gap: 6px; font-size: 12px;
         }
         .user-card .user-info { flex: 1; min-width: 150px; }
         .user-card .user-name { font-weight: 600; }
@@ -151,11 +132,8 @@
         .user-card .user-meta { font-size: 10px; color: var(--text-secondary); }
 
         .lesson-status, .lesson-type, .badge {
-            font-weight: 700;
-            font-size: 10px;
-            padding: 2px 8px;
-            border-radius: 20px;
-            white-space: nowrap;
+            font-weight: 700; font-size: 10px;
+            padding: 2px 8px; border-radius: 20px; white-space: nowrap;
         }
         .lesson-status.active { background: var(--success-bg); color: var(--success); }
         .lesson-status.cancelled { background: var(--danger-bg); color: var(--danger); }
@@ -164,27 +142,26 @@
         .badge.admin { background: #f0e6ff; color: #7c3aed; }
         .badge.user { background: #e0e7ff; color: #4f46e5; }
         .badge.common { background: var(--warning-bg); color: #b45309; }
+        .badge.date { background: var(--success-bg); color: #15803d; }
 
         .msg { padding: 6px 0; font-size: 12px; }
         .msg.success { color: var(--success); }
         .msg.error { color: var(--danger); }
 
         label.checkbox-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            font-size: 13px;
+            display: flex; align-items: center; gap: 8px;
+            cursor: pointer; font-size: 13px;
         }
         label.checkbox-label input { width: auto; }
 
         @media (max-width: 480px) {
             body { padding: 8px; }
             .card { padding: 14px; margin-bottom: 10px; border-radius: 14px; }
-            h1 { font-size: 1.1rem; }
-            h2 { font-size: 1rem; }
+            h1 { font-size: 1.1rem; } h2 { font-size: 1rem; }
             button { padding: 10px 14px; font-size: 12px; }
             .row > * { min-width: 100%; }
+            .day-checkboxes { gap: 4px; }
+            .day-checkbox { padding: 6px 10px; font-size: 11px; }
         }
     </style>
 </head>
@@ -223,16 +200,39 @@
         <div class="card">
             <h2>📅 Расписание</h2>
             <h3>Добавить событие</h3>
+            
+            <!-- Режим: дни недели или конкретная дата -->
+            <div class="mode-tabs">
+                <button class="mode-tab active" onclick="switchMode('week')" id="modeWeek">📅 Дни недели</button>
+                <button class="mode-tab" onclick="switchMode('date')" id="modeDate">📆 Конкретная дата</button>
+            </div>
+            
             <div class="row">
                 <select id="scheduleEventType" onchange="onEventTypeChange()">
                     <option value="rehearsal">🎵 Репетиция</option>
                     <option value="concert">🎤 Концерт</option>
                 </select>
-                <select id="scheduleDay">
-                    <option value="0">Вс</option><option value="1">Пн</option><option value="2">Вт</option>
-                    <option value="3">Ср</option><option value="4">Чт</option><option value="5">Пт</option><option value="6">Сб</option>
-                </select>
             </div>
+            
+            <!-- Дни недели (режим "week") -->
+            <div id="weekMode">
+                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Выберите дни:</div>
+                <div class="day-checkboxes" id="dayCheckboxes">
+                    <label class="day-checkbox" data-day="1"><input type="checkbox">Пн</label>
+                    <label class="day-checkbox" data-day="2"><input type="checkbox">Вт</label>
+                    <label class="day-checkbox" data-day="3"><input type="checkbox">Ср</label>
+                    <label class="day-checkbox" data-day="4"><input type="checkbox">Чт</label>
+                    <label class="day-checkbox" data-day="5"><input type="checkbox">Пт</label>
+                    <label class="day-checkbox" data-day="6"><input type="checkbox">Сб</label>
+                    <label class="day-checkbox" data-day="0"><input type="checkbox">Вс</label>
+                </div>
+            </div>
+            
+            <!-- Конкретная дата (режим "date") -->
+            <div id="dateMode" style="display:none;">
+                <input type="date" id="scheduleDate" style="margin-bottom:8px;">
+            </div>
+            
             <div class="row" id="groupRow">
                 <select id="scheduleGroup"><option value="">Группа</option></select>
             </div>
@@ -240,9 +240,11 @@
                 <input type="time" id="scheduleStart" style="flex:1;" placeholder="Начало">
                 <input type="time" id="scheduleEnd" style="flex:1;" placeholder="Конец">
             </div>
-            <label class="checkbox-label" style="margin-bottom: 8px;" id="commonLabel">
-                <input type="checkbox" id="scheduleIsCommon"> Общая (для всех групп)
-            </label>
+            <div id="commonRow">
+                <label class="checkbox-label" style="margin-bottom: 8px;">
+                    <input type="checkbox" id="scheduleIsCommon"> Общая (для всех групп)
+                </label>
+            </div>
             <button onclick="saveScheduleLesson()" style="width:100%;">💾 Сохранить</button>
 
             <h3 style="margin-top: 14px;">Все события</h3>
@@ -275,12 +277,41 @@
         function goToLobby(){window.location.href='lobby.html';}
         function esc(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
 
+        let scheduleMode = 'week'; // 'week' или 'date'
+
+        // Переключение режима
+        function switchMode(mode) {
+            scheduleMode = mode;
+            document.getElementById('modeWeek').classList.toggle('active', mode === 'week');
+            document.getElementById('modeDate').classList.toggle('active', mode === 'date');
+            document.getElementById('weekMode').style.display = mode === 'week' ? 'block' : 'none';
+            document.getElementById('dateMode').style.display = mode === 'date' ? 'block' : 'none';
+            
+            // Для конкретной даты скрываем "общая для всех"
+            document.getElementById('commonRow').style.display = mode === 'date' ? 'none' : 'flex';
+        }
+
+        // Клик по чекбоксам дней
+        document.getElementById('dayCheckboxes').addEventListener('click', function(e) {
+            const label = e.target.closest('.day-checkbox');
+            if (!label) return;
+            e.preventDefault();
+            const cb = label.querySelector('input');
+            cb.checked = !cb.checked;
+            label.classList.toggle('checked', cb.checked);
+        });
+
+        function getSelectedDays() {
+            const checked = document.querySelectorAll('#dayCheckboxes .day-checkbox.checked');
+            return Array.from(checked).map(cb => parseInt(cb.dataset.day));
+        }
+
         function onEventTypeChange() {
             const type = document.getElementById('scheduleEventType').value;
-            document.getElementById('groupRow').style.display = type === 'concert' ? 'none' : 'flex';
-            document.getElementById('commonLabel').style.display = type === 'concert' ? 'none' : 'flex';
-            document.getElementById('scheduleEnd').style.display = type === 'concert' ? 'none' : '';
-            if (type === 'concert') {
+            const isConcert = type === 'concert';
+            document.getElementById('groupRow').style.display = isConcert ? 'none' : 'flex';
+            document.getElementById('scheduleEnd').style.display = isConcert ? 'none' : '';
+            if (isConcert) {
                 document.getElementById('scheduleEnd').value = '';
                 document.getElementById('scheduleIsCommon').checked = false;
             }
@@ -311,6 +342,7 @@
                             <div class="user-info">
                                 <span class="user-name">${esc(u.name)}</span>
                                 <span class="badge ${u.role}">${u.role==='admin'?'👑 Админ':'👤 Юзер'}</span>
+                                ${u.username ? `<span style="color:var(--accent);font-size:11px;">@${esc(u.username)}</span>` : ''}
                                 <br><span class="user-email">${esc(u.email)}</span>
                                 <br><span class="user-meta">ID ${u.id} · ${new Date(u.created_at).toLocaleDateString('ru-RU')}</span>
                             </div>
@@ -338,58 +370,84 @@
 
         async function saveScheduleLesson(){
             const eventType = document.getElementById('scheduleEventType').value;
-            const day = parseInt(document.getElementById('scheduleDay').value);
             const st = document.getElementById('scheduleStart').value;
             const et = document.getElementById('scheduleEnd').value;
             
             if(!st){alert('Укажите время');return;}
             
-            // Для концерта: группа 1 + общая
-            const gid = eventType === 'concert' ? 1 : (document.getElementById('scheduleGroup').value || null);
-            const common = eventType === 'concert' ? true : document.getElementById('scheduleIsCommon').checked;
+            const isConcert = eventType === 'concert';
+            const gid = isConcert ? 1 : (document.getElementById('scheduleGroup').value || null);
+            const common = isConcert ? true : document.getElementById('scheduleIsCommon').checked;
+            
+            const body = {
+                adminEmail: userData.email,
+                groupId: parseInt(gid) || null,
+                startTime: st,
+                endTime: et || null,
+                title: eventType === 'concert' ? 'Концерт' : 'Репетиция',
+                description: '',
+                isCommon: common,
+                eventType: eventType
+            };
+            
+            if (scheduleMode === 'date') {
+                const dateVal = document.getElementById('scheduleDate').value;
+                if (!dateVal) { alert('Выберите дату'); return; }
+                body.lessonDate = dateVal;
+            } else {
+                const days = getSelectedDays();
+                if (days.length === 0) { alert('Выберите хотя бы один день недели'); return; }
+                body.days = days;
+            }
             
             try{
-                const res=await fetch('/api/admin/schedule',{
-                    method:'POST',
-                    headers:{'Content-Type':'application/json'},
-                    body:JSON.stringify({
-                        adminEmail:userData.email,
-                        groupId:parseInt(gid),
-                        dayOfWeek:day,
-                        startTime:st,
-                        endTime:et||null,
-                        title:eventType==='concert'?'Концерт':'Репетиция',
-                        description:'',
-                        isCommon:common,
-                        eventType:eventType
-                    })
+                const res = await fetch('/api/admin/schedule', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify(body)
                 });
-                const d=await res.json();
+                const d = await res.json();
                 if(d.success){
-                    alert('✅ Добавлено');
+                    alert('✅ Добавлено (' + (d.ids ? d.ids.length : 1) + ' зап.)');
                     loadAllSchedule();
                     document.getElementById('scheduleStart').value='';
                     document.getElementById('scheduleEnd').value='';
                     document.getElementById('scheduleIsCommon').checked=false;
-                }else alert('❌ '+(d.error||'Ошибка'));
+                    document.getElementById('scheduleDate').value='';
+                    // Снимаем выбор дней
+                    document.querySelectorAll('#dayCheckboxes .day-checkbox.checked').forEach(cb => {
+                        cb.classList.remove('checked');
+                        cb.querySelector('input').checked = false;
+                    });
+                } else alert('❌ '+(d.error||'Ошибка'));
             }catch(e){alert('Ошибка сервера');}
         }
 
         async function loadAllSchedule(){
             try{
-                const res=await fetch('/api/schedule');
-                const d=await res.json();
-                const dn=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
-                if(d.success&&d.lessons.length){
-                    document.getElementById('scheduleListAdmin').innerHTML=d.lessons.map(l=>{
-                        const t=l.end_time?`${l.start_time.substring(0,5)}–${l.end_time.substring(0,5)}`:l.start_time.substring(0,5);
-                        const st=l.status==='active'?'active':'cancelled';
-                        const et=l.event_type||'rehearsal';
+                const res = await fetch('/api/schedule');
+                const d = await res.json();
+                const dn = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+                if(d.success && d.lessons.length){
+                    document.getElementById('scheduleListAdmin').innerHTML = d.lessons.map(l => {
+                        const t = l.end_time ? `${l.start_time.substring(0,5)}–${l.end_time.substring(0,5)}` : l.start_time.substring(0,5);
+                        const st = l.status === 'active' ? 'active' : 'cancelled';
+                        const et = l.event_type || 'rehearsal';
+                        
+                        let dayStr = '';
+                        if (l.lesson_date) {
+                            dayStr = new Date(l.lesson_date).toLocaleDateString('ru-RU', {day:'numeric', month:'long'});
+                        } else if (l.day_of_week !== null && l.day_of_week !== undefined) {
+                            dayStr = dn[l.day_of_week];
+                        }
+                        
+                        const dateBadge = l.lesson_date ? ' <span class="badge date">📆 Дата</span>' : '';
+                        
                         return `<div class="lesson-row">
                             <div style="flex:1;min-width:140px;">
                                 <strong>${l.group_name||'Концерт'}</strong>${l.is_common?' <span class="badge common">Общая</span>':''}
-                                <span class="lesson-type ${et}">${et==='concert'?'🎤 Концерт':'🎵 Репетиция'}</span>
-                                <span style="color:var(--text-secondary);"> — ${dn[l.day_of_week]}, ${t}</span>
+                                <span class="lesson-type ${et}">${et==='concert'?'🎤 Концерт':'🎵 Репетиция'}</span>${dateBadge}
+                                <span style="color:var(--text-secondary);"> — ${dayStr}, ${t}</span>
                                 <span class="lesson-status ${st}">${l.status==='active'?'Активно':'Отменено'}</span>
                             </div>
                             <div style="display:flex;gap:4px;">
@@ -398,10 +456,12 @@
                             </div>
                         </div>`;
                     }).join('');
-                }else{
+                } else {
                     document.getElementById('scheduleListAdmin').innerHTML='<p style="font-size:12px;color:var(--text-secondary);">Нет событий</p>';
                 }
-            }catch(e){}
+            } catch(e) {
+                console.error(e);
+            }
         }
 
         async function cancelLesson(id){await fetch(`/api/admin/schedule/${id}/status`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,status:'cancelled'})});loadAllSchedule();}
