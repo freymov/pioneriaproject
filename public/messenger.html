@@ -73,6 +73,23 @@
         .sidebar-header button:active { transform: scale(0.95); opacity: 0.8; }
         .lobby-btn { background: transparent !important; color: var(--accent) !important; }
 
+        /* Поиск по чатам */
+        .search-bar {
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .search-bar input {
+            width: 100%; padding: 9px 14px;
+            border: 1px solid var(--border);
+            border-radius: 20px; font-size: 13px;
+            background: var(--bg2); color: var(--text);
+            outline: none; font-family: inherit;
+            transition: border 0.15s;
+        }
+        .search-bar input:focus {
+            border-color: var(--accent);
+        }
+
         .chats-list { flex: 1; overflow-y: auto; }
         .chat-item {
             display: flex; align-items: center; gap: 12px;
@@ -92,6 +109,7 @@
         .chat-name { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; }
         .chat-last { font-size: 12px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
         .unread { background: var(--accent); color: #fff; border-radius: 12px; padding: 2px 7px; font-size: 11px; font-weight: 700; }
+        .chat-username { font-size: 11px; color: var(--accent); font-weight: 400; }
 
         .chat-view {
             flex: 1; display: flex; flex-direction: column;
@@ -200,6 +218,7 @@
             font-weight: 700; font-size: 13px; flex-shrink: 0;
             overflow: hidden; margin-bottom: 2px;
             box-shadow: var(--shadow-sm);
+            cursor: pointer;
         }
         .msg-avatar-small img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
         
@@ -229,8 +248,9 @@
         }
         .msg-sender {
             font-weight: 700; font-size: 12px; margin-bottom: 2px;
-            color: var(--accent);
+            color: var(--accent); cursor: pointer;
         }
+        .msg-sender:hover { text-decoration: underline; }
         .msg-time { font-size: 10px; opacity: 0.7; text-align: right; margin-top: 4px; }
         
         /* Изображения как в Telegram */
@@ -408,6 +428,34 @@
         .modal-card button:active { transform: scale(0.97); opacity: 0.85; }
         .modal-card .cbtn { background: var(--bg2); color: var(--text); }
 
+        /* Профиль */
+        .profile-avatar {
+            width: 80px; height: 80px; border-radius: 50%;
+            background: var(--accent); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 32px; margin: 0 auto 12px;
+            overflow: hidden; box-shadow: var(--shadow-md);
+        }
+        .profile-avatar img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; }
+        .profile-name { font-size: 18px; font-weight: 700; text-align: center; }
+        .profile-username { font-size: 14px; color: var(--accent); text-align: center; margin-bottom: 8px; }
+        .profile-role {
+            display: inline-block; padding: 3px 10px; border-radius: 12px;
+            font-size: 11px; font-weight: 600; text-align: center;
+            background: var(--accent); color: #fff; margin: 0 auto; display: table;
+        }
+        .profile-role.admin { background: #f59e0b; }
+        .profile-date { font-size: 11px; color: var(--text2); text-align: center; margin-top: 8px; }
+
+        /* Кнопка "написать" в профиле */
+        .profile-action {
+            width: 100%; padding: 10px; background: var(--accent);
+            color: #fff; border: none; border-radius: var(--radius-sm);
+            font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 12px;
+            transition: all 0.15s;
+        }
+        .profile-action:active { transform: scale(0.97); opacity: 0.85; }
+
         @media (max-width: 768px) {
             .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 100%; z-index: 50; transition: transform 0.2s; }
             .sidebar.hidden { transform: translateX(-100%); }
@@ -429,6 +477,10 @@
                     <button onclick="showCreateGroup()">👥</button>
                 </div>
             </div>
+            <!-- Поиск по чатам -->
+            <div class="search-bar">
+                <input type="text" id="chatSearch" placeholder="🔍 Поиск по чатам..." autocomplete="off">
+            </div>
             <div class="chats-list" id="chatsList"></div>
         </div>
 
@@ -436,8 +488,8 @@
             <div class="wallpaper"></div>
             <div class="chat-header">
                 <button class="back-arrow" onclick="showSidebar()">←</button>
-                <div class="chat-header-avatar" id="chatAvatar" onclick="openChatSettings()">🎵</div>
-                <div class="chat-header-info" onclick="openChatSettings()">
+                <div class="chat-header-avatar" id="chatAvatar" onclick="openChatProfile()">🎵</div>
+                <div class="chat-header-info" onclick="openChatProfile()">
                     <div class="chat-header-name" id="chatTitle">Старший хор</div>
                     <div class="chat-header-status" id="chatStatus">Общий чат</div>
                 </div>
@@ -488,9 +540,10 @@
         </div>
     </div>
 
+    <!-- Модалка нового диалога (поиск по юзернеймам) -->
     <div class="modal" id="userModal"><div class="modal-card">
         <h3>Новый диалог</h3>
-        <input type="text" id="userSearch" placeholder="Поиск...">
+        <input type="text" id="userSearch" placeholder="Поиск по имени или @username...">
         <div id="usersList"></div>
         <button class="cbtn" onclick="closeM('userModal')">Отмена</button>
     </div></div>
@@ -516,6 +569,9 @@
         <button class="cbtn" onclick="closeM('settingsModal')">Закрыть</button>
     </div></div>
 
+    <!-- Модалка профиля -->
+    <div class="modal" id="profileModal"><div class="modal-card" id="profileContent"></div></div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const userData = JSON.parse(localStorage.getItem('user') || '{}');
@@ -531,6 +587,7 @@
         let selectedMsgId = null, editingMsgId = null;
         let longPressTimer = null;
         let longPressTriggered = false;
+        let currentProfileUserId = null;
 
         // ====== НАБОР ЭМОДЗИ ======
         const emojiCategories = {
@@ -540,12 +597,8 @@
             '⚽': ['⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱','🪀','🏓','🏸','🏒','🏑','🥍','🏏','🪃','🥅','⛳','🪁','🏹','🎣','🤿','🥊','🥋','🎽','🛹','🛼','🛷','⛸️','🥌','🎿','⛷️','🏂','🪂','🏋️','🤼','🤸','🤺','⛹️','🤾','🏌️','🏇','🧘','🏄','🏊','🤽','🚣','🧗','🚵','🚴'],
             '🚗': ['🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🛻','🚚','🚛','🚜','🛵','🏍️','🛺','🚲','🛴','🚨','🚔','🚍','🚘','🚖','🚡','🚠','🚟','🚃','🚋','🚞','🚝','🚄','🚅','🚈','🚆','🚇','🚊','🚉','✈️','🛫','🛬','🛩️','💺','🛰️','🚀','🛸','🚁','🛶','⛵','🚤','🛥️','🛳️','⛴️','🚢','⚓','🪝','🚧','🚦','🚥','🚏','🗺️','🗿','🗽','🗼','🏰','🏯','🏟️','🎡','🎢','🎠','⛲','⛱️','🏖️','🏝️','🏜️','🌋','⛰️','🏔️','🗻','🏕️','⛺','🛖','🏠','🏡','🏘️','🏚️','🏗️','🏢','🏭','🏣','🏤','🏥','🏦','🏨','🏩','🏪','🏫','🏬','🏯','🏰','💒','🗼','🗽'],
             '❤️': ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','☮️','✝️','☪️','🕉️','☸️','✡️','🔯','🕎','☯️','☦️','🛐','⛎','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','🆔','⚛️','🉑','☢️','☣️','📴','📳','🈶','🈚','🈸','🈺','🈷️','✴️','🆚','💮','🉐','㊙️','㊗️','🈴','🈵','🈹','🈲','🅰️','🅱️','🆎','🆑','🅾️','🆘','❌','⭕','🛑','⛔','📛','🚫','💯','💢','♨️','🚷','🚯','🚳','🚱','🔞','📵','🚭','❗','❕','❓','❔','‼️','⁉️','🔅','🔆','〽️','⚠️','🚸','🔱','⚜️','🔰','♻️','✅','🈯','💹','❇️','✳️','❎','🌐','💠','Ⓜ️','🌀','💤','🏧','🚾','♿','🅿️','🛗','🈳','🈂️','🛂','🛃','🛄','🛅','🚰','🚮','🚹','🚺','🚼','🚻','🚽','🚿','🛁','🛀','🧴','🧸','🪒','🧹','🧺','🧻','🪣','🧼','🪥','🧽','🧯','🛒'],
-            '🎵': ['🎵','🎶','🎼','🎤','🎧','🎷','🎸','🎹','🎺','🎻','🥁','🪘','🎬','🎨','🎭','🎪','🎟️','🎫','🎗️','🎖️','🏆','🏅','🥇','🥈','🥉','⚽','🏀','🏈','⚾','🥎','🎾','🎱','🎳','♟️','🎯','🎮','🕹️','🎰','🎲','🧩','🧸','🪅','🪆','♠️','♥️','♦️','♣️','🃏','🀄','🎴','🎲','🎯','🎳','🎮','🎰'],
-            '💡': ['💡','🔦','📖','📚','📓','📒','📔','📕','📗','📘','📙','📝','📜','📄','📑','🔖','💰','💴','💵','💶','💷','💸','🪙','💳','💎','⚖️','🪜','🔧','🔨','⚒️','🛠️','⛏️','🔩','⚙️','🪛','🔗','⛓️','🪝','🧲','🔫','💣','🧨','🪓','🔪','🗡️','⚔️','🛡️','🚬','⚰️','🪦','⚱️','🏺','🔮','📿','🧿','🪬','💈','⚗️','🔭','🔬','🕳️','🩹','🩺','💊','💉','🩸','🧬','🦠','🧫','🧪','🌡️','🧹','🧺','🧻','🚽','🚰','🚿','🛁','🛀','🧴','🧷','🪥','🧼','🧽','🧯','🛒']
-        };
-        const emojiCategoryNames = {
-            '😀': 'Смайлы', '🐱': 'Животные', '🍕': 'Еда', '⚽': 'Спорт',
-            '🚗': 'Транспорт', '❤️': 'Символы', '🎵': 'Развлечения', '💡': 'Предметы'
+            '🎵': ['🎵','🎶','🎼','🎤','🎧','🎷','🎸','🎹','🎺','🎻','🥁','🪘','🎬','🎨','🎭','🎪','🎟️','🎫','🎗️','🎖️','🏆','🏅','🥇','🥈','🥉','🎯','🎮','🕹️','🎰','🎲','🧩','🧸','🪅','🪆','♠️','♥️','♦️','♣️','🃏','🀄','🎴'],
+            '💡': ['💡','🔦','📖','📚','📓','📒','📔','📕','📗','📘','📙','📝','📜','📄','📑','🔖','💰','💴','💵','💶','💷','💸','🪙','💳','💎','⚖️','🪜','🔧','🔨','⚒️','🛠️','⛏️','🔩','⚙️','🪛','🔗','⛓️','🪝','🧲','🔫','💣','🧨','🪓','🔪','🗡️','⚔️','🛡️','🚬','⚰️','🪦','⚱️','🏺','🔮','📿','🧿','🪬','💈','⚗️','🔭','🔬','🕳️','🩹','🩺','💊','💉','🩸','🧬','🦠','🧫','🧪','🌡️']
         };
 
         let emojiPanelOpen = false;
@@ -555,15 +608,12 @@
             const gridContainer = document.getElementById('emojiGrid');
             let activeCategory = Object.keys(emojiCategories)[0];
 
-            // Создаём вкладки
             tabsContainer.innerHTML = Object.keys(emojiCategories).map(key => 
                 `<button class="emoji-tab ${key === activeCategory ? 'active' : ''}" data-category="${key}">${key}</button>`
             ).join('');
 
-            // Показываем первую категорию
             renderEmojiGrid(activeCategory);
 
-            // Обработчики вкладок
             tabsContainer.querySelectorAll('.emoji-tab').forEach(tab => {
                 tab.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -583,7 +633,6 @@
                 `<div class="emoji-item" data-emoji="${emoji}">${emoji}</div>`
             ).join('');
 
-            // Обработчики клика по эмодзи
             grid.querySelectorAll('.emoji-item').forEach(item => {
                 item.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -600,7 +649,6 @@
             const before = input.value.substring(0, start);
             const after = input.value.substring(end);
             input.value = before + emoji + after;
-            // Ставим курсор после вставленного эмодзи
             const newPos = start + emoji.length;
             input.setSelectionRange(newPos, newPos);
             input.focus();
@@ -616,12 +664,10 @@
                 panel.classList.remove('show');
                 document.getElementById('emojiBtn').style.color = 'var(--text2)';
             }
-            // Скроллим чат вниз
             const container = document.getElementById('messagesContainer');
             container.scrollTop = container.scrollHeight;
         }
 
-        // Инициализируем эмодзи при загрузке
         initEmojiPanel();
 
         const $ = id => document.getElementById(id);
@@ -647,8 +693,69 @@
         }
 
         function getUserAvatarHTML(uid, uname){
-            if(userAvatars[uid]) return `<img src="${userAvatars[uid]}">`;
+            if(uid && userAvatars[uid]) return `<img src="${userAvatars[uid]}">`;
             return (uname||'?')[0].toUpperCase();
+        }
+
+        function getDisplayName(user){
+            if(user.username) return `@${user.username}`;
+            return user.name || 'Пользователь';
+        }
+
+        // ====== ПРОФИЛЬ ======
+        async function showUserProfile(userId){
+            try {
+                const r = await fetch(`/api/user/${userId}`);
+                const d = await r.json();
+                if(!d.success) return;
+                
+                const u = d.user;
+                currentProfileUserId = u.id;
+                const avHtml = u.avatar_url 
+                    ? `<img src="${u.avatar_url}">` 
+                    : (u.name||'?')[0].toUpperCase();
+                const roleClass = u.role === 'admin' ? 'admin' : '';
+                const roleName = u.role === 'admin' ? 'Администратор' : 'Пользователь';
+                const dateStr = u.created_at ? new Date(u.created_at).toLocaleDateString('ru-RU') : '';
+                
+                $('profileContent').innerHTML = `
+                    <div class="profile-avatar">${avHtml}</div>
+                    <div class="profile-name">${esc(u.name)}</div>
+                    ${u.username ? `<div class="profile-username">@${esc(u.username)}</div>` : ''}
+                    <div class="profile-role ${roleClass}">${roleName}</div>
+                    ${dateStr ? `<div class="profile-date">На сервере с ${dateStr}</div>` : ''}
+                    ${u.id !== userData.id ? `<button class="profile-action" onclick="startChatFromProfile(${u.id},'${esc(u.name)}')">💬 Написать</button>` : ''}
+                    <button class="cbtn" style="margin-top:8px;" onclick="closeM('profileModal')">Закрыть</button>
+                `;
+                $('profileModal').classList.add('show');
+            } catch(e){
+                console.error('Ошибка профиля:', e);
+            }
+        }
+
+        async function startChatFromProfile(id, name){
+            closeM('profileModal');
+            const r = await fetch('/api/get-or-create-chat', {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({userId:userData.id, otherUserId:id})
+            });
+            const d = await r.json();
+            if(d.success){
+                await loadChats();
+                selectChat(d.chatId, name, 'private');
+            }
+        }
+
+        function openChatProfile(){
+            if(currentChatType === 'private' && currentChatId !== null){
+                const chat = allChats.find(c => c.id === currentChatId);
+                if(chat && chat.other_user_id){
+                    showUserProfile(chat.other_user_id);
+                }
+            } else if(currentChatType === 'group'){
+                openChatSettings();
+            }
         }
 
         // ====== ПРОСМОТР ФОТО ======
@@ -748,10 +855,26 @@
             }catch(e){console.error(e);}
         }
 
-        function renderChats(){
+        function renderChats(filterText = ''){
             const c=$('chatsList');
-            if(!allChats.length){c.innerHTML='<div style="padding:20px;color:var(--text2);">Нет чатов</div>';return;}
-            c.innerHTML=allChats.map(chat=>{
+            let chatsToRender = allChats;
+            
+            // Фильтрация по поиску
+            if(filterText){
+                const q = filterText.toLowerCase();
+                chatsToRender = allChats.filter(chat => {
+                    const name = (chat.other_user_name || '').toLowerCase();
+                    const username = (chat.other_user_username || '').toLowerCase();
+                    return name.includes(q) || username.includes(q);
+                });
+            }
+            
+            if(!chatsToRender.length){
+                c.innerHTML='<div style="padding:20px;color:var(--text2);text-align:center;">🔍 Ничего не найдено</div>';
+                return;
+            }
+            
+            c.innerHTML=chatsToRender.map(chat=>{
                 const act=currentChatId===chat.id;
                 let avHtml='';
                 if(chat.type==='general')avHtml='<div class="chat-avatar">🎵</div>';
@@ -762,19 +885,36 @@
                     avHtml=`<div class="chat-avatar">${letter}</div>`;
                 }
                 const nm=chat.other_user_name||'Чат';
+                const uname = chat.other_user_username ? `<span class="chat-username">@${esc(chat.other_user_username)}</span>` : '';
                 const last=chat.last_message||'Нет сообщений';
                 const unr=chat.unread_count>0?`<span class="unread">${chat.unread_count}</span>`:'';
                 const click=chat.id===null?`selectChat(null,'${esc(nm)}','general')`:`selectChat(${chat.id},'${esc(nm)}','${chat.type||'private'}')`;
-                return `<div class="chat-item ${act?'active':''}" onclick="${click}">${avHtml}<div class="chat-info"><div class="chat-name">${esc(nm)} ${unr}</div><div class="chat-last">${esc(last.length>30?last.substring(0,30)+'...':last)}</div></div></div>`;
+                return `<div class="chat-item ${act?'active':''}" onclick="${click}">${avHtml}<div class="chat-info"><div class="chat-name">${esc(nm)} ${uname} ${unr}</div><div class="chat-last">${esc(last.length>30?last.substring(0,30)+'...':last)}</div></div></div>`;
             }).join('');
         }
+
+        // Поиск по чатам
+        $('chatSearch').oninput = function(){
+            renderChats(this.value);
+        };
 
         function selectChat(id,name,type){
             if(currentChatId===id&&socket?.connected)return;
             currentChatId=id;currentChatName=name;currentChatType=type;
             $('chatTitle').textContent=name;
-            $('chatAvatar').innerHTML=getUserAvatarHTML(null,name);
             $('chatStatus').textContent=type==='group'?'Группа':(type==='general'?'Общий чат':'Личный чат');
+            
+            // Аватарка в шапке
+            if(type === 'private' && id !== null){
+                const chat = allChats.find(c => c.id === id);
+                const otherUserId = chat?.other_user_id;
+                $('chatAvatar').innerHTML = getUserAvatarHTML(otherUserId, name);
+                $('chatAvatar').style.cursor = 'pointer';
+            } else {
+                $('chatAvatar').innerHTML = getUserAvatarHTML(null, name);
+                $('chatAvatar').style.cursor = 'pointer';
+            }
+            
             hideSidebar();
             $('messagesContainer').innerHTML='';
             selectedMsgId = null;
@@ -813,11 +953,11 @@
                 try{fetch('/api/mark-read',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chatId:id,userId:userData.id})});}catch(e){}
             }
 
-            renderChats();
+            renderChats($('chatSearch').value);
             loadPinned();
         }
 
-        // ====== LONG PRESS (зажатие) ======
+        // ====== LONG PRESS ======
         function startLongPress(msgId, el) {
             longPressTriggered = false;
             longPressTimer = setTimeout(() => {
@@ -844,11 +984,9 @@
             $('asOverlay').classList.add('show');
         }
 
-        // Проверка: состоит ли сообщение только из эмодзи (до 3 штук)
         function isEmojiOnly(text) {
             if (!text) return false;
             const trimmed = text.trim();
-            // Регулярка: эмодзи + возможные пробелы между ними
             const emojiRegex = /^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)(\s*(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)){0,2}$/u;
             return emojiRegex.test(trimmed);
         }
@@ -868,13 +1006,15 @@
             if(data.image_url)row.setAttribute('data-image-url',data.image_url);
 
             const time=formatTime(data.timestamp);
-            const avHtml= (!sys&&!own) ? `<div class="msg-avatar-small">${getUserAvatarHTML(data.user_id,data.name)}</div>` : '';
+            const avHtml= (!sys&&!own) 
+                ? `<div class="msg-avatar-small" onclick="event.stopPropagation(); showUserProfile(${data.user_id})">${getUserAvatarHTML(data.user_id,data.name)}</div>` 
+                : '';
 
             let bubbleClass = 'msg-bubble';
             if(emojiOnly) bubbleClass += ' msg-emoji-only';
 
             let html= avHtml + `<div class="${bubbleClass}">`;
-            if(!sys&&!own)html+=`<div class="msg-sender">${esc(data.name)}</div>`;
+            if(!sys&&!own)html+=`<div class="msg-sender" onclick="event.stopPropagation(); showUserProfile(${data.user_id})">${esc(data.name)}</div>`;
             if(text.startsWith('📷')){
                 const imgUrl = text.replace('📷 ','');
                 html+=`<img src="${imgUrl}" class="msg-image" onclick="event.stopPropagation(); openImageViewer('${imgUrl}')">`;
@@ -888,13 +1028,13 @@
 
             const msgId = data.id;
             row.addEventListener('mousedown', (e) => {
-                if(e.target.tagName === 'IMG') return;
+                if(e.target.tagName === 'IMG' || e.target.closest('.msg-avatar-small') || e.target.closest('.msg-sender')) return;
                 startLongPress(msgId, row);
             });
             row.addEventListener('mouseup', cancelLongPress);
             row.addEventListener('mouseleave', cancelLongPress);
             row.addEventListener('touchstart', (e) => {
-                if(e.target.tagName === 'IMG') return;
+                if(e.target.tagName === 'IMG' || e.target.closest('.msg-avatar-small') || e.target.closest('.msg-sender')) return;
                 startLongPress(msgId, row);
             }, {passive: true});
             row.addEventListener('touchend', cancelLongPress);
@@ -988,24 +1128,54 @@
             $('imageInput').value='';
         };
 
-        // Закрываем панель эмодзи при клике вне неё
         document.addEventListener('click', (e) => {
             if(emojiPanelOpen && !e.target.closest('.emoji-panel') && !e.target.closest('#emojiBtn')) {
                 toggleEmojiPanel();
             }
         });
 
+        // ====== НОВЫЙ ДИАЛОГ (поиск по юзернейму) ======
         function showNewChat(){
             $('userModal').classList.add('show');
-            $('usersList').innerHTML=allUsers.filter(u=>u.id!==userData.id).map(u=>
-                `<div style="padding:10px;cursor:pointer;border-radius:8px;transition:background 0.1s;" onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background=''" onclick="startChat(${u.id},'${esc(u.name)}')"><strong>${esc(u.name)}</strong><br><small>${esc(u.email)}</small></div>`
-            ).join('');
+            $('userSearch').value = '';
+            renderUsersList('');
         }
 
-        $('userSearch').oninput=function(){
-            const q=this.value.toLowerCase();
-            $('usersList').innerHTML=allUsers.filter(u=>u.id!==userData.id&&(u.name.toLowerCase().includes(q)||u.email.toLowerCase().includes(q)))
-                .map(u=>`<div style="padding:10px;cursor:pointer;border-radius:8px;" onclick="startChat(${u.id},'${esc(u.name)}')"><strong>${esc(u.name)}</strong><br><small>${esc(u.email)}</small></div>`).join('');
+        function renderUsersList(query){
+            const container = $('usersList');
+            if(!query){
+                container.innerHTML = '<div style="padding:10px;color:var(--text2);text-align:center;">Введите имя или @username</div>';
+                return;
+            }
+            
+            // Сначала ищем локально
+            const q = query.toLowerCase();
+            let filtered = allUsers.filter(u => 
+                u.id !== userData.id && 
+                ((u.username && u.username.toLowerCase().includes(q)) || 
+                 u.name.toLowerCase().includes(q) ||
+                 u.email.toLowerCase().includes(q))
+            );
+            
+            if(filtered.length === 0) {
+                container.innerHTML = '<div style="padding:10px;color:var(--text2);text-align:center;">🔍 Никого не найдено</div>';
+            } else {
+                container.innerHTML = filtered.map(u => {
+                    const avHtml = u.avatar_url ? `<img src="${u.avatar_url}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">` : `<div style="width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;">${u.name[0].toUpperCase()}</div>`;
+                    const uname = u.username ? `@${esc(u.username)}` : '';
+                    return `<div style="display:flex;align-items:center;gap:10px;padding:10px;cursor:pointer;border-radius:10px;transition:background 0.1s;" onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background=''" onclick="startChat(${u.id},'${esc(u.name)}')">
+                        ${avHtml}
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-weight:600;font-size:14px;">${esc(u.name)}</div>
+                            <div style="font-size:12px;color:var(--text2);">${uname} · ${esc(u.email)}</div>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+        }
+
+        $('userSearch').oninput = function(){
+            renderUsersList(this.value);
         };
 
         async function startChat(id,name){
@@ -1016,8 +1186,10 @@
 
         function showCreateGroup(){
             $('groupModal').classList.add('show');
-            $('groupMembers').innerHTML=allUsers.filter(u=>u.id!==userData.id).map(u=>
-                `<div style="padding:6px 0;"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" value="${u.id}"> ${esc(u.name)}</label></div>`).join('');
+            $('groupMembers').innerHTML=allUsers.filter(u=>u.id!==userData.id).map(u=>{
+                const uname = u.username ? ` @${esc(u.username)}` : '';
+                return `<div style="padding:6px 0;"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" value="${u.id}"> ${esc(u.name)}<span style="font-size:11px;color:var(--text2);">${uname}</span></label></div>`;
+            }).join('');
         }
 
         async function createGroup(){
