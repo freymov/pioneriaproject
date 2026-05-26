@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-            <!-- Блокируем рендеринг до применения темы -->
+    <!-- Блокируем рендеринг до применения темы -->
     <script>
         (function() {
             var theme = localStorage.getItem('theme') || 'light';
@@ -35,6 +35,7 @@
             --card-shadow: 0 2px 10px rgba(0,0,0,0.05);
             --header-bg: #ffffff;
             --danger-color: #ff4757;
+            --success-color: #2ed573;
             --modal-overlay: rgba(0,0,0,0.5);
             --avatar-border: #667eea;
         }
@@ -52,6 +53,7 @@
             --card-shadow: 0 2px 10px rgba(0,0,0,0.3);
             --header-bg: #2a2a3e;
             --danger-color: #ff6b6b;
+            --success-color: #2ed573;
             --modal-overlay: rgba(0,0,0,0.7);
             --avatar-border: #7c8aff;
         }
@@ -84,7 +86,9 @@
             cursor: pointer;
             color: var(--accent);
             padding: 5px;
+            transition: transform 0.15s;
         }
+        .back-btn:active { transform: scale(0.9); }
 
         .header h1 {
             font-size: 20px;
@@ -121,6 +125,7 @@
             border-radius: 50%;
             object-fit: cover;
             border: 3px solid var(--avatar-border);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
         .avatar-placeholder {
@@ -135,6 +140,7 @@
             font-weight: bold;
             font-size: 48px;
             border: 3px solid var(--avatar-border);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
         .avatar-edit-btn {
@@ -152,15 +158,35 @@
             cursor: pointer;
             border: 3px solid var(--card-bg);
             font-size: 18px;
-            transition: background 0.3s;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
+        .avatar-edit-btn:active { transform: scale(0.9); }
 
         .avatar-name {
             font-size: 24px;
             font-weight: bold;
             color: var(--text-primary);
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
+        
+        .avatar-username {
+            font-size: 15px;
+            color: var(--accent);
+            font-weight: 500;
+        }
+        
+        .avatar-role {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--accent);
+            color: #fff;
+        }
+        .avatar-role.admin { background: #f59e0b; }
 
         /* Секция с информацией */
         .info-section {
@@ -207,6 +233,13 @@
         .info-value {
             font-size: 16px;
             color: var(--text-primary);
+            word-break: break-all;
+        }
+        
+        .info-hint {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
         }
 
         .info-action {
@@ -216,6 +249,8 @@
             padding: 5px 10px;
             border-radius: 8px;
             transition: background 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .info-action:hover {
@@ -248,6 +283,7 @@
             top: 3px;
             left: 3px;
             transition: left 0.3s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
 
         [data-theme="dark"] .theme-switch-thumb {
@@ -266,7 +302,10 @@
             align-items: center;
             justify-content: center;
             z-index: 300;
+            animation: fadeIn 0.2s ease;
         }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .modal.active {
             display: flex;
@@ -279,22 +318,68 @@
             width: 90%;
             max-width: 400px;
             transition: background 0.3s;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: slideUp 0.25s ease;
         }
+        
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         .modal-content h3 {
-            margin-bottom: 20px;
+            margin-bottom: 8px;
             color: var(--text-primary);
+        }
+        
+        .modal-content .modal-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            line-height: 1.4;
         }
 
         .modal-content input {
             width: 100%;
-            padding: 12px;
+            padding: 12px 14px;
             border: 2px solid var(--border-color);
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 16px;
             margin-bottom: 20px;
             background: var(--bg-primary);
             color: var(--text-primary);
+            outline: none;
+            transition: border 0.2s;
+        }
+        .modal-content input:focus {
+            border-color: var(--accent);
+        }
+        
+        .username-input-wrapper {
+            display: flex;
+            align-items: center;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            background: var(--bg-primary);
+            transition: border 0.2s;
+        }
+        .username-input-wrapper:focus-within {
+            border-color: var(--accent);
+        }
+        .username-prefix {
+            padding: 12px 0 12px 14px;
+            font-size: 16px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .username-input-wrapper input {
+            border: none !important;
+            margin-bottom: 0 !important;
+            padding: 12px 14px 12px 2px;
+            flex: 1;
+            background: transparent;
+            min-width: 0;
+        }
+        .username-input-wrapper input:focus {
+            border: none !important;
         }
 
         .modal-actions {
@@ -306,10 +391,13 @@
             flex: 1;
             padding: 12px;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 16px;
             cursor: pointer;
+            font-weight: 600;
+            transition: all 0.15s;
         }
+        .modal-actions button:active { transform: scale(0.96); }
 
         .btn-primary {
             background: var(--accent);
@@ -317,7 +405,7 @@
         }
 
         .btn-secondary {
-            background: var(--border-color);
+            background: var(--bg-secondary);
             color: var(--text-primary);
         }
 
@@ -348,11 +436,25 @@
                 <div class="avatar-edit-btn" onclick="document.getElementById('avatarInput').click()">📷</div>
             </div>
             <div class="avatar-name" id="profileName"></div>
+            <div class="avatar-username" id="profileUsername"></div>
+            <div class="avatar-role" id="profileRole"></div>
             <input type="file" id="avatarInput" accept="image/*" style="display: none;">
         </div>
 
         <!-- Информация -->
         <div class="info-section">
+            <!-- Юзернейм -->
+            <div class="info-item" onclick="openEditUsernameModal()">
+                <div class="info-icon">🆔</div>
+                <div class="info-content">
+                    <div class="info-label">Юзернейм</div>
+                    <div class="info-value" id="displayUsername">Не задан</div>
+                    <div class="info-hint">Используется для поиска и входа</div>
+                </div>
+                <div class="info-action">Изменить</div>
+            </div>
+            
+            <!-- Имя -->
             <div class="info-item" onclick="openEditNameModal()">
                 <div class="info-icon">👤</div>
                 <div class="info-content">
@@ -362,6 +464,7 @@
                 <div class="info-action">Изменить</div>
             </div>
             
+            <!-- Email -->
             <div class="info-item" onclick="toggleEmail()">
                 <div class="info-icon">📧</div>
                 <div class="info-content">
@@ -399,10 +502,27 @@
         </div>
     </div>
 
+    <!-- Модалка редактирования юзернейма -->
+    <div class="modal" id="editUsernameModal">
+        <div class="modal-content">
+            <h3>Юзернейм</h3>
+            <div class="modal-desc">Буквы, цифры и подчёркивания. От 3 до 30 символов. После установки юзернейм можно будет использовать для поиска.</div>
+            <div class="username-input-wrapper">
+                <span class="username-prefix">@</span>
+                <input type="text" id="newUsernameInput" placeholder="username" maxlength="30" autocomplete="off">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-primary" onclick="saveUsername()">Сохранить</button>
+                <button class="btn-secondary" onclick="closeEditUsernameModal()">Отмена</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Модалка редактирования имени -->
     <div class="modal" id="editNameModal">
         <div class="modal-content">
             <h3>Изменить имя</h3>
+            <div class="modal-desc">Имя отображается в чатах и списке пользователей.</div>
             <input type="text" id="newNameInput" placeholder="Введите новое имя">
             <div class="modal-actions">
                 <button class="btn-primary" onclick="saveName()">Сохранить</button>
@@ -412,7 +532,7 @@
     </div>
 
     <script>
-        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        let userData = JSON.parse(localStorage.getItem('user') || '{}');
         
         if (!userData.name) {
             window.location.href = 'login.html';
@@ -441,7 +561,6 @@
         function updateThemeUI() {
             const theme = getCurrentTheme();
             document.getElementById('themeLabel').textContent = theme === 'light' ? 'Светлая' : 'Тёмная';
-            // Обновляем meta theme-color
             const metaTheme = document.querySelector('meta[name="theme-color"]');
             if (metaTheme) {
                 metaTheme.content = theme === 'light' ? '#667eea' : '#1a1a2e';
@@ -478,10 +597,38 @@
             }
         }
 
+        // ========== ОБНОВЛЕНИЕ ДАННЫХ ==========
+        function refreshUserData() {
+            userData = JSON.parse(localStorage.getItem('user') || '{}');
+        }
+
         // ========== ИНИЦИАЛИЗАЦИЯ ==========
         function init() {
+            refreshUserData();
             document.getElementById('profileName').textContent = userData.name;
             document.getElementById('displayName').textContent = userData.name;
+            
+            // Юзернейм
+            const usernameDisplay = document.getElementById('displayUsername');
+            const profileUsername = document.getElementById('profileUsername');
+            if (userData.username) {
+                usernameDisplay.textContent = '@' + userData.username;
+                profileUsername.textContent = '@' + userData.username;
+            } else {
+                usernameDisplay.textContent = 'Не задан';
+                profileUsername.textContent = '';
+            }
+            
+            // Роль
+            const roleEl = document.getElementById('profileRole');
+            if (userData.role === 'admin') {
+                roleEl.textContent = 'Администратор';
+                roleEl.classList.add('admin');
+            } else {
+                roleEl.textContent = 'Пользователь';
+                roleEl.classList.remove('admin');
+            }
+            
             updateAvatar();
             loadThemeFromServer();
         }
@@ -492,29 +639,74 @@
             const container = document.getElementById('profileAvatar');
             
             if (avatarUrl) {
-                container.innerHTML = `<img src="${avatarUrl}" class="avatar-image">`;
+                container.innerHTML = `<img src="${avatarUrl}" class="avatar-image" alt="Аватар">`;
             } else {
                 container.innerHTML = `<div class="avatar-placeholder">${initial}</div>`;
             }
         }
 
-        function toggleEmail() {
-            const emailSpan = document.getElementById('emailDisplay');
-            const btn = document.getElementById('toggleEmailBtn');
-            
-            if (emailVisible) {
-                emailSpan.textContent = '••••••••••••';
-                btn.textContent = 'Показать';
-            } else {
-                emailSpan.textContent = userData.email;
-                btn.textContent = 'Скрыть';
-            }
-            emailVisible = !emailVisible;
+        // ========== ЮЗЕРНЕЙМ ==========
+        function openEditUsernameModal() {
+            const input = document.getElementById('newUsernameInput');
+            input.value = userData.username || '';
+            document.getElementById('editUsernameModal').classList.add('active');
+            setTimeout(() => input.focus(), 200);
         }
 
+        function closeEditUsernameModal() {
+            document.getElementById('editUsernameModal').classList.remove('active');
+        }
+
+        async function saveUsername() {
+            const username = document.getElementById('newUsernameInput').value.trim().toLowerCase();
+            
+            // Валидация
+            if (!username) {
+                alert('Введите юзернейм');
+                return;
+            }
+            
+            if (!/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
+                alert('Юзернейм должен быть от 3 до 30 символов: только буквы, цифры и подчёркивания');
+                return;
+            }
+            
+            if (username === userData.username) {
+                closeEditUsernameModal();
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/set-username', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: userData.id,
+                        username: username
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    userData.username = data.username;
+                    localStorage.setItem('user', JSON.stringify(userData));
+                    init();
+                    closeEditUsernameModal();
+                } else {
+                    alert(data.error || 'Ошибка при сохранении юзернейма');
+                }
+            } catch(e) {
+                alert('Ошибка сервера');
+                console.error(e);
+            }
+        }
+
+        // ========== ИМЯ ==========
         function openEditNameModal() {
             document.getElementById('newNameInput').value = userData.name;
             document.getElementById('editNameModal').classList.add('active');
+            setTimeout(() => document.getElementById('newNameInput').focus(), 200);
         }
 
         function closeEditNameModal() {
@@ -540,8 +732,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         userId: userData.id,
-                        newName: newName,
-                        oldName: userData.name
+                        newName: newName
                     })
                 });
                 
@@ -560,10 +751,32 @@
             }
         }
 
-        // Загрузка аватарки
+        // ========== EMAIL ==========
+        function toggleEmail() {
+            const emailSpan = document.getElementById('emailDisplay');
+            const btn = document.getElementById('toggleEmailBtn');
+            
+            if (emailVisible) {
+                emailSpan.textContent = '••••••••••••';
+                btn.textContent = 'Показать';
+            } else {
+                emailSpan.textContent = userData.email;
+                btn.textContent = 'Скрыть';
+            }
+            emailVisible = !emailVisible;
+        }
+
+        // ========== АВАТАР ==========
         document.getElementById('avatarInput').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
+            
+            // Проверка размера (макс 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Файл слишком большой. Максимум 5MB.');
+                document.getElementById('avatarInput').value = '';
+                return;
+            }
             
             const fd = new FormData();
             fd.append('image', file);
@@ -596,6 +809,7 @@
             document.getElementById('avatarInput').value = '';
         });
 
+        // ========== НАВИГАЦИЯ ==========
         function goBack() {
             window.location.href = 'lobby.html';
         }
@@ -606,6 +820,15 @@
                 window.location.href = 'login.html';
             }
         }
+
+        // Закрытие модалок по клику вне их
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
 
         init();
     </script>
