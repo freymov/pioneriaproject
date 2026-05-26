@@ -10,130 +10,140 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root, [data-theme="light"] {
-            --bg-body: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-body: linear-gradient(160deg, #e8ecf5 0%, #f0f2fa 40%, #eef0f8 100%);
             --bg-card: #ffffff;
-            --bg-lesson: #f0f4ff;
-            --bg-concert: #e8f8e8;
-            --bg-today: #f0f4ff;
-            --text-primary: #333333;
-            --text-secondary: #666666;
-            --text-muted: #999999;
+            --bg-secondary: #f8f9fb;
+            --bg-today: #f5f3ff;
+            --bg-lesson: #eef1ff;
+            --bg-concert: #e8faf0;
+            --bg-date-event: #fef7ed;
+            --text-primary: #1a1a2e;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
             --accent: #667eea;
-            --border-color: #e8e8e8;
-            --danger: #ff4757;
-            --danger-bg: #fff0f0;
+            --accent-light: #eef0ff;
+            --border-color: #eef0f5;
+            --danger: #ef4444;
+            --danger-bg: #fef2f2;
             --warning: #f59e0b;
-            --warning-bg: #fff8e8;
+            --warning-bg: #fffbeb;
             --concert: #22c55e;
-            --concert-bg: #e8fce8;
-            --modal-overlay: rgba(0,0,0,0.5);
-            --shadow: 0 2px 12px rgba(0,0,0,0.06);
+            --concert-bg: #f0fdf4;
+            --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
+            --header-bg: rgba(255,255,255,0.85);
+            --header-shadow: 0 1px 0 rgba(0,0,0,0.04);
         }
 
         [data-theme="dark"] {
-            --bg-body: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            --bg-card: #2a2a3e;
-            --bg-lesson: #2a3050;
-            --bg-concert: #1a3a20;
-            --bg-today: #2a3550;
+            --bg-body: linear-gradient(160deg, #13132b 0%, #1a1a35 40%, #151530 100%);
+            --bg-card: #252540;
+            --bg-secondary: #1e1e32;
+            --bg-today: #2a2a48;
+            --bg-lesson: #252a48;
+            --bg-concert: #1a3025;
+            --bg-date-event: #2a2518;
             --text-primary: #e4e6eb;
-            --text-secondary: #b0b3b8;
-            --text-muted: #8a8d91;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
             --accent: #7c8aff;
-            --border-color: #3e4042;
+            --accent-light: #1e2040;
+            --border-color: #2a2a40;
             --danger: #ff6b6b;
             --danger-bg: #3a2020;
             --warning: #f0a030;
             --warning-bg: #3a3020;
             --concert: #4ade80;
             --concert-bg: #1a3020;
-            --modal-overlay: rgba(0,0,0,0.7);
-            --shadow: 0 2px 12px rgba(0,0,0,0.3);
+            --shadow: 0 1px 3px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.2);
+            --header-bg: rgba(30,30,50,0.85);
+            --header-shadow: 0 1px 0 rgba(255,255,255,0.04);
         }
 
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: var(--bg-body);
             min-height: 100vh;
-            padding: 12px;
             color: var(--text-primary);
             -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
         }
 
         .header {
+            background: var(--header-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 12px 20px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 14px;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            flex-wrap: wrap;
+            gap: 14px;
+            box-shadow: var(--header-shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .back-btn {
-            background: var(--bg-card);
-            border: none;
-            font-size: 18px;
-            cursor: pointer;
-            padding: 10px 14px;
-            border-radius: 12px;
-            color: var(--accent);
-            box-shadow: var(--shadow);
+            background: none; border: none;
+            font-size: 20px; cursor: pointer;
+            color: var(--accent); padding: 6px 10px;
+            border-radius: 10px;
         }
+        .back-btn:active { background: var(--accent-light); }
 
-        .header h2 { flex: 1; font-size: 1.1rem; min-width: 100px; }
+        .header h2 { font-size: 17px; font-weight: 700; flex: 1; }
 
         .group-select {
-            padding: 10px 12px;
-            border-radius: 12px;
+            padding: 8px 12px;
+            border-radius: 10px;
             border: 2px solid var(--border-color);
             background: var(--bg-card);
             color: var(--text-primary);
             font-size: 13px;
             font-weight: 600;
-            box-shadow: var(--shadow);
             -webkit-appearance: none;
+            cursor: pointer;
         }
 
-        .container { max-width: 600px; margin: 0 auto; }
+        .container { max-width: 650px; margin: 0 auto; padding: 16px 16px 32px; }
 
         /* Навигация по неделям */
         .week-nav {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 12px;
+            gap: 8px;
+            margin-bottom: 16px;
         }
 
         .week-nav button {
             background: var(--bg-card);
             border: 2px solid var(--border-color);
-            padding: 8px 14px;
+            padding: 9px 15px;
             border-radius: 10px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 15px;
             color: var(--accent);
             box-shadow: var(--shadow);
             font-weight: 700;
+            transition: all 0.15s;
         }
+        .week-nav button:active { transform: scale(0.94); }
 
         .week-nav .week-label {
             font-weight: 700;
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text-primary);
             text-align: center;
-            min-width: 150px;
+            min-width: 160px;
         }
 
-        .week-nav .this-week-btn {
+        .week-nav .today-btn {
             font-size: 11px;
-            padding: 6px 10px;
+            padding: 7px 11px;
             color: var(--text-secondary);
         }
 
-        /* Карточки дней */
+        /* Сетка дней */
         .week-grid {
             display: flex;
             flex-direction: column;
@@ -143,9 +153,10 @@
         .day-card {
             background: var(--bg-card);
             border-radius: 14px;
-            padding: 14px;
+            padding: 14px 16px;
             box-shadow: var(--shadow);
             border-left: 4px solid transparent;
+            transition: all 0.2s;
         }
 
         .day-card.today {
@@ -178,7 +189,7 @@
             background: var(--accent);
             color: #fff;
             font-size: 10px;
-            padding: 2px 8px;
+            padding: 3px 10px;
             border-radius: 20px;
             font-weight: 700;
         }
@@ -196,26 +207,28 @@
             align-items: center;
             gap: 10px;
             font-size: 13px;
+            transition: transform 0.1s;
         }
+        .lesson-card:active { transform: scale(0.98); }
 
         .lesson-card.rehearsal { background: var(--bg-lesson); }
         .lesson-card.concert { background: var(--bg-concert); }
+        .lesson-card.date-event { background: var(--bg-date-event); }
         .lesson-card.cancelled { background: var(--danger-bg); opacity: 0.7; }
-        .lesson-card.common { background: var(--warning-bg); }
 
         .lesson-time {
             font-weight: 700;
             font-size: 12px;
             white-space: nowrap;
-            min-width: 50px;
+            min-width: 55px;
         }
 
         .lesson-card.rehearsal .lesson-time { color: var(--accent); }
         .lesson-card.concert .lesson-time { color: var(--concert); }
+        .lesson-card.date-event .lesson-time { color: var(--warning); }
         .lesson-card.cancelled .lesson-time { color: var(--danger); text-decoration: line-through; }
-        .lesson-card.common .lesson-time { color: var(--warning); }
 
-        .lesson-info { flex: 1; }
+        .lesson-info { flex: 1; min-width: 0; }
         .lesson-title { font-weight: 600; font-size: 13px; }
 
         .lesson-badge {
@@ -225,18 +238,33 @@
             font-weight: 700;
             color: #fff;
             white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .lesson-badge.rehearsal { background: var(--accent); }
         .lesson-badge.concert { background: var(--concert); }
+        .lesson-badge.date-event { background: var(--warning); color: #000; }
         .lesson-badge.cancelled { background: var(--danger); }
-        .lesson-badge.common { background: var(--warning); }
 
         .empty-day {
             text-align: center;
             color: var(--text-muted);
             font-size: 12px;
-            padding: 6px 0;
+            padding: 4px 0;
+        }
+
+        /* Дата-события (вне недельной сетки) */
+        .date-events-section {
+            margin-top: 16px;
+        }
+        .date-events-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .legend {
@@ -244,7 +272,7 @@
             gap: 12px;
             justify-content: center;
             flex-wrap: wrap;
-            margin-top: 12px;
+            margin-top: 16px;
             font-size: 11px;
             color: var(--text-secondary);
         }
@@ -253,55 +281,14 @@
         .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
         .legend-dot.rehearsal { background: var(--accent); }
         .legend-dot.concert { background: var(--concert); }
+        .legend-dot.date-event { background: var(--warning); }
         .legend-dot.cancelled { background: var(--danger); }
-        .legend-dot.common { background: var(--warning); }
-
-        /* Модалка */
-        .modal {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: var(--modal-overlay);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: var(--bg-card);
-            border-radius: 20px;
-            padding: 28px 22px;
-            width: 90%;
-            max-width: 340px;
-            text-align: center;
-        }
-
-        .modal-content h3 { margin-bottom: 8px; font-size: 1.2rem; }
-        .modal-content .subtitle { color: var(--text-secondary); margin-bottom: 20px; font-size: 13px; }
-        .modal-content button {
-            display: block;
-            width: 100%;
-            padding: 14px;
-            margin-bottom: 8px;
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            background: var(--bg-card);
-            color: var(--text-primary);
-            transition: all 0.2s;
-        }
-
-        .modal-content button:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
 
         @media (max-width: 400px) {
-            body { padding: 6px; }
-            .header { gap: 6px; }
-            .day-card { padding: 10px; }
+            .container { padding: 10px 10px 24px; }
+            .day-card { padding: 10px 12px; }
             .lesson-card { padding: 8px 10px; gap: 6px; font-size: 11px; }
-            .lesson-time { font-size: 10px; min-width: 42px; }
+            .lesson-time { font-size: 10px; min-width: 45px; }
             .lesson-title { font-size: 11px; }
         }
     </style>
@@ -322,31 +309,25 @@
     </div>
 
     <div class="container">
-        <!-- Навигация по неделям -->
         <div class="week-nav">
             <button onclick="prevWeek()">←</button>
             <span class="week-label" id="weekLabel">Текущая неделя</span>
             <button onclick="nextWeek()">→</button>
-            <button class="this-week-btn" onclick="goToThisWeek()">Сегодня</button>
+            <button class="today-btn" onclick="goToThisWeek()">Сегодня</button>
         </div>
 
-        <div class="week-grid" id="scheduleContent">
-            Загрузка...
+        <div class="week-grid" id="scheduleContent">Загрузка...</div>
+
+        <div class="date-events-section" id="dateEventsSection" style="display:none;">
+            <div class="date-events-title">📆 Особые даты</div>
+            <div class="week-grid" id="dateEventsContent"></div>
         </div>
 
         <div class="legend">
             <span><span class="legend-dot rehearsal"></span> Репетиция</span>
             <span><span class="legend-dot concert"></span> Концерт</span>
+            <span><span class="legend-dot date-event"></span> Особая дата</span>
             <span><span class="legend-dot cancelled"></span> Отменена</span>
-            <span><span class="legend-dot common"></span> Общая</span>
-        </div>
-    </div>
-
-    <div class="modal" id="groupModal" style="display:none;">
-        <div class="modal-content">
-            <h3>🎵 Выбери свою группу</h3>
-            <p class="subtitle">Это нужно, чтобы показывать твоё расписание</p>
-            <div id="groupButtons"></div>
         </div>
     </div>
 
@@ -355,7 +336,7 @@
         let groups = [];
         let selectedGroupId = null;
         let allLessons = [];
-        let weekOffset = 0; // 0 = текущая неделя, -1 = прошлая, 1 = следующая
+        let weekOffset = 0;
 
         const dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
         const fullDayNames = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
@@ -364,7 +345,7 @@
 
         function getMondayOfWeek(offset) {
             const now = new Date();
-            const day = now.getDay(); // 0=Вс
+            const day = now.getDay();
             const mondayOffset = day === 0 ? -6 : 1 - day;
             const monday = new Date(now);
             monday.setDate(now.getDate() + mondayOffset + (offset * 7));
@@ -387,6 +368,10 @@
             return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
         }
 
+        function formatShortDate(date) {
+            return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+        }
+
         function formatWeekLabel(dates) {
             const first = dates[0];
             const last = dates[6];
@@ -401,6 +386,10 @@
                    date.getFullYear() === today.getFullYear();
         }
 
+        function dateStr(d) {
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        }
+
         function prevWeek() { weekOffset--; loadSchedule(); }
         function nextWeek() { weekOffset++; loadSchedule(); }
         function goToThisWeek() { weekOffset = 0; loadSchedule(); }
@@ -409,7 +398,12 @@
             await loadGroups();
             const savedGroupId = localStorage.getItem(STORAGE_KEY);
             if (!savedGroupId || !groups.find(g => g.id == savedGroupId)) {
-                showGroupModal();
+                if (groups.length > 0) {
+                    selectedGroupId = groups[0].id;
+                    localStorage.setItem(STORAGE_KEY, selectedGroupId);
+                    document.getElementById('groupSelect').value = selectedGroupId;
+                    loadSchedule();
+                }
             } else {
                 selectedGroupId = parseInt(savedGroupId);
                 document.getElementById('groupSelect').value = selectedGroupId;
@@ -423,29 +417,10 @@
                 const data = await res.json();
                 if (data.success) {
                     groups = data.groups;
-                    renderGroupSelect();
+                    const select = document.getElementById('groupSelect');
+                    select.innerHTML = groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
                 }
             } catch(e) { console.error(e); }
-        }
-
-        function renderGroupSelect() {
-            const select = document.getElementById('groupSelect');
-            select.innerHTML = groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
-        }
-
-        function showGroupModal() {
-            document.getElementById('groupButtons').innerHTML = groups.map(g =>
-                `<button onclick="selectGroup(${g.id})">${g.name}</button>`
-            ).join('');
-            document.getElementById('groupModal').style.display = 'flex';
-        }
-
-        function selectGroup(id) {
-            selectedGroupId = id;
-            localStorage.setItem(STORAGE_KEY, id);
-            document.getElementById('groupSelect').value = id;
-            document.getElementById('groupModal').style.display = 'none';
-            loadSchedule();
         }
 
         function changeGroup(id) {
@@ -472,14 +447,23 @@
             
             document.getElementById('weekLabel').textContent = formatWeekLabel(weekDates);
             
+            // Разделяем: недельные (day_of_week) и с конкретной датой (lesson_date)
+            const weekLessons = allLessons.filter(l => l.lesson_date === null && l.day_of_week !== null);
+            const dateLessons = allLessons.filter(l => l.lesson_date !== null);
+            
+            // Группируем date-lessons по дате
+            const dateLessonsByDate = {};
+            dateLessons.forEach(l => {
+                const d = l.lesson_date; // строка "YYYY-MM-DD"
+                if (!dateLessonsByDate[d]) dateLessonsByDate[d] = [];
+                dateLessonsByDate[d].push(l);
+            });
+            
             let html = '';
             
             weekDates.forEach((date, index) => {
-                const dayOfWeek = date.getDay(); // 0=Вс ... 6=Сб
-                
-                // ВСЕ уроки в этот день
-                const dayLessons = allLessons.filter(l => l.day_of_week === dayOfWeek);
-                
+                const dayOfWeek = date.getDay();
+                const dayLessons = weekLessons.filter(l => l.day_of_week === dayOfWeek);
                 const todayClass = isToday(date) ? 'today' : '';
                 
                 html += `<div class="day-card ${todayClass}">`;
@@ -494,30 +478,7 @@
                     html += '<div class="empty-day">Нет событий</div>';
                 } else {
                     dayLessons.forEach(lesson => {
-                        const eventType = lesson.event_type || 'rehearsal';
-                        let cardClass = `lesson-card ${eventType}`;
-                        if (lesson.status === 'cancelled') cardClass += ' cancelled';
-                        if (lesson.is_common && eventType === 'rehearsal') cardClass += ' common';
-                        
-                        let badgeText = eventType === 'concert' ? 'Концерт' : (lesson.is_common ? 'Общая' : (lesson.group_name || ''));
-                        if (lesson.status === 'cancelled') badgeText = 'Отменена';
-                        
-                        let badgeClass = `lesson-badge ${lesson.status === 'cancelled' ? 'cancelled' : (eventType === 'concert' ? 'concert' : (lesson.is_common ? 'common' : 'rehearsal'))}`;
-                        
-                        const timeStr = lesson.end_time 
-                            ? `${lesson.start_time.substring(0,5)}–${lesson.end_time.substring(0,5)}`
-                            : lesson.start_time.substring(0,5);
-                        
-                        html += `
-                            <div class="${cardClass}">
-                                <div class="lesson-time">${timeStr}</div>
-                                <div class="lesson-info">
-                                    <div class="lesson-title">${lesson.title || (eventType === 'concert' ? 'Концерт' : 'Репетиция')}</div>
-                                    ${lesson.description ? `<div style="font-size:11px;color:var(--text-secondary);">${lesson.description}</div>` : ''}
-                                </div>
-                                <span class="${badgeClass}">${badgeText}</span>
-                            </div>
-                        `;
+                        html += renderLessonCard(lesson, 'rehearsal');
                     });
                 }
                 
@@ -525,6 +486,82 @@
             });
             
             container.innerHTML = html;
+            
+            // Отображаем события с конкретными датами
+            const dateSection = document.getElementById('dateEventsSection');
+            const dateContent = document.getElementById('dateEventsContent');
+            
+            const sortedDates = Object.keys(dateLessonsByDate).sort();
+            
+            if (sortedDates.length > 0) {
+                dateSection.style.display = 'block';
+                let dateHtml = '';
+                
+                sortedDates.forEach(dateStr => {
+                    const lessons = dateLessonsByDate[dateStr];
+                    const dateObj = new Date(dateStr);
+                    const todayClass = isToday(dateObj) ? 'today' : '';
+                    
+                    dateHtml += `<div class="day-card ${todayClass}">`;
+                    dateHtml += '<div class="day-header">';
+                    dateHtml += `<span class="day-name">📆 ${formatDate(dateObj)}</span>`;
+                    dateHtml += `<span class="day-date">${dayNames[dateObj.getDay()]}</span>`;
+                    if (isToday(dateObj)) dateHtml += '<span class="today-badge">Сегодня</span>';
+                    dateHtml += '</div>';
+                    dateHtml += '<div class="lessons-list">';
+                    
+                    lessons.forEach(lesson => {
+                        dateHtml += renderLessonCard(lesson, 'date-event');
+                    });
+                    
+                    dateHtml += '</div></div>';
+                });
+                
+                dateContent.innerHTML = dateHtml;
+            } else {
+                dateSection.style.display = 'none';
+            }
+        }
+
+        function renderLessonCard(lesson, defaultType) {
+            const eventType = lesson.event_type || defaultType;
+            let cardClass = `lesson-card ${eventType}`;
+            if (lesson.status === 'cancelled') cardClass += ' cancelled';
+            if (lesson.is_common && eventType === 'rehearsal') cardClass += ' date-event';
+            
+            let badgeText;
+            if (lesson.status === 'cancelled') {
+                badgeText = 'Отменена';
+            } else if (eventType === 'concert') {
+                badgeText = '🎤 Концерт';
+            } else if (lesson.lesson_date) {
+                badgeText = '📆 Дата';
+            } else if (lesson.is_common) {
+                badgeText = 'Общая';
+            } else {
+                badgeText = lesson.group_name || '';
+            }
+            
+            let badgeClass = 'lesson-badge ';
+            if (lesson.status === 'cancelled') badgeClass += 'cancelled';
+            else if (eventType === 'concert') badgeClass += 'concert';
+            else if (lesson.lesson_date || lesson.is_common) badgeClass += 'date-event';
+            else badgeClass += 'rehearsal';
+            
+            const timeStr = lesson.end_time 
+                ? `${lesson.start_time.substring(0,5)}–${lesson.end_time.substring(0,5)}`
+                : lesson.start_time.substring(0,5);
+            
+            return `
+                <div class="${cardClass}">
+                    <div class="lesson-time">${timeStr}</div>
+                    <div class="lesson-info">
+                        <div class="lesson-title">${lesson.title || (eventType === 'concert' ? 'Концерт' : 'Репетиция')}</div>
+                        ${lesson.description ? `<div style="font-size:11px;color:var(--text-secondary);">${lesson.description}</div>` : ''}
+                    </div>
+                    <span class="${badgeClass}">${badgeText}</span>
+                </div>
+            `;
         }
 
         init();
