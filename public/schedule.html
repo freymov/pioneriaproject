@@ -16,7 +16,7 @@
             --bg-today: #f5f3ff;
             --bg-lesson: #eef1ff;
             --bg-concert: #e8faf0;
-            --bg-date-event: #fef7ed;
+            --bg-onetime: #fef7ed;
             --text-primary: #1a1a2e;
             --text-secondary: #6b7280;
             --text-muted: #9ca3af;
@@ -41,7 +41,7 @@
             --bg-today: #2a2a48;
             --bg-lesson: #252a48;
             --bg-concert: #1a3025;
-            --bg-date-event: #2a2518;
+            --bg-onetime: #2a2518;
             --text-primary: #e4e6eb;
             --text-secondary: #9ca3af;
             --text-muted: #6b7280;
@@ -213,7 +213,7 @@
 
         .lesson-card.rehearsal { background: var(--bg-lesson); }
         .lesson-card.concert { background: var(--bg-concert); }
-        .lesson-card.date-event { background: var(--bg-date-event); }
+        .lesson-card.onetime { background: var(--bg-onetime); }
         .lesson-card.cancelled { background: var(--danger-bg); opacity: 0.7; }
 
         .lesson-time {
@@ -225,7 +225,7 @@
 
         .lesson-card.rehearsal .lesson-time { color: var(--accent); }
         .lesson-card.concert .lesson-time { color: var(--concert); }
-        .lesson-card.date-event .lesson-time { color: var(--warning); }
+        .lesson-card.onetime .lesson-time { color: var(--warning); }
         .lesson-card.cancelled .lesson-time { color: var(--danger); text-decoration: line-through; }
 
         .lesson-info { flex: 1; min-width: 0; }
@@ -243,7 +243,8 @@
 
         .lesson-badge.rehearsal { background: var(--accent); }
         .lesson-badge.concert { background: var(--concert); }
-        .lesson-badge.date-event { background: var(--warning); color: #000; }
+        .lesson-badge.onetime { background: var(--warning); color: #000; }
+        .lesson-badge.common { background: #8b5cf6; }
         .lesson-badge.cancelled { background: var(--danger); }
 
         .empty-day {
@@ -253,11 +254,11 @@
             padding: 4px 0;
         }
 
-        /* Дата-события (вне недельной сетки) */
-        .date-events-section {
-            margin-top: 16px;
+        /* Разовые репетиции */
+        .onetime-section {
+            margin-top: 20px;
         }
-        .date-events-title {
+        .onetime-title {
             font-size: 14px;
             font-weight: 700;
             color: var(--text-primary);
@@ -281,7 +282,8 @@
         .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
         .legend-dot.rehearsal { background: var(--accent); }
         .legend-dot.concert { background: var(--concert); }
-        .legend-dot.date-event { background: var(--warning); }
+        .legend-dot.common { background: #8b5cf6; }
+        .legend-dot.onetime { background: var(--warning); }
         .legend-dot.cancelled { background: var(--danger); }
 
         @media (max-width: 400px) {
@@ -318,15 +320,17 @@
 
         <div class="week-grid" id="scheduleContent">Загрузка...</div>
 
-        <div class="date-events-section" id="dateEventsSection" style="display:none;">
-            <div class="date-events-title">📆 Особые даты</div>
-            <div class="week-grid" id="dateEventsContent"></div>
+        <!-- Разовые репетиции -->
+        <div class="onetime-section" id="onetimeSection" style="display:none;">
+            <div class="onetime-title">📆 Разовые репетиции</div>
+            <div class="week-grid" id="onetimeContent"></div>
         </div>
 
         <div class="legend">
             <span><span class="legend-dot rehearsal"></span> Репетиция</span>
+            <span><span class="legend-dot common"></span> Общая</span>
             <span><span class="legend-dot concert"></span> Концерт</span>
-            <span><span class="legend-dot date-event"></span> Особая дата</span>
+            <span><span class="legend-dot onetime"></span> Разовая</span>
             <span><span class="legend-dot cancelled"></span> Отменена</span>
         </div>
     </div>
@@ -368,10 +372,6 @@
             return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
         }
 
-        function formatShortDate(date) {
-            return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
-        }
-
         function formatWeekLabel(dates) {
             const first = dates[0];
             const last = dates[6];
@@ -384,10 +384,6 @@
             return date.getDate() === today.getDate() &&
                    date.getMonth() === today.getMonth() &&
                    date.getFullYear() === today.getFullYear();
-        }
-
-        function dateStr(d) {
-            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
         }
 
         function prevWeek() { weekOffset--; loadSchedule(); }
@@ -447,20 +443,20 @@
             
             document.getElementById('weekLabel').textContent = formatWeekLabel(weekDates);
             
-            // Разделяем: недельные (day_of_week) и с конкретной датой (lesson_date)
+            // Разделяем: недельные и разовые
             const weekLessons = allLessons.filter(l => l.lesson_date === null && l.day_of_week !== null);
-            const dateLessons = allLessons.filter(l => l.lesson_date !== null);
+            const onetimeLessons = allLessons.filter(l => l.lesson_date !== null);
             
-            // Группируем date-lessons по дате
-            const dateLessonsByDate = {};
-            dateLessons.forEach(l => {
-                const d = l.lesson_date; // строка "YYYY-MM-DD"
-                if (!dateLessonsByDate[d]) dateLessonsByDate[d] = [];
-                dateLessonsByDate[d].push(l);
+            // Группируем разовые по дате
+            const onetimeByDate = {};
+            onetimeLessons.forEach(l => {
+                const d = l.lesson_date;
+                if (!onetimeByDate[d]) onetimeByDate[d] = [];
+                onetimeByDate[d].push(l);
             });
             
+            // Рендерим недельную сетку
             let html = '';
-            
             weekDates.forEach((date, index) => {
                 const dayOfWeek = date.getDay();
                 const dayLessons = weekLessons.filter(l => l.day_of_week === dayOfWeek);
@@ -478,7 +474,7 @@
                     html += '<div class="empty-day">Нет событий</div>';
                 } else {
                     dayLessons.forEach(lesson => {
-                        html += renderLessonCard(lesson, 'rehearsal');
+                        html += renderLessonCard(lesson);
                     });
                 }
                 
@@ -487,18 +483,18 @@
             
             container.innerHTML = html;
             
-            // Отображаем события с конкретными датами
-            const dateSection = document.getElementById('dateEventsSection');
-            const dateContent = document.getElementById('dateEventsContent');
+            // Рендерим разовые репетиции
+            const onetimeSection = document.getElementById('onetimeSection');
+            const onetimeContent = document.getElementById('onetimeContent');
             
-            const sortedDates = Object.keys(dateLessonsByDate).sort();
+            const sortedDates = Object.keys(onetimeByDate).sort();
             
             if (sortedDates.length > 0) {
-                dateSection.style.display = 'block';
+                onetimeSection.style.display = 'block';
                 let dateHtml = '';
                 
                 sortedDates.forEach(dateStr => {
-                    const lessons = dateLessonsByDate[dateStr];
+                    const lessons = onetimeByDate[dateStr];
                     const dateObj = new Date(dateStr);
                     const todayClass = isToday(dateObj) ? 'today' : '';
                     
@@ -511,42 +507,51 @@
                     dateHtml += '<div class="lessons-list">';
                     
                     lessons.forEach(lesson => {
-                        dateHtml += renderLessonCard(lesson, 'date-event');
+                        dateHtml += renderLessonCard(lesson);
                     });
                     
                     dateHtml += '</div></div>';
                 });
                 
-                dateContent.innerHTML = dateHtml;
+                onetimeContent.innerHTML = dateHtml;
             } else {
-                dateSection.style.display = 'none';
+                onetimeSection.style.display = 'none';
             }
         }
 
-        function renderLessonCard(lesson, defaultType) {
-            const eventType = lesson.event_type || defaultType;
-            let cardClass = `lesson-card ${eventType}`;
-            if (lesson.status === 'cancelled') cardClass += ' cancelled';
-            if (lesson.is_common && eventType === 'rehearsal') cardClass += ' date-event';
+        function renderLessonCard(lesson) {
+            const eventType = lesson.event_type || 'rehearsal';
             
-            let badgeText;
+            // Определяем тип карточки
+            let cardType = eventType; // 'rehearsal' или 'concert'
             if (lesson.status === 'cancelled') {
-                badgeText = 'Отменена';
-            } else if (eventType === 'concert') {
-                badgeText = '🎤 Концерт';
+                cardType = 'cancelled';
             } else if (lesson.lesson_date) {
-                badgeText = '📆 Дата';
-            } else if (lesson.is_common) {
-                badgeText = 'Общая';
-            } else {
-                badgeText = lesson.group_name || '';
+                cardType = 'onetime';
             }
             
+            let cardClass = `lesson-card ${cardType}`;
+            
+            // Определяем текст бейджика
+            let badgeText;
             let badgeClass = 'lesson-badge ';
-            if (lesson.status === 'cancelled') badgeClass += 'cancelled';
-            else if (eventType === 'concert') badgeClass += 'concert';
-            else if (lesson.lesson_date || lesson.is_common) badgeClass += 'date-event';
-            else badgeClass += 'rehearsal';
+            
+            if (lesson.status === 'cancelled') {
+                badgeText = 'Отменена';
+                badgeClass += 'cancelled';
+            } else if (eventType === 'concert') {
+                badgeText = '🎤 Концерт';
+                badgeClass += 'concert';
+            } else if (lesson.lesson_date) {
+                badgeText = 'Разовая';
+                badgeClass += 'onetime';
+            } else if (lesson.is_common) {
+                badgeText = 'Общая';
+                badgeClass += 'common';
+            } else {
+                badgeText = lesson.group_name || 'Репетиция';
+                badgeClass += 'rehearsal';
+            }
             
             const timeStr = lesson.end_time 
                 ? `${lesson.start_time.substring(0,5)}–${lesson.end_time.substring(0,5)}`
