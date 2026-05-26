@@ -34,10 +34,12 @@
             --header-shadow: 0 1px 0 rgba(0,0,0,0.04);
             --sidebar-bg: #ffffff;
             --overlay-bg: rgba(0,0,0,0.3);
-            --modal-bg: #ffffff;
             --news-bullet: #667eea;
             --button-text: #ffffff;
             --avatar-gradient: linear-gradient(135deg, #667eea, #8b5cf6);
+            --decor-circle-1: rgba(102,126,234,0.06);
+            --decor-circle-2: rgba(139,92,246,0.05);
+            --decor-circle-3: rgba(102,126,234,0.04);
         }
 
         [data-theme="dark"] {
@@ -58,10 +60,12 @@
             --header-shadow: 0 1px 0 rgba(255,255,255,0.04);
             --sidebar-bg: #1e1e32;
             --overlay-bg: rgba(0,0,0,0.6);
-            --modal-bg: #252540;
             --news-bullet: #7c8aff;
             --button-text: #ffffff;
             --avatar-gradient: linear-gradient(135deg, #7c8aff, #9b8aff);
+            --decor-circle-1: rgba(124,138,255,0.08);
+            --decor-circle-2: rgba(155,138,255,0.06);
+            --decor-circle-3: rgba(124,138,255,0.04);
         }
 
         body {
@@ -90,49 +94,34 @@
         }
 
         .menu-btn {
-            background: none;
-            border: none;
-            font-size: 22px;
-            cursor: pointer;
+            background: none; border: none;
+            font-size: 22px; cursor: pointer;
             color: var(--text-primary);
-            padding: 8px 10px;
-            border-radius: 12px;
-            transition: all 0.2s;
-            line-height: 1;
+            padding: 8px 10px; border-radius: 12px;
+            transition: all 0.2s; line-height: 1;
         }
         .menu-btn:hover { background: var(--bg-secondary); }
         .menu-btn:active { transform: scale(0.94); background: var(--accent-light); }
 
         .logo {
-            font-size: 17px;
-            font-weight: 700;
-            color: var(--text-primary);
-            letter-spacing: -0.3px;
+            font-size: 17px; font-weight: 700;
+            color: var(--text-primary); letter-spacing: -0.3px;
         }
         .logo span { color: var(--accent); }
 
         .avatar {
-            width: 38px;
-            height: 38px;
+            width: 38px; height: 38px;
             background: var(--avatar-gradient);
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-            flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 600; font-size: 16px;
+            cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(102,126,234,0.3);
+            flex-shrink: 0; overflow: hidden;
         }
-        .avatar:hover { transform: scale(1.05); box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4); }
+        .avatar:hover { transform: scale(1.05); box-shadow: 0 4px 14px rgba(102,126,234,0.4); }
         .avatar:active { transform: scale(0.95); }
-        .avatar img {
-            width: 38px; height: 38px;
-            border-radius: 50%; object-fit: cover;
-        }
+        .avatar img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; }
 
         /* Боковое меню */
         .sidebar {
@@ -153,28 +142,28 @@
         }
         .sidebar-user {
             display: flex; align-items: center; gap: 12px;
-            padding: 8px;
-            border-radius: 14px;
+            padding: 8px; border-radius: 14px;
             background: var(--bg-secondary);
         }
         .sidebar-user-avatar {
             width: 44px; height: 44px;
             background: var(--avatar-gradient);
-            border-radius: 50%;
+            border-radius: 50%; overflow: hidden;
             display: flex; align-items: center; justify-content: center;
             color: #fff; font-weight: 700; font-size: 18px;
             flex-shrink: 0;
         }
+        .sidebar-user-avatar img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; }
         .sidebar-user-info { min-width: 0; }
         .sidebar-user-name { font-weight: 600; font-size: 14px; color: var(--text-primary); }
         .sidebar-user-role { font-size: 11px; color: var(--text-muted); }
 
-        .sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 12px; }
+        .sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 12px; display: flex; flex-direction: column; }
 
         .sidebar-label {
             font-size: 11px; font-weight: 600; text-transform: uppercase;
             letter-spacing: 0.5px; color: var(--text-muted);
-            padding: 12px 12px 6px;
+            padding: 14px 12px 6px;
         }
 
         .sidebar-item {
@@ -183,7 +172,7 @@
             cursor: pointer; border-radius: 12px;
             transition: all 0.15s;
             color: var(--text-primary); font-size: 14px;
-            font-weight: 500;
+            font-weight: 500; text-decoration: none;
         }
         .sidebar-item:hover { background: var(--bg-secondary); }
         .sidebar-item:active { transform: scale(0.97); background: var(--accent-light); }
@@ -196,8 +185,9 @@
             transition: background 0.2s;
         }
         .sidebar-item:hover .icon { background: var(--accent-light); }
-        .sidebar-item.logout { color: #ef4444; margin-top: auto; }
+        .sidebar-item.logout { color: #ef4444; }
         .sidebar-item.logout .icon { background: #fef2f2; }
+        [data-theme="dark"] .sidebar-item.logout .icon { background: #3b1a1a; }
 
         .overlay {
             position: fixed; top: 0; left: 0;
@@ -217,41 +207,49 @@
         /* Приветственная карточка */
         .welcome-card {
             background: var(--card-bg);
-            border-radius: 20px; padding: 28px 24px;
-            margin-bottom: 16px;
+            border-radius: 22px; padding: 32px 28px;
+            margin-bottom: 20px;
             box-shadow: var(--card-shadow);
             transition: all 0.3s;
             position: relative; overflow: hidden;
         }
-        .welcome-card::before {
-            content: '';
-            position: absolute; top: -40px; right: -40px;
+        .welcome-card .decor {
+            position: absolute; border-radius: 50%; pointer-events: none;
+        }
+        .welcome-card .decor-1 {
+            top: -50px; right: -30px;
+            width: 140px; height: 140px;
+            background: var(--decor-circle-1);
+        }
+        .welcome-card .decor-2 {
+            bottom: -60px; left: -20px;
             width: 120px; height: 120px;
-            background: var(--accent);
-            opacity: 0.06; border-radius: 50%;
+            background: var(--decor-circle-2);
+        }
+        .welcome-card .decor-3 {
+            top: 40%; right: 10%;
+            width: 70px; height: 70px;
+            background: var(--decor-circle-3);
+        }
+        .welcome-card .decor-4 {
+            bottom: 10%; right: 25%;
+            width: 50px; height: 50px;
+            background: var(--decor-circle-2);
+        }
+        .welcome-card .decor-5 {
+            top: 15%; left: 40%;
+            width: 35px; height: 35px;
+            background: var(--decor-circle-3);
         }
         .welcome-card h1 {
             font-size: 22px; font-weight: 700;
-            color: var(--text-primary); margin-bottom: 6px;
+            color: var(--text-primary); margin-bottom: 4px;
             position: relative;
         }
-        .welcome-card .greeting {
+        .welcome-card .subtitle {
             color: var(--text-secondary); font-size: 14px;
             position: relative;
         }
-        .welcome-card .quick-info {
-            display: flex; gap: 16px; margin-top: 16px;
-            flex-wrap: wrap; position: relative;
-        }
-        .quick-stat {
-            display: flex; align-items: center; gap: 8px;
-            padding: 10px 14px; background: var(--bg-secondary);
-            border-radius: 12px; font-size: 13px;
-            color: var(--text-secondary);
-            transition: background 0.2s;
-        }
-        .quick-stat .stat-icon { font-size: 16px; }
-        .quick-stat .stat-value { font-weight: 600; color: var(--text-primary); }
 
         /* Карточки быстрого доступа */
         .quick-actions {
@@ -261,21 +259,20 @@
         }
         .quick-action {
             background: var(--card-bg);
-            border-radius: 18px; padding: 20px 14px;
+            border-radius: 18px; padding: 22px 14px;
             text-align: center; cursor: pointer;
             box-shadow: var(--card-shadow);
             transition: all 0.25s;
-            text-decoration: none; color: inherit;
             display: flex; flex-direction: column;
             align-items: center; gap: 10px;
         }
         .quick-action:hover {
-            transform: translateY(-2px);
+            transform: translateY(-3px);
             box-shadow: var(--card-shadow-hover);
         }
         .quick-action:active { transform: scale(0.96); }
         .quick-action .action-icon {
-            width: 52px; height: 52px;
+            width: 54px; height: 54px;
             background: var(--accent-light);
             border-radius: 16px;
             display: flex; align-items: center; justify-content: center;
@@ -284,6 +281,10 @@
         .quick-action .action-label {
             font-size: 13px; font-weight: 600;
             color: var(--text-primary);
+        }
+        .quick-action .action-desc {
+            font-size: 11px; color: var(--text-muted);
+            line-height: 1.3;
         }
 
         /* Новости */
@@ -323,55 +324,14 @@
             padding: 20px; font-size: 14px;
         }
 
-        /* Профиль-модалка */
-        .profile-modal {
-            position: fixed; top: 50%; left: 50%;
-            transform: translate(-50%, -50%) scale(0.9);
-            background: var(--modal-bg);
-            border-radius: 20px; padding: 24px;
-            width: 90%; max-width: 340px;
-            z-index: 250; display: none;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-            transition: transform 0.2s, opacity 0.2s;
-            opacity: 0;
-        }
-        .profile-modal.active {
-            display: block;
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 1;
-        }
-        .profile-modal .modal-avatar {
-            width: 64px; height: 64px;
-            background: var(--avatar-gradient);
-            border-radius: 50%; margin: 0 auto 16px;
-            display: flex; align-items: center; justify-content: center;
-            color: #fff; font-weight: 700; font-size: 26px;
-        }
-        .profile-modal h3 { text-align: center; font-size: 18px; margin-bottom: 4px; }
-        .profile-modal .modal-email {
-            text-align: center; font-size: 13px;
-            color: var(--text-muted); margin-bottom: 16px;
-        }
-        .profile-modal button {
-            width: 100%; padding: 12px;
-            background: var(--accent); color: var(--button-text);
-            border: none; border-radius: 12px;
-            cursor: pointer; font-size: 14px; font-weight: 600;
-            margin-top: 8px;
-            transition: all 0.15s;
-        }
-        .profile-modal button:active { transform: scale(0.97); }
-        .profile-modal .btn-secondary {
-            background: var(--bg-secondary); color: var(--text-primary);
-        }
-
         @media (max-width: 768px) {
             .quick-actions { grid-template-columns: repeat(3, 1fr); gap: 10px; }
             .quick-action { padding: 16px 10px; }
-            .quick-action .action-icon { width: 44px; height: 44px; font-size: 22px; border-radius: 14px; }
+            .quick-action .action-icon { width: 46px; height: 46px; font-size: 22px; border-radius: 14px; }
             .quick-action .action-label { font-size: 12px; }
-            .welcome-card { padding: 22px 18px; }
-            .welcome-card h1 { font-size: 19px; }
+            .quick-action .action-desc { display: none; }
+            .welcome-card { padding: 24px 20px; }
+            .welcome-card h1 { font-size: 20px; }
             .content { padding: 16px 12px 32px; }
         }
 
@@ -384,7 +344,7 @@
     <div class="header">
         <button class="menu-btn" onclick="toggleMenu()">☰</button>
         <div class="logo"><span>🎵</span> PIONERIA</div>
-        <div class="avatar" id="avatarBtn" onclick="toggleProfile()"></div>
+        <div class="avatar" id="avatarBtn" onclick="goToProfile()"></div>
     </div>
 
     <!-- Боковое меню -->
@@ -399,7 +359,18 @@
             </div>
         </div>
         <div class="sidebar-nav">
-            <div class="sidebar-label">Основное</div>
+            <div class="sidebar-label">Инструменты</div>
+            <div class="sidebar-item" onclick="goToPage('solfege.html')">
+                <div class="icon">🎼</div><span>Сольфеджио</span>
+            </div>
+            <div class="sidebar-item" onclick="goToPage('storage.html')">
+                <div class="icon">📦</div><span>Хранилище</span>
+            </div>
+            <div class="sidebar-item" onclick="goToPage('navigator.html')">
+                <div class="icon">🗺️</div><span>Навигатор</span>
+            </div>
+            
+            <div class="sidebar-label">Связь</div>
             <div class="sidebar-item" onclick="goToMessenger()">
                 <div class="icon">💬</div><span>Чат</span>
             </div>
@@ -407,12 +378,13 @@
                 <div class="icon">📅</div><span>Расписание</span>
             </div>
             
-            <div class="sidebar-label">Аккаунт</div>
-            <div class="sidebar-item" onclick="goToProfile()">
-                <div class="icon">👤</div><span>Профиль</span>
-            </div>
+            <div style="flex:1;"></div>
+            
             <div class="sidebar-item" id="adminMenuItem" style="display:none;" onclick="goToAdmin()">
                 <div class="icon">🔧</div><span>Админ-панель</span>
+            </div>
+            <div class="sidebar-item" onclick="goToProfile()">
+                <div class="icon">👤</div><span>Профиль</span>
             </div>
             <div class="sidebar-item logout" onclick="logout()">
                 <div class="icon">🚪</div><span>Выйти</span>
@@ -425,18 +397,13 @@
     <!-- Контент -->
     <div class="content">
         <div class="welcome-card">
+            <div class="decor decor-1"></div>
+            <div class="decor decor-2"></div>
+            <div class="decor decor-3"></div>
+            <div class="decor decor-4"></div>
+            <div class="decor decor-5"></div>
             <h1>Привет, <span id="userName"></span>!</h1>
-            <div class="greeting" id="greetingText"></div>
-            <div class="quick-info">
-                <div class="quick-stat" onclick="goToMessenger()" style="cursor:pointer;">
-                    <span class="stat-icon">💬</span>
-                    <span>Чат открыт</span>
-                </div>
-                <div class="quick-stat" onclick="goToSchedule()" style="cursor:pointer;">
-                    <span class="stat-icon">📅</span>
-                    <span>Расписание</span>
-                </div>
-            </div>
+            <div class="subtitle">Добро пожаловать в Pioneria Project</div>
         </div>
 
         <!-- Быстрые действия -->
@@ -444,14 +411,32 @@
             <div class="quick-action" onclick="goToMessenger()">
                 <div class="action-icon">💬</div>
                 <div class="action-label">Чат</div>
+                <div class="action-desc">Общий и личные</div>
             </div>
             <div class="quick-action" onclick="goToSchedule()">
                 <div class="action-icon">📅</div>
                 <div class="action-label">Расписание</div>
+                <div class="action-desc">Репетиции</div>
+            </div>
+            <div class="quick-action" onclick="goToPage('navigator.html')">
+                <div class="action-icon">🗺️</div>
+                <div class="action-label">Навигатор</div>
+                <div class="action-desc">Залы и маршруты</div>
+            </div>
+            <div class="quick-action" onclick="goToPage('solfege.html')">
+                <div class="action-icon">🎼</div>
+                <div class="action-label">Сольфеджио</div>
+                <div class="action-desc">Интервалы, аккорды</div>
+            </div>
+            <div class="quick-action" onclick="goToPage('storage.html')">
+                <div class="action-icon">📦</div>
+                <div class="action-label">Хранилище</div>
+                <div class="action-desc">Ноты и записи</div>
             </div>
             <div class="quick-action" onclick="goToProfile()">
                 <div class="action-icon">👤</div>
                 <div class="action-label">Профиль</div>
+                <div class="action-desc">Настройки</div>
             </div>
         </div>
 
@@ -462,15 +447,6 @@
                 <div class="news-empty">Загрузка...</div>
             </ul>
         </div>
-    </div>
-
-    <!-- Профиль-модалка -->
-    <div class="profile-modal" id="profileModal">
-        <div class="modal-avatar" id="modalAvatar"></div>
-        <h3 id="modalName"></h3>
-        <div class="modal-email" id="modalEmail"></div>
-        <button onclick="goToProfile()">Открыть профиль</button>
-        <button class="btn-secondary" onclick="closeProfile()">Закрыть</button>
     </div>
 
     <script>
@@ -511,7 +487,6 @@
             const initial = getUserInitial();
             const avatarUrl = userData.avatar;
             
-            // Шапка
             const headerAvatar = document.getElementById('avatarBtn');
             if (avatarUrl) {
                 headerAvatar.innerHTML = `<img src="${avatarUrl}" alt="">`;
@@ -519,20 +494,11 @@
                 headerAvatar.textContent = initial;
             }
             
-            // Сайдбар
             const sidebarAvatar = document.getElementById('sidebarAvatar');
             if (avatarUrl) {
-                sidebarAvatar.innerHTML = `<img src="${avatarUrl}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">`;
+                sidebarAvatar.innerHTML = `<img src="${avatarUrl}" alt="">`;
             } else {
                 sidebarAvatar.textContent = initial;
-            }
-            
-            // Модалка
-            const modalAvatar = document.getElementById('modalAvatar');
-            if (avatarUrl) {
-                modalAvatar.innerHTML = `<img src="${avatarUrl}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;">`;
-            } else {
-                modalAvatar.textContent = initial;
             }
         }
 
@@ -540,20 +506,8 @@
             document.getElementById('userName').textContent = userData.name;
             document.getElementById('sidebarName').textContent = userData.name;
             document.getElementById('sidebarRole').textContent = userData.role === 'admin' ? 'Администратор' : 'Участник';
-            document.getElementById('modalName').textContent = userData.name;
-            document.getElementById('modalEmail').textContent = userData.email;
             updateAvatars();
             
-            // Приветствие по времени суток
-            const hour = new Date().getHours();
-            let greeting;
-            if (hour < 6) greeting = 'Доброй ночи! 🌙';
-            else if (hour < 12) greeting = 'Доброе утро! ☀️';
-            else if (hour < 18) greeting = 'Добрый день! 🌤️';
-            else greeting = 'Добрый вечер! 🌆';
-            document.getElementById('greetingText').textContent = greeting;
-            
-            // Админ-пункт
             if (userData.role === 'admin') {
                 document.getElementById('adminMenuItem').style.display = 'flex';
             }
@@ -571,21 +525,12 @@
             document.getElementById('overlay').classList.remove('active');
         }
 
-        // ====== ПРОФИЛЬ-МОДАЛКА ======
-        function toggleProfile() {
-            const modal = document.getElementById('profileModal');
-            modal.classList.toggle('active');
-            closeMenu();
-        }
-        function closeProfile() {
-            document.getElementById('profileModal').classList.remove('active');
-        }
-
         // ====== НАВИГАЦИЯ ======
         function goToMessenger() { window.location.href = 'messenger.html'; closeMenu(); }
         function goToSchedule() { window.location.href = 'schedule.html'; closeMenu(); }
         function goToProfile() { window.location.href = 'profile.html'; closeMenu(); }
         function goToAdmin() { window.location.href = 'admin.html'; closeMenu(); }
+        function goToPage(page) { window.location.href = page; closeMenu(); }
         function logout() {
             if (confirm('Выйти из аккаунта?')) {
                 localStorage.removeItem('user');
@@ -628,7 +573,6 @@
             return d.innerHTML;
         }
 
-        // Закрытие меню по клику вне
         document.addEventListener('click', function(e) {
             const sidebar = document.getElementById('sidebar');
             const menuBtn = document.querySelector('.menu-btn');
