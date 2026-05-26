@@ -261,6 +261,13 @@ async function initDatabase() {
         `);
 
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT`);
+        
+        // ====== НОВОЕ: username ======
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(50) UNIQUE`);
+        // Индекс для быстрого поиска (игнорируем ошибку если уже существует)
+        try {
+            await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users(username) WHERE username IS NOT NULL`);
+        } catch(e) {}
 
         const groupsExist = await pool.query('SELECT COUNT(*) FROM schedule_groups');
         if (parseInt(groupsExist.rows[0].count) === 0) {
@@ -366,8 +373,76 @@ app.post('/api/login', async (req, res) => {
         const valid = await bcrypt.compare(password, user.password);
         if (!valid) return res.json({ success: false, error: 'Неверный email или пароль' });
         if (!user.email_verified) return res.json({ success: false, error: 'Подтвердите email' });
-        res.json({ success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role, avatar: user.avatar_url || null } });
+        res.json({ success: true, user: { 
+            id: user.id, name: user.name, email: user.email, 
+            role: user.role, avatar: user.avatar_url || null,
+            username: user.username || null 
+        }});
     } catch (err) {
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+// ====== НОВОЕ: Установка юзернейма ======
+app.post('/api/set-username', async (req, res) => {
+    const { userId, username } = req.body;
+    if (!userId || !username) return res.json({ success: false, error: 'Нет данных' });
+    
+    // Формат: буквы, цифры, подчёркивания, 3-30 символов
+    const valid = /^[a-zA-Z0-9_]{3,30}$/.test(username);
+    if (!valid) return res.json({ success: false, error: 'Юзернейм: 3-30 символов (буквы, цифры, _)' });
+    
+    try {
+        const exists = await pool.query('SELECT id FROM users WHERE username = $1 AND id != $2', [username, userId]);
+        if (exists.rows.length > 0) return res.json({ success: false, error: 'Юзернейм занят' });
+        
+        await pool.query('UPDATE users SET username = $1 WHERE id = $2', [username, userId]);
+        res.json({ success: true, username });
+    } catch (err) {
+        if (err.code === '23505') {
+            res.json({ success: false, error: 'Юзернейм уже занят' });
+        } else {
+            console.error('❌ Ошибка set-username:', err);
+            res.json({ success: false, error: 'Ошибка сервера' });
+        }
+    }
+});
+
+// ====== НОВОЕ: Поиск пользователей ======
+app.get('/api/search-users', async (req, res) => {
+    const { q, userId } = req.query;
+    if (!q || q.length < 1) return res.json({ success: true, users: [] });
+    
+    try {
+        const result = await pool.query(
+            `SELECT id, name, username, avatar_url, role 
+             FROM users 
+             WHERE id != $1 
+               AND (username ILIKE $2 OR name ILIKE $2) 
+             ORDER BY 
+               CASE WHEN username ILIKE $2 THEN 0 ELSE 1 END,
+               name 
+             LIMIT 20`,
+            [userId, `%${q}%`]
+        );
+        res.json({ success: true, users: result.rows });
+    } catch (err) {
+        console.error('❌ Ошибка search-users:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+// ====== НОВОЕ: Профиль пользователя ======
+app.get('/api/user/:id', async (req, res) => {
+    try {
+        const result = await pool.query(
+            'SELECT id, name, username, avatar_url, role, created_at FROM users WHERE id = $1',
+            [req.params.id]
+        );
+        if (result.rows.length === 0) return res.json({ success: false, error: 'Пользователь не найден' });
+        res.json({ success: true, user: result.rows[0] });
+    } catch (err) {
+        console.error('❌ Ошибка user-profile:', err);
         res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
@@ -394,7 +469,7 @@ app.get('/api/admin/users', async (req, res) => {
     try {
         const admin = await pool.query('SELECT * FROM users WHERE email = $1 AND role = $2', [adminEmail, 'admin']);
         if (admin.rows.length === 0) return res.json({ success: false, error: 'Нет прав' });
-        const users = await pool.query('SELECT id, name, email, role, avatar_url, created_at FROM users ORDER BY created_at DESC');
+        const users = await pool.query('SELECT id, name, email, role, avatar_url, username, created_at FROM users ORDER BY created_at DESC');
         res.json({ success: true, users: users.rows });
     } catch (err) {
         res.json({ success: false, error: 'Ошибка сервера' });
@@ -416,7 +491,7 @@ app.post('/api/admin/delete-user', async (req, res) => {
 
 app.get('/api/users', async (req, res) => {
     try {
-        const users = await pool.query('SELECT id, name, email, role, avatar_url FROM users ORDER BY name');
+        const users = await pool.query('SELECT id, name, email, role, avatar_url, username FROM users ORDER BY name');
         res.json({ success: true, users: users.rows });
     } catch (err) {
         res.json({ success: false, error: 'Ошибка сервера' });
@@ -440,7 +515,7 @@ app.post('/api/get-or-create-chat', async (req, res) => {
 app.get('/api/chats', async (req, res) => {
     const { userId } = req.query;
     try {
-        const privateChats = await pool.query(`SELECT c.id, u.id as other_user_id, u.name as other_user_name, u.role as other_user_role, u.avatar_url as other_user_avatar, 'private' as type, (SELECT text FROM messages WHERE chat_id = c.id ORDER BY timestamp DESC LIMIT 1) as last_message, (SELECT timestamp FROM messages WHERE chat_id = c.id ORDER BY timestamp DESC LIMIT 1) as last_message_time, (SELECT COUNT(*) FROM messages WHERE chat_id = c.id AND user_id != $1 AND is_read = false) as unread_count FROM chats c JOIN chat_participants cp ON c.id = cp.chat_id JOIN users u ON cp.user_id = u.id WHERE c.id IN (SELECT chat_id FROM chat_participants WHERE user_id = $1) AND cp.user_id != $1 AND c.id NOT IN (SELECT chat_id FROM groups) ORDER BY last_message_time DESC NULLS LAST`, [userId]);
+        const privateChats = await pool.query(`SELECT c.id, u.id as other_user_id, u.name as other_user_name, u.username as other_user_username, u.role as other_user_role, u.avatar_url as other_user_avatar, 'private' as type, (SELECT text FROM messages WHERE chat_id = c.id ORDER BY timestamp DESC LIMIT 1) as last_message, (SELECT timestamp FROM messages WHERE chat_id = c.id ORDER BY timestamp DESC LIMIT 1) as last_message_time, (SELECT COUNT(*) FROM messages WHERE chat_id = c.id AND user_id != $1 AND is_read = false) as unread_count FROM chats c JOIN chat_participants cp ON c.id = cp.chat_id JOIN users u ON cp.user_id = u.id WHERE c.id IN (SELECT chat_id FROM chat_participants WHERE user_id = $1) AND cp.user_id != $1 AND c.id NOT IN (SELECT chat_id FROM groups) ORDER BY last_message_time DESC NULLS LAST`, [userId]);
         const groups = await pool.query(`SELECT g.chat_id as id, g.name as other_user_name, 'group' as type, (SELECT text FROM messages WHERE chat_id = g.chat_id ORDER BY timestamp DESC LIMIT 1) as last_message, (SELECT timestamp FROM messages WHERE chat_id = g.chat_id ORDER BY timestamp DESC LIMIT 1) as last_message_time, (SELECT COUNT(*) FROM messages WHERE chat_id = g.chat_id AND user_id != $1 AND is_read = false) as unread_count FROM groups g JOIN chat_participants cp ON g.chat_id = cp.chat_id WHERE cp.user_id = $1 ORDER BY last_message_time DESC NULLS LAST`, [userId]);
         res.json({ success: true, chats: [...privateChats.rows, ...groups.rows] });
     } catch (err) {
@@ -579,18 +654,15 @@ app.post('/api/pin-message', async (req, res) => {
     const { messageId, chatId, userId, userRole } = req.body;
     
     try {
-        // Проверяем, существует ли сообщение
         const msg = await pool.query('SELECT * FROM messages WHERE id = $1', [messageId]);
         if (msg.rows.length === 0) {
             return res.json({ success: false, error: 'Сообщение не найдено' });
         }
         
-        // Если chatId НЕ передан (null/undefined) — это общий чат, только админ
         if ((!chatId || chatId === 'null') && userRole !== 'admin') {
             return res.json({ success: false, error: 'Только админ может закреплять в общем чате' });
         }
         
-        // Приводим chatId к нужному виду: null для общего чата, число для остальных
         const dbChatId = (!chatId || chatId === 'null' || chatId === 'general') ? null : parseInt(chatId);
         
         const existing = await pool.query(
@@ -599,12 +671,10 @@ app.post('/api/pin-message', async (req, res) => {
         );
         
         if (existing.rows.length > 0) {
-            // Открепляем
             await pool.query('DELETE FROM pinned_messages WHERE message_id = $1', [messageId]);
             io.emit('message pinned', { messageId, pinned: false, chatId: dbChatId });
             return res.json({ success: true, pinned: false });
         } else {
-            // Закрепляем
             await pool.query(
                 'INSERT INTO pinned_messages (message_id, chat_id, pinned_by) VALUES ($1, $2, $3)',
                 [messageId, dbChatId, userId]
@@ -623,7 +693,6 @@ app.get('/api/get-pinned', async (req, res) => {
     try {
         let result;
         if (!chatId || chatId === 'general' || chatId === 'null') {
-            // Общий чат — chat_id IS NULL
             result = await pool.query(
                 `SELECT pm.*, m.text, m.user_name, m.user_id 
                  FROM pinned_messages pm 
