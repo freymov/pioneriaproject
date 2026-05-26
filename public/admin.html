@@ -79,7 +79,6 @@
         .row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
         .row > * { flex: 1; min-width: 100px; }
 
-        /* Чекбоксы дней */
         .day-checkboxes {
             display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;
         }
@@ -141,8 +140,8 @@
         .lesson-type.concert { background: var(--concert-bg); color: #15803d; }
         .badge.admin { background: #f0e6ff; color: #7c3aed; }
         .badge.user { background: #e0e7ff; color: #4f46e5; }
-        .badge.common { background: var(--warning-bg); color: #b45309; }
-        .badge.date { background: var(--success-bg); color: #15803d; }
+        .badge.common { background: #ede9fe; color: #7c3aed; }
+        .badge.onetime { background: var(--warning-bg); color: #b45309; }
 
         .msg { padding: 6px 0; font-size: 12px; }
         .msg.success { color: var(--success); }
@@ -201,7 +200,6 @@
             <h2>📅 Расписание</h2>
             <h3>Добавить событие</h3>
             
-            <!-- Режим: дни недели или конкретная дата -->
             <div class="mode-tabs">
                 <button class="mode-tab active" onclick="switchMode('week')" id="modeWeek">📅 Дни недели</button>
                 <button class="mode-tab" onclick="switchMode('date')" id="modeDate">📆 Конкретная дата</button>
@@ -214,7 +212,6 @@
                 </select>
             </div>
             
-            <!-- Дни недели (режим "week") -->
             <div id="weekMode">
                 <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Выберите дни:</div>
                 <div class="day-checkboxes" id="dayCheckboxes">
@@ -228,7 +225,6 @@
                 </div>
             </div>
             
-            <!-- Конкретная дата (режим "date") -->
             <div id="dateMode" style="display:none;">
                 <input type="date" id="scheduleDate" style="margin-bottom:8px;">
             </div>
@@ -240,11 +236,10 @@
                 <input type="time" id="scheduleStart" style="flex:1;" placeholder="Начало">
                 <input type="time" id="scheduleEnd" style="flex:1;" placeholder="Конец">
             </div>
-            <div id="commonRow">
-                <label class="checkbox-label" style="margin-bottom: 8px;">
-                    <input type="checkbox" id="scheduleIsCommon"> Общая (для всех групп)
-                </label>
-            </div>
+            <!-- Чекбокс "Общая" теперь доступен всегда -->
+            <label class="checkbox-label" style="margin-bottom: 8px;">
+                <input type="checkbox" id="scheduleIsCommon"> Общая репетиция (для всех групп)
+            </label>
             <button onclick="saveScheduleLesson()" style="width:100%;">💾 Сохранить</button>
 
             <h3 style="margin-top: 14px;">Все события</h3>
@@ -277,21 +272,17 @@
         function goToLobby(){window.location.href='lobby.html';}
         function esc(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
 
-        let scheduleMode = 'week'; // 'week' или 'date'
+        let scheduleMode = 'week';
 
-        // Переключение режима
         function switchMode(mode) {
             scheduleMode = mode;
             document.getElementById('modeWeek').classList.toggle('active', mode === 'week');
             document.getElementById('modeDate').classList.toggle('active', mode === 'date');
             document.getElementById('weekMode').style.display = mode === 'week' ? 'block' : 'none';
             document.getElementById('dateMode').style.display = mode === 'date' ? 'block' : 'none';
-            
-            // Для конкретной даты скрываем "общая для всех"
-            document.getElementById('commonRow').style.display = mode === 'date' ? 'none' : 'flex';
+            // Чекбокс "Общая" всегда виден
         }
 
-        // Клик по чекбоксам дней
         document.getElementById('dayCheckboxes').addEventListener('click', function(e) {
             const label = e.target.closest('.day-checkbox');
             if (!label) return;
@@ -308,16 +299,13 @@
 
         function onEventTypeChange() {
             const type = document.getElementById('scheduleEventType').value;
-            const isConcert = type === 'concert';
-            document.getElementById('groupRow').style.display = isConcert ? 'none' : 'flex';
-            document.getElementById('scheduleEnd').style.display = isConcert ? 'none' : '';
-            if (isConcert) {
+            document.getElementById('scheduleEnd').style.display = type === 'concert' ? 'none' : '';
+            if (type === 'concert') {
                 document.getElementById('scheduleEnd').value = '';
                 document.getElementById('scheduleIsCommon').checked = false;
             }
         }
 
-        // Ключи
         async function generateKeys(){
             const c=document.getElementById('keyCount').value, r=document.getElementById('keyRole').value;
             try{
@@ -331,7 +319,6 @@
             }catch(e){}
         }
 
-        // Пользователи
         async function loadUsers(){
             try{
                 const res=await fetch('/api/admin/users?adminEmail='+userData.email);
@@ -359,7 +346,6 @@
             loadUsers();
         }
 
-        // Расписание
         async function loadScheduleGroups(){
             try{
                 const res=await fetch('/api/schedule/groups');
@@ -375,9 +361,8 @@
             
             if(!st){alert('Укажите время');return;}
             
-            const isConcert = eventType === 'concert';
-            const gid = isConcert ? 1 : (document.getElementById('scheduleGroup').value || null);
-            const common = isConcert ? true : document.getElementById('scheduleIsCommon').checked;
+            const gid = document.getElementById('scheduleGroup').value || null;
+            const common = document.getElementById('scheduleIsCommon').checked;
             
             const body = {
                 adminEmail: userData.email,
@@ -414,7 +399,6 @@
                     document.getElementById('scheduleEnd').value='';
                     document.getElementById('scheduleIsCommon').checked=false;
                     document.getElementById('scheduleDate').value='';
-                    // Снимаем выбор дней
                     document.querySelectorAll('#dayCheckboxes .day-checkbox.checked').forEach(cb => {
                         cb.classList.remove('checked');
                         cb.querySelector('input').checked = false;
@@ -436,17 +420,18 @@
                         
                         let dayStr = '';
                         if (l.lesson_date) {
-                            dayStr = new Date(l.lesson_date).toLocaleDateString('ru-RU', {day:'numeric', month:'long'});
+                            dayStr = '📆 ' + new Date(l.lesson_date).toLocaleDateString('ru-RU', {day:'numeric', month:'long'});
                         } else if (l.day_of_week !== null && l.day_of_week !== undefined) {
                             dayStr = dn[l.day_of_week];
                         }
                         
-                        const dateBadge = l.lesson_date ? ' <span class="badge date">📆 Дата</span>' : '';
+                        const typeBadge = l.lesson_date ? '<span class="badge onetime">Разовая</span>' : '';
+                        const commonBadge = l.is_common ? ' <span class="badge common">Общая</span>' : '';
                         
                         return `<div class="lesson-row">
                             <div style="flex:1;min-width:140px;">
-                                <strong>${l.group_name||'Концерт'}</strong>${l.is_common?' <span class="badge common">Общая</span>':''}
-                                <span class="lesson-type ${et}">${et==='concert'?'🎤 Концерт':'🎵 Репетиция'}</span>${dateBadge}
+                                <strong>${l.group_name||'Концерт'}</strong>${commonBadge}
+                                <span class="lesson-type ${et}">${et==='concert'?'🎤 Концерт':'🎵 Репетиция'}</span>${typeBadge}
                                 <span style="color:var(--text-secondary);"> — ${dayStr}, ${t}</span>
                                 <span class="lesson-status ${st}">${l.status==='active'?'Активно':'Отменено'}</span>
                             </div>
@@ -468,7 +453,6 @@
         async function restoreLesson(id){await fetch(`/api/admin/schedule/${id}/status`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,status:'active'})});loadAllSchedule();}
         async function deleteScheduleLesson(id){if(!confirm('Удалить?'))return;await fetch(`/api/admin/schedule/${id}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email})});loadAllSchedule();}
 
-        // Новости
         async function loadNewsAdmin(){
             try{
                 const res=await fetch('/api/news');
@@ -498,7 +482,6 @@
 
         async function deleteNews(id){if(!confirm('Удалить?'))return;await fetch(`/api/admin/news/${id}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email})});loadNewsAdmin();}
 
-        // Старт
         loadUsers();
         loadNewsAdmin();
         loadScheduleGroups();
