@@ -235,20 +235,16 @@ async function initDatabase() {
             )
         `);
 
-        const checkResult = await pool.query(`
-            SELECT constraint_name FROM information_schema.check_constraints 
-            WHERE constraint_name = 'schedule_lessons_day_of_week_check'
-        `);
-        
-        if (checkResult.rows.length > 0) {
-            await pool.query(`ALTER TABLE schedule_lessons DROP CONSTRAINT schedule_lessons_day_of_week_check`);
-        }
+        // Удаляем старый constraint если есть
+        try {
+            await pool.query(`ALTER TABLE schedule_lessons DROP CONSTRAINT IF EXISTS schedule_lessons_day_of_week_check`);
+        } catch(e) {}
 
         await pool.query(`
             CREATE TABLE IF NOT EXISTS schedule_lessons (
                 id SERIAL PRIMARY KEY,
                 group_id INTEGER REFERENCES schedule_groups(id) ON DELETE CASCADE,
-                day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),
+                day_of_week INTEGER CHECK (day_of_week IS NULL OR (day_of_week BETWEEN 0 AND 6)),
                 start_time TIME NOT NULL,
                 end_time TIME,
                 title VARCHAR(255) NOT NULL DEFAULT 'Репетиция',
@@ -260,11 +256,13 @@ async function initDatabase() {
             )
         `);
 
+        // Добавляем поле lesson_date для конкретных дат
+        await pool.query(`ALTER TABLE schedule_lessons ADD COLUMN IF NOT EXISTS lesson_date DATE`);
+
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT`);
         
-        // ====== НОВОЕ: username ======
+        // username
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(50) UNIQUE`);
-        // Индекс для быстрого поиска (игнорируем ошибку если уже существует)
         try {
             await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users(username) WHERE username IS NOT NULL`);
         } catch(e) {}
@@ -323,7 +321,7 @@ app.post('/api/register', async (req, res) => {
         const userExists = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
         if (userExists.rows.length > 0) return res.json({ success: false, error: 'Email уже существует' });
         const hashedPassword = await bcrypt.hash(password, 10);
-        const result = await pool.query('INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id', [name, email, hashedPassword, key.role]);
+        await pool.query('INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id', [name, email, hashedPassword, key.role]);
         await pool.query('UPDATE invite_keys SET used_by = $1, used_at = NOW() WHERE key_code = $2', [email, accessKey]);
         res.json({ success: true });
     } catch (err) {
@@ -383,19 +381,14 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// ====== НОВОЕ: Установка юзернейма ======
 app.post('/api/set-username', async (req, res) => {
     const { userId, username } = req.body;
     if (!userId || !username) return res.json({ success: false, error: 'Нет данных' });
-    
-    // Формат: буквы, цифры, подчёркивания, 3-30 символов
     const valid = /^[a-zA-Z0-9_]{3,30}$/.test(username);
     if (!valid) return res.json({ success: false, error: 'Юзернейм: 3-30 символов (буквы, цифры, _)' });
-    
     try {
         const exists = await pool.query('SELECT id FROM users WHERE username = $1 AND id != $2', [username, userId]);
         if (exists.rows.length > 0) return res.json({ success: false, error: 'Юзернейм занят' });
-        
         await pool.query('UPDATE users SET username = $1 WHERE id = $2', [username, userId]);
         res.json({ success: true, username });
     } catch (err) {
@@ -408,11 +401,9 @@ app.post('/api/set-username', async (req, res) => {
     }
 });
 
-// ====== НОВОЕ: Поиск пользователей ======
 app.get('/api/search-users', async (req, res) => {
     const { q, userId } = req.query;
     if (!q || q.length < 1) return res.json({ success: true, users: [] });
-    
     try {
         const result = await pool.query(
             `SELECT id, name, username, avatar_url, role 
@@ -432,7 +423,6 @@ app.get('/api/search-users', async (req, res) => {
     }
 });
 
-// ====== НОВОЕ: Профиль пользователя ======
 app.get('/api/user/:id', async (req, res) => {
     try {
         const result = await pool.query(
@@ -569,35 +559,22 @@ app.delete('/api/admin/news/:id', async (req, res) => {
 });
 
 app.post('/api/delete-message', async (req, res) => {
-    console.log('📥 DELETE запрос, body:', JSON.stringify(req.body));
     const { messageId, userId, userRole, imageUrl } = req.body;
-    
     try {
         const msg = await pool.query('SELECT * FROM messages WHERE id = $1', [messageId]);
-        
-        if (msg.rows.length === 0) {
-            return res.json({ success: false, error: 'Не найдено' });
-        }
-        
+        if (msg.rows.length === 0) return res.json({ success: false, error: 'Не найдено' });
         const message = msg.rows[0];
-        
-        if (message.user_id !== userId && userRole !== 'admin') {
-            return res.json({ success: false, error: 'Нет прав' });
-        }
-        
-        if (imageUrl && imageUrl !== '' && imageUrl.includes('cloudinary.com')) {
+        if (message.user_id !== userId && userRole !== 'admin') return res.json({ success: false, error: 'Нет прав' });
+        if (imageUrl && imageUrl.includes('cloudinary.com')) {
             try {
                 const publicId = imageUrl.split('/').pop().split('.')[0];
                 await cloudinary.uploader.destroy(`pioneria_chat/${publicId}`);
             } catch (err) {}
         }
-        
         await pool.query('DELETE FROM messages WHERE id = $1', [messageId]);
         io.emit('message deleted', messageId);
-        console.log('✅ Сообщение удалено');
         res.json({ success: true });
     } catch (err) {
-        console.error('❌ ОШИБКА:', err.message);
         res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
@@ -650,40 +627,23 @@ app.post('/api/edit-message', async (req, res) => {
 });
 
 app.post('/api/pin-message', async (req, res) => {
-    console.log('📥 PIN запрос, body:', JSON.stringify(req.body));
     const { messageId, chatId, userId, userRole } = req.body;
-    
     try {
         const msg = await pool.query('SELECT * FROM messages WHERE id = $1', [messageId]);
-        if (msg.rows.length === 0) {
-            return res.json({ success: false, error: 'Сообщение не найдено' });
-        }
-        
-        if ((!chatId || chatId === 'null') && userRole !== 'admin') {
-            return res.json({ success: false, error: 'Только админ может закреплять в общем чате' });
-        }
-        
+        if (msg.rows.length === 0) return res.json({ success: false, error: 'Сообщение не найдено' });
+        if ((!chatId || chatId === 'null') && userRole !== 'admin') return res.json({ success: false, error: 'Только админ может закреплять в общем чате' });
         const dbChatId = (!chatId || chatId === 'null' || chatId === 'general') ? null : parseInt(chatId);
-        
-        const existing = await pool.query(
-            'SELECT * FROM pinned_messages WHERE message_id = $1', 
-            [messageId]
-        );
-        
+        const existing = await pool.query('SELECT * FROM pinned_messages WHERE message_id = $1', [messageId]);
         if (existing.rows.length > 0) {
             await pool.query('DELETE FROM pinned_messages WHERE message_id = $1', [messageId]);
             io.emit('message pinned', { messageId, pinned: false, chatId: dbChatId });
             return res.json({ success: true, pinned: false });
         } else {
-            await pool.query(
-                'INSERT INTO pinned_messages (message_id, chat_id, pinned_by) VALUES ($1, $2, $3)',
-                [messageId, dbChatId, userId]
-            );
+            await pool.query('INSERT INTO pinned_messages (message_id, chat_id, pinned_by) VALUES ($1, $2, $3)', [messageId, dbChatId, userId]);
             io.emit('message pinned', { messageId, pinned: true, chatId: dbChatId });
             return res.json({ success: true, pinned: true });
         }
     } catch (err) {
-        console.error('❌ Ошибка pin:', err);
         res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
@@ -693,30 +653,14 @@ app.get('/api/get-pinned', async (req, res) => {
     try {
         let result;
         if (!chatId || chatId === 'general' || chatId === 'null') {
-            result = await pool.query(
-                `SELECT pm.*, m.text, m.user_name, m.user_id 
-                 FROM pinned_messages pm 
-                 JOIN messages m ON pm.message_id = m.id 
-                 WHERE pm.chat_id IS NULL 
-                 ORDER BY pm.pinned_at DESC`
-            );
+            result = await pool.query(`SELECT pm.*, m.text, m.user_name, m.user_id FROM pinned_messages pm JOIN messages m ON pm.message_id = m.id WHERE pm.chat_id IS NULL ORDER BY pm.pinned_at DESC`);
         } else {
             const numericChatId = parseInt(chatId);
-            if (isNaN(numericChatId)) {
-                return res.json({ success: true, pinned: [] });
-            }
-            result = await pool.query(
-                `SELECT pm.*, m.text, m.user_name, m.user_id 
-                 FROM pinned_messages pm 
-                 JOIN messages m ON pm.message_id = m.id 
-                 WHERE pm.chat_id = $1 
-                 ORDER BY pm.pinned_at DESC`,
-                [numericChatId]
-            );
+            if (isNaN(numericChatId)) return res.json({ success: true, pinned: [] });
+            result = await pool.query(`SELECT pm.*, m.text, m.user_name, m.user_id FROM pinned_messages pm JOIN messages m ON pm.message_id = m.id WHERE pm.chat_id = $1 ORDER BY pm.pinned_at DESC`, [numericChatId]);
         }
         res.json({ success: true, pinned: result.rows });
     } catch (err) {
-        console.error('❌ Ошибка get-pinned:', err);
         res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
@@ -800,7 +744,7 @@ app.get('/api/user/settings', async (req, res) => {
     }
 });
 
-// ========== API РАСПИСАНИЯ ==========
+// ========== API РАСПИСАНИЯ (ОБНОВЛЁННОЕ) ==========
 
 app.get('/api/schedule/groups', async (req, res) => {
     try {
@@ -811,6 +755,7 @@ app.get('/api/schedule/groups', async (req, res) => {
     }
 });
 
+// Получение расписания — теперь учитывает и lesson_date, и day_of_week
 app.get('/api/schedule', async (req, res) => {
     const { groupId } = req.query;
     try {
@@ -820,15 +765,15 @@ app.get('/api/schedule', async (req, res) => {
                 SELECT sl.*, sg.name as group_name, sg.color as group_color
                 FROM schedule_lessons sl
                 JOIN schedule_groups sg ON sl.group_id = sg.id
-                WHERE sl.group_id = $1 OR sl.is_common = true
-                ORDER BY sl.day_of_week, sl.start_time
+                WHERE (sl.group_id = $1 OR sl.is_common = true)
+                ORDER BY sl.lesson_date ASC, sl.day_of_week ASC, sl.start_time ASC
             `, [groupId]);
         } else {
             lessons = await pool.query(`
                 SELECT sl.*, sg.name as group_name, sg.color as group_color
                 FROM schedule_lessons sl
                 JOIN schedule_groups sg ON sl.group_id = sg.id
-                ORDER BY sl.day_of_week, sl.start_time
+                ORDER BY sl.lesson_date ASC, sl.day_of_week ASC, sl.start_time ASC
             `);
         }
         res.json({ success: true, lessons: lessons.rows });
@@ -838,16 +783,36 @@ app.get('/api/schedule', async (req, res) => {
     }
 });
 
+// Создание урока — теперь принимает days[] (массив дней недели) ИЛИ lessonDate (конкретная дата)
 app.post('/api/admin/schedule', async (req, res) => {
-    const { adminEmail, groupId, dayOfWeek, startTime, endTime, title, description, isCommon, eventType } = req.body;
+    const { adminEmail, groupId, days, startTime, endTime, title, description, isCommon, eventType, lessonDate } = req.body;
     try {
         const admin = await pool.query('SELECT * FROM users WHERE email = $1 AND role = $2', [adminEmail, 'admin']);
         if (admin.rows.length === 0) return res.json({ success: false, error: 'Нет прав' });
-        const result = await pool.query(`
-            INSERT INTO schedule_lessons (group_id, day_of_week, start_time, end_time, title, description, is_common, event_type)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id
-        `, [groupId, dayOfWeek, startTime, endTime, title || 'Репетиция', description || '', isCommon || false, eventType || 'rehearsal']);
-        res.json({ success: true, id: result.rows[0].id });
+
+        const results = [];
+
+        if (lessonDate) {
+            // Конкретная дата
+            const result = await pool.query(`
+                INSERT INTO schedule_lessons (group_id, day_of_week, start_time, end_time, title, description, is_common, event_type, lesson_date)
+                VALUES ($1, NULL, $2, $3, $4, $5, $6, $7, $8) RETURNING id
+            `, [groupId || null, startTime, endTime || null, title || 'Репетиция', description || '', isCommon || false, eventType || 'rehearsal', lessonDate]);
+            results.push(result.rows[0].id);
+        } else if (days && Array.isArray(days) && days.length > 0) {
+            // Массив дней недели — создаём по записи на каждый день
+            for (const dayOfWeek of days) {
+                const result = await pool.query(`
+                    INSERT INTO schedule_lessons (group_id, day_of_week, start_time, end_time, title, description, is_common, event_type)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id
+                `, [groupId || null, dayOfWeek, startTime, endTime || null, title || 'Репетиция', description || '', isCommon || false, eventType || 'rehearsal']);
+                results.push(result.rows[0].id);
+            }
+        } else {
+            return res.json({ success: false, error: 'Укажите дни или конкретную дату' });
+        }
+
+        res.json({ success: true, ids: results });
     } catch (err) {
         console.error('Ошибка добавления:', err);
         res.json({ success: false, error: 'Ошибка сервера' });
