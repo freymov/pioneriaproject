@@ -256,6 +256,11 @@ async function initDatabase() {
             )
         `);
 
+        // Снимаем NOT NULL с day_of_week (на случай если таблица уже существует)
+        try {
+            await pool.query(`ALTER TABLE schedule_lessons ALTER COLUMN day_of_week DROP NOT NULL`);
+        } catch(e) {}
+
         // Добавляем поле lesson_date для конкретных дат
         await pool.query(`ALTER TABLE schedule_lessons ADD COLUMN IF NOT EXISTS lesson_date DATE`);
 
@@ -423,11 +428,24 @@ app.get('/api/search-users', async (req, res) => {
     }
 });
 
+// ВАЖНО: /api/user/settings ДО /api/user/:id
+app.get('/api/user/settings', async (req, res) => {
+    const { userId, key } = req.query;
+    try {
+        const result = await pool.query('SELECT setting_value FROM user_settings WHERE user_id = $1 AND setting_key = $2', [userId, key]);
+        res.json({ success: true, value: result.rows[0]?.setting_value || null });
+    } catch (err) {
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
 app.get('/api/user/:id', async (req, res) => {
+    const userId = parseInt(req.params.id);
+    if (isNaN(userId)) return res.json({ success: false, error: 'Неверный ID' });
     try {
         const result = await pool.query(
             'SELECT id, name, username, avatar_url, role, created_at FROM users WHERE id = $1',
-            [req.params.id]
+            [userId]
         );
         if (result.rows.length === 0) return res.json({ success: false, error: 'Пользователь не найден' });
         res.json({ success: true, user: result.rows[0] });
@@ -734,17 +752,7 @@ app.post('/api/user/settings/save', async (req, res) => {
     }
 });
 
-app.get('/api/user/settings', async (req, res) => {
-    const { userId, key } = req.query;
-    try {
-        const result = await pool.query('SELECT setting_value FROM user_settings WHERE user_id = $1 AND setting_key = $2', [userId, key]);
-        res.json({ success: true, value: result.rows[0]?.setting_value || null });
-    } catch (err) {
-        res.json({ success: false, error: 'Ошибка сервера' });
-    }
-});
-
-// ========== API РАСПИСАНИЯ (ОБНОВЛЁННОЕ) ==========
+// ========== API РАСПИСАНИЯ ==========
 
 app.get('/api/schedule/groups', async (req, res) => {
     try {
@@ -755,7 +763,6 @@ app.get('/api/schedule/groups', async (req, res) => {
     }
 });
 
-// Получение расписания — теперь учитывает и lesson_date, и day_of_week
 app.get('/api/schedule', async (req, res) => {
     const { groupId } = req.query;
     try {
@@ -783,7 +790,6 @@ app.get('/api/schedule', async (req, res) => {
     }
 });
 
-// Создание урока — теперь принимает days[] (массив дней недели) ИЛИ lessonDate (конкретная дата)
 app.post('/api/admin/schedule', async (req, res) => {
     const { adminEmail, groupId, days, startTime, endTime, title, description, isCommon, eventType, lessonDate } = req.body;
     try {
@@ -793,14 +799,12 @@ app.post('/api/admin/schedule', async (req, res) => {
         const results = [];
 
         if (lessonDate) {
-            // Конкретная дата
             const result = await pool.query(`
                 INSERT INTO schedule_lessons (group_id, day_of_week, start_time, end_time, title, description, is_common, event_type, lesson_date)
                 VALUES ($1, NULL, $2, $3, $4, $5, $6, $7, $8) RETURNING id
             `, [groupId || null, startTime, endTime || null, title || 'Репетиция', description || '', isCommon || false, eventType || 'rehearsal', lessonDate]);
             results.push(result.rows[0].id);
         } else if (days && Array.isArray(days) && days.length > 0) {
-            // Массив дней недели — создаём по записи на каждый день
             for (const dayOfWeek of days) {
                 const result = await pool.query(`
                     INSERT INTO schedule_lessons (group_id, day_of_week, start_time, end_time, title, description, is_common, event_type)
