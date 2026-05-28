@@ -235,7 +235,6 @@ async function initDatabase() {
             )
         `);
 
-        // Удаляем старый constraint если есть
         try {
             await pool.query(`ALTER TABLE schedule_lessons DROP CONSTRAINT IF EXISTS schedule_lessons_day_of_week_check`);
         } catch(e) {}
@@ -256,17 +255,14 @@ async function initDatabase() {
             )
         `);
 
-        // Снимаем NOT NULL с day_of_week (на случай если таблица уже существует)
         try {
             await pool.query(`ALTER TABLE schedule_lessons ALTER COLUMN day_of_week DROP NOT NULL`);
         } catch(e) {}
 
-        // Добавляем поле lesson_date для конкретных дат
         await pool.query(`ALTER TABLE schedule_lessons ADD COLUMN IF NOT EXISTS lesson_date DATE`);
 
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT`);
         
-        // username
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(50) UNIQUE`);
         try {
             await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users(username) WHERE username IS NOT NULL`);
@@ -428,7 +424,6 @@ app.get('/api/search-users', async (req, res) => {
     }
 });
 
-// ВАЖНО: /api/user/settings ДО /api/user/:id
 app.get('/api/user/settings', async (req, res) => {
     const { userId, key } = req.query;
     try {
@@ -771,15 +766,15 @@ app.get('/api/schedule', async (req, res) => {
             lessons = await pool.query(`
                 SELECT sl.*, sg.name as group_name, sg.color as group_color
                 FROM schedule_lessons sl
-                JOIN schedule_groups sg ON sl.group_id = sg.id
-                WHERE (sl.group_id = $1 OR sl.is_common = true)
+                LEFT JOIN schedule_groups sg ON sl.group_id = sg.id
+                WHERE (sl.group_id = $1 OR sl.is_common = true OR sl.group_id IS NULL)
                 ORDER BY sl.lesson_date ASC, sl.day_of_week ASC, sl.start_time ASC
             `, [groupId]);
         } else {
             lessons = await pool.query(`
                 SELECT sl.*, sg.name as group_name, sg.color as group_color
                 FROM schedule_lessons sl
-                JOIN schedule_groups sg ON sl.group_id = sg.id
+                LEFT JOIN schedule_groups sg ON sl.group_id = sg.id
                 ORDER BY sl.lesson_date ASC, sl.day_of_week ASC, sl.start_time ASC
             `);
         }
