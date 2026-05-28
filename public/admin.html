@@ -63,7 +63,6 @@
         }
         button:hover { background: var(--accent-hover); }
         .back-btn { background: #777; margin-bottom: 12px; }
-        .back-btn:hover { background: #666; }
         .btn-sm { padding: 6px 12px; font-size: 11px; border-radius: 8px; }
         .btn-danger { background: var(--danger); }
         .btn-warning { background: var(--warning); color: #000; }
@@ -87,13 +86,10 @@
             padding: 8px 12px; border: 2px solid var(--border);
             border-radius: 10px; cursor: pointer; font-size: 13px;
             font-weight: 600; transition: all 0.15s;
-            background: var(--bg-card); color: var(--text);
-            user-select: none;
+            background: var(--bg-card); color: var(--text); user-select: none;
         }
         .day-checkbox:hover { border-color: var(--accent); }
-        .day-checkbox.checked {
-            background: var(--accent); color: #fff; border-color: var(--accent);
-        }
+        .day-checkbox.checked { background: var(--accent); color: #fff; border-color: var(--accent); }
         .day-checkbox input { display: none; }
 
         .mode-tabs {
@@ -106,10 +102,16 @@
             background: var(--bg-card); color: var(--text-secondary);
             border: none; transition: all 0.15s;
         }
-        .mode-tab.active {
-            background: var(--accent); color: #fff;
-        }
+        .mode-tab.active { background: var(--accent); color: #fff; }
         .mode-tab:not(.active):hover { background: var(--bg-secondary); }
+
+        .file-input-wrapper {
+            margin-bottom: 8px;
+        }
+        .file-input-wrapper label {
+            display: block; font-size: 12px; color: var(--text-secondary);
+            margin-bottom: 4px; font-weight: 600;
+        }
 
         .keys-box {
             background: var(--bg-secondary); padding: 12px;
@@ -119,7 +121,7 @@
             margin-top: 10px; line-height: 1.6;
         }
 
-        .user-card, .lesson-row, .news-row {
+        .user-card, .lesson-row, .news-row, .storage-row {
             background: var(--bg-secondary); border-radius: 10px;
             padding: 10px 12px; margin-bottom: 6px;
             display: flex; justify-content: space-between;
@@ -246,6 +248,27 @@
             <div id="scheduleListAdmin">Загрузка...</div>
         </div>
 
+        <!-- Хранилище -->
+        <div class="card">
+            <h2>📦 Хранилище</h2>
+            <h3>Добавить произведение</h3>
+            <input type="text" id="storageTitle" placeholder="Название (например: Motete - Bach)" style="margin-bottom:8px;">
+            <div class="file-input-wrapper">
+                <label>📄 PDF (ноты)</label>
+                <input type="file" id="storagePdf" accept=".pdf" style="margin-bottom:6px;">
+            </div>
+            <div class="file-input-wrapper">
+                <label>🎧 MP3 (аудио)</label>
+                <input type="file" id="storageMp3" accept=".mp3,audio/*" style="margin-bottom:6px;">
+            </div>
+            <button onclick="uploadStorage()" style="width:100%;">📤 Загрузить</button>
+            <div id="storageMsg" class="msg"></div>
+
+            <h3 style="margin-top: 14px;">Загруженные</h3>
+            <button onclick="loadStorageAdmin()" class="btn-sm" style="margin-bottom:8px;">🔄 Обновить</button>
+            <div id="storageListAdmin">Загрузка...</div>
+        </div>
+
         <!-- Новости -->
         <div class="card">
             <h2>📰 Новости</h2>
@@ -360,7 +383,7 @@
             if(!st){alert('Укажите время');return;}
             
             const gid = document.getElementById('scheduleGroup').value;
-            if(!gid){alert('Выберите группу');return;}  // ← Группа обязательна
+            if(!gid){alert('Выберите группу');return;}
             
             const common = document.getElementById('scheduleIsCommon').checked;
             
@@ -444,15 +467,77 @@
                 } else {
                     document.getElementById('scheduleListAdmin').innerHTML='<p style="font-size:12px;color:var(--text-secondary);">Нет событий</p>';
                 }
-            } catch(e) {
-                console.error(e);
-            }
+            } catch(e) { console.error(e); }
         }
 
         async function cancelLesson(id){await fetch(`/api/admin/schedule/${id}/status`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,status:'cancelled'})});loadAllSchedule();}
         async function restoreLesson(id){await fetch(`/api/admin/schedule/${id}/status`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,status:'active'})});loadAllSchedule();}
         async function deleteScheduleLesson(id){if(!confirm('Удалить?'))return;await fetch(`/api/admin/schedule/${id}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email})});loadAllSchedule();}
 
+        // ====== ХРАНИЛИЩЕ ======
+        async function uploadStorage(){
+            const title = document.getElementById('storageTitle').value.trim();
+            if(!title){alert('Введите название');return;}
+            
+            const pdfFile = document.getElementById('storagePdf').files[0];
+            const mp3File = document.getElementById('storageMp3').files[0];
+            
+            if(!pdfFile && !mp3File){alert('Выберите хотя бы один файл');return;}
+            
+            const fd = new FormData();
+            fd.append('adminEmail', userData.email);
+            fd.append('title', title);
+            if(pdfFile) fd.append('pdf', pdfFile);
+            if(mp3File) fd.append('mp3', mp3File);
+            
+            try{
+                const res = await fetch('/api/admin/storage', { method: 'POST', body: fd });
+                const d = await res.json();
+                if(d.success){
+                    document.getElementById('storageMsg').innerHTML = '<div class="msg success">✅ Загружено</div>';
+                    document.getElementById('storageTitle').value = '';
+                    document.getElementById('storagePdf').value = '';
+                    document.getElementById('storageMp3').value = '';
+                    loadStorageAdmin();
+                    setTimeout(()=>document.getElementById('storageMsg').innerHTML='',3000);
+                } else {
+                    document.getElementById('storageMsg').innerHTML = '<div class="msg error">❌ '+(d.error||'Ошибка')+'</div>';
+                }
+            }catch(e){
+                document.getElementById('storageMsg').innerHTML = '<div class="msg error">❌ Ошибка сервера</div>';
+            }
+        }
+
+        async function loadStorageAdmin(){
+            try{
+                const res = await fetch('/api/storage');
+                const d = await res.json();
+                if(d.success && d.items.length){
+                    document.getElementById('storageListAdmin').innerHTML = d.items.map(item => `
+                        <div class="storage-row">
+                            <div style="flex:1;min-width:140px;">
+                                <strong>🎵 ${esc(item.title)}</strong>
+                                <span style="color:var(--text-secondary);font-size:11px;">
+                                    ${item.pdf_url ? '📄 PDF ' : ''}
+                                    ${item.mp3_url ? '🎧 MP3 ' : ''}
+                                </span>
+                            </div>
+                            <button class="btn-sm btn-danger" onclick="deleteStorage(${item.id})">🗑</button>
+                        </div>
+                    `).join('');
+                } else {
+                    document.getElementById('storageListAdmin').innerHTML='<p style="font-size:12px;color:var(--text-secondary);">Нет произведений</p>';
+                }
+            }catch(e){}
+        }
+
+        async function deleteStorage(id){
+            if(!confirm('Удалить?'))return;
+            await fetch(`/api/admin/storage/${id}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email})});
+            loadStorageAdmin();
+        }
+
+        // ====== НОВОСТИ ======
         async function loadNewsAdmin(){
             try{
                 const res=await fetch('/api/news');
@@ -486,6 +571,7 @@
         loadNewsAdmin();
         loadScheduleGroups();
         loadAllSchedule();
+        loadStorageAdmin();
     </script>
 </body>
 </html>
