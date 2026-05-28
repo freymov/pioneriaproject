@@ -230,13 +230,12 @@
             </div>
             
             <div class="row" id="groupRow">
-                <select id="scheduleGroup"><option value="">Группа</option></select>
+                <select id="scheduleGroup"><option value="">Выберите группу</option></select>
             </div>
             <div class="row">
                 <input type="time" id="scheduleStart" style="flex:1;" placeholder="Начало">
                 <input type="time" id="scheduleEnd" style="flex:1;" placeholder="Конец">
             </div>
-            <!-- Чекбокс "Общая" теперь доступен всегда -->
             <label class="checkbox-label" style="margin-bottom: 8px;">
                 <input type="checkbox" id="scheduleIsCommon"> Общая репетиция (для всех групп)
             </label>
@@ -280,7 +279,6 @@
             document.getElementById('modeDate').classList.toggle('active', mode === 'date');
             document.getElementById('weekMode').style.display = mode === 'week' ? 'block' : 'none';
             document.getElementById('dateMode').style.display = mode === 'date' ? 'block' : 'none';
-            // Чекбокс "Общая" всегда виден
         }
 
         document.getElementById('dayCheckboxes').addEventListener('click', function(e) {
@@ -350,7 +348,7 @@
             try{
                 const res=await fetch('/api/schedule/groups');
                 const d=await res.json();
-                if(d.success) document.getElementById('scheduleGroup').innerHTML=d.groups.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
+                if(d.success) document.getElementById('scheduleGroup').innerHTML = '<option value="">Выберите группу</option>' + d.groups.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
             }catch(e){}
         }
 
@@ -361,12 +359,14 @@
             
             if(!st){alert('Укажите время');return;}
             
-            const gid = document.getElementById('scheduleGroup').value || null;
+            const gid = document.getElementById('scheduleGroup').value;
+            if(!gid){alert('Выберите группу');return;}  // ← Группа обязательна
+            
             const common = document.getElementById('scheduleIsCommon').checked;
             
             const body = {
                 adminEmail: userData.email,
-                groupId: parseInt(gid) || null,
+                groupId: parseInt(gid),
                 startTime: st,
                 endTime: et || null,
                 title: eventType === 'concert' ? 'Концерт' : 'Репетиция',
