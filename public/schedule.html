@@ -12,7 +12,6 @@
         :root, [data-theme="light"] {
             --bg-body: linear-gradient(160deg, #e8ecf5 0%, #f0f2fa 40%, #eef0f8 100%);
             --bg-card: #ffffff;
-            --bg-secondary: #f8f9fb;
             --bg-today: #f5f3ff;
             --bg-rehearsal: #eef1ff;
             --bg-common: #fff8eb;
@@ -35,7 +34,6 @@
         [data-theme="dark"] {
             --bg-body: linear-gradient(160deg, #13132b 0%, #1a1a35 40%, #151530 100%);
             --bg-card: #252540;
-            --bg-secondary: #1e1e32;
             --bg-today: #2a2a48;
             --bg-rehearsal: #252a48;
             --bg-common: #2a2518;
@@ -392,17 +390,17 @@
                 
                 // Недельные уроки (по дню недели)
                 const weeklyLessons = allLessons.filter(l => 
-                    l.lesson_date === null && l.day_of_week === dayOfWeek
+                    !l.lesson_date && l.day_of_week === dayOfWeek
                 );
                 
-                // Разовые уроки (по конкретной дате)
+                // Разовые уроки на эту дату
                 const onetimeLessons = allLessons.filter(l => 
-                    l.lesson_date === dateStr
+                    l.lesson_date && l.lesson_date.startsWith(dateStr)
                 );
                 
-                // Объединяем и сортируем по времени
+                // Объединяем
                 const dayLessons = [...weeklyLessons, ...onetimeLessons].sort((a, b) => 
-                    a.start_time.localeCompare(b.start_time)
+                    (a.start_time || '').localeCompare(b.start_time || '')
                 );
                 
                 const todayClass = isToday(date) ? 'today' : '';
