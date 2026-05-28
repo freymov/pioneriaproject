@@ -261,6 +261,17 @@ async function initDatabase() {
 
         await pool.query(`ALTER TABLE schedule_lessons ADD COLUMN IF NOT EXISTS lesson_date DATE`);
 
+        // Хранилище
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS storage_items (
+                id SERIAL PRIMARY KEY,
+                title VARCHAR(255) NOT NULL,
+                pdf_url TEXT,
+                mp3_url TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT`);
         
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(50) UNIQUE`);
@@ -836,6 +847,80 @@ app.post('/api/admin/schedule/:id/status', async (req, res) => {
         const admin = await pool.query('SELECT * FROM users WHERE email = $1 AND role = $2', [adminEmail, 'admin']);
         if (admin.rows.length === 0) return res.json({ success: false, error: 'Нет прав' });
         await pool.query('UPDATE schedule_lessons SET status = $1 WHERE id = $2', [status, req.params.id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+// ========== API ХРАНИЛИЩА ==========
+
+app.get('/api/storage', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM storage_items ORDER BY created_at DESC');
+        res.json({ success: true, items: result.rows });
+    } catch (err) {
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+app.post('/api/admin/storage', upload.fields([{ name: 'pdf', maxCount: 1 }, { name: 'mp3', maxCount: 1 }]), async (req, res) => {
+    const { adminEmail, title } = req.body;
+    try {
+        const admin = await pool.query('SELECT * FROM users WHERE email = $1 AND role = $2', [adminEmail, 'admin']);
+        if (admin.rows.length === 0) return res.json({ success: false, error: 'Нет прав' });
+
+        if (!title || !title.trim()) return res.json({ success: false, error: 'Введите название' });
+
+        let pdf_url = null;
+        let mp3_url = null;
+
+        if (req.files && req.files.pdf) {
+            const bufferStream = new stream.PassThrough();
+            bufferStream.end(req.files.pdf[0].buffer);
+            const result = await new Promise((resolve, reject) => {
+                const uploadStream = cloudinary.uploader.upload_stream(
+                    { folder: 'pioneria_storage', resource_type: 'auto' },
+                    (error, result) => { if (error) reject(error); else resolve(result); }
+                );
+                bufferStream.pipe(uploadStream);
+            });
+            pdf_url = result.secure_url;
+        }
+
+        if (req.files && req.files.mp3) {
+            const bufferStream = new stream.PassThrough();
+            bufferStream.end(req.files.mp3[0].buffer);
+            const result = await new Promise((resolve, reject) => {
+                const uploadStream = cloudinary.uploader.upload_stream(
+                    { folder: 'pioneria_storage', resource_type: 'auto' },
+                    (error, result) => { if (error) reject(error); else resolve(result); }
+                );
+                bufferStream.pipe(uploadStream);
+            });
+            mp3_url = result.secure_url;
+        }
+
+        if (!pdf_url && !mp3_url) return res.json({ success: false, error: 'Загрузите хотя бы один файл' });
+
+        const result = await pool.query(
+            'INSERT INTO storage_items (title, pdf_url, mp3_url) VALUES ($1, $2, $3) RETURNING id',
+            [title.trim(), pdf_url, mp3_url]
+        );
+
+        res.json({ success: true, id: result.rows[0].id });
+    } catch (err) {
+        console.error('Ошибка загрузки в хранилище:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+app.delete('/api/admin/storage/:id', async (req, res) => {
+    const { adminEmail } = req.body;
+    try {
+        const admin = await pool.query('SELECT * FROM users WHERE email = $1 AND role = $2', [adminEmail, 'admin']);
+        if (admin.rows.length === 0) return res.json({ success: false, error: 'Нет прав' });
+        await pool.query('DELETE FROM storage_items WHERE id = $1', [req.params.id]);
         res.json({ success: true });
     } catch (err) {
         res.json({ success: false, error: 'Ошибка сервера' });
