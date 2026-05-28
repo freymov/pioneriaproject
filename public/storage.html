@@ -1,50 +1,261 @@
-app.post('/api/admin/storage', upload.fields([{ name: 'pdf', maxCount: 1 }, { name: 'mp3', maxCount: 1 }]), async (req, res) => {
-    const { adminEmail, title } = req.body;
-    try {
-        const admin = await pool.query('SELECT * FROM users WHERE email = $1 AND role = $2', [adminEmail, 'admin']);
-        if (admin.rows.length === 0) return res.json({ success: false, error: 'Нет прав' });
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <script>
+        (function() {
+            var theme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Хранилище — Pioneria</title>
+    <link rel="icon" type="image/jpg" href="/favicon.jpg">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        if (!title || !title.trim()) return res.json({ success: false, error: 'Введите название' });
-
-        let pdf_url = null;
-        let mp3_url = null;
-
-        if (req.files && req.files.pdf) {
-            const bufferStream = new stream.PassThrough();
-            bufferStream.end(req.files.pdf[0].buffer);
-            const result = await new Promise((resolve, reject) => {
-                const uploadStream = cloudinary.uploader.upload_stream(
-                    { folder: 'pioneria_storage', resource_type: 'raw' },
-                    (error, result) => { if (error) reject(error); else resolve(result); }
-                );
-                bufferStream.pipe(uploadStream);
-            });
-            pdf_url = result.secure_url;
+        :root, [data-theme="light"] {
+            --bg-body: linear-gradient(160deg, #e8ecf5 0%, #f0f2fa 40%, #eef0f8 100%);
+            --bg-card: #ffffff;
+            --bg-secondary: #f8f9fb;
+            --text-primary: #1a1a2e;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --accent: #667eea;
+            --accent-light: #eef0ff;
+            --border-color: #eef0f5;
+            --pdf-color: #ef4444;
+            --pdf-bg: #fef2f2;
+            --mp3-color: #8b5cf6;
+            --mp3-bg: #f5f0ff;
+            --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
+            --header-bg: rgba(255,255,255,0.85);
+            --header-shadow: 0 1px 0 rgba(0,0,0,0.04);
         }
 
-        if (req.files && req.files.mp3) {
-            const bufferStream = new stream.PassThrough();
-            bufferStream.end(req.files.mp3[0].buffer);
-            const result = await new Promise((resolve, reject) => {
-                const uploadStream = cloudinary.uploader.upload_stream(
-                    { folder: 'pioneria_storage', resource_type: 'video' },
-                    (error, result) => { if (error) reject(error); else resolve(result); }
-                );
-                bufferStream.pipe(uploadStream);
-            });
-            mp3_url = result.secure_url;
+        [data-theme="dark"] {
+            --bg-body: linear-gradient(160deg, #13132b 0%, #1a1a35 40%, #151530 100%);
+            --bg-card: #252540;
+            --bg-secondary: #1e1e32;
+            --text-primary: #e4e6eb;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --accent: #7c8aff;
+            --accent-light: #1e2040;
+            --border-color: #2a2a40;
+            --pdf-color: #ff6b6b;
+            --pdf-bg: #3a1a1a;
+            --mp3-color: #a78bfa;
+            --mp3-bg: #2a1a3a;
+            --shadow: 0 1px 3px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.2);
+            --header-bg: rgba(30,30,50,0.85);
+            --header-shadow: 0 1px 0 rgba(255,255,255,0.04);
         }
 
-        if (!pdf_url && !mp3_url) return res.json({ success: false, error: 'Загрузите хотя бы один файл' });
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-body);
+            min-height: 100vh;
+            color: var(--text-primary);
+            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
+        }
 
-        const result = await pool.query(
-            'INSERT INTO storage_items (title, pdf_url, mp3_url) VALUES ($1, $2, $3) RETURNING id',
-            [title.trim(), pdf_url, mp3_url]
-        );
+        .header {
+            background: var(--header-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: var(--header-shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
 
-        res.json({ success: true, id: result.rows[0].id });
-    } catch (err) {
-        console.error('Ошибка загрузки в хранилище:', err);
-        res.json({ success: false, error: 'Ошибка сервера' });
-    }
-});
+        .back-btn {
+            background: none; border: none;
+            font-size: 20px; cursor: pointer;
+            color: var(--accent); padding: 6px 10px;
+            border-radius: 10px;
+        }
+        .back-btn:active { background: var(--accent-light); }
+
+        .header h2 { font-size: 17px; font-weight: 700; flex: 1; }
+
+        .container { max-width: 650px; margin: 0 auto; padding: 20px 16px 40px; }
+
+        .item-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .item-icon {
+            width: 52px; height: 52px;
+            background: var(--accent-light);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px; flex-shrink: 0;
+        }
+
+        .item-info { flex: 1; min-width: 0; }
+        .item-title { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+
+        .item-files { display: flex; gap: 6px; flex-wrap: wrap; }
+
+        .file-group {
+            display: flex; gap: 0;
+            border-radius: 20px; overflow: hidden;
+        }
+
+        .file-btn {
+            padding: 7px 14px;
+            font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: all 0.15s;
+            text-decoration: none; border: none;
+            font-family: inherit; display: flex;
+            align-items: center; gap: 5px;
+        }
+        .file-btn:active { transform: scale(0.95); }
+
+        .file-btn.view {
+            border-radius: 20px 0 0 20px;
+        }
+        .file-btn.download {
+            border-radius: 0 20px 20px 0;
+            border-left: 1px solid rgba(0,0,0,0.1);
+        }
+        .file-btn:only-child {
+            border-radius: 20px;
+        }
+
+        .file-btn.pdf {
+            background: var(--pdf-bg); color: var(--pdf-color);
+        }
+        .file-btn.pdf:hover { background: #fecaca; }
+        [data-theme="dark"] .file-btn.pdf:hover { background: #4a2020; }
+
+        .file-btn.mp3 {
+            background: var(--mp3-bg); color: var(--mp3-color);
+        }
+        .file-btn.mp3:hover { background: #ede0ff; }
+        [data-theme="dark"] .file-btn.mp3:hover { background: #3a2050; }
+
+        .file-btn .btn-icon { font-size: 13px; }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+        .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+        .empty-state .empty-text { font-size: 15px; }
+
+        @media (max-width: 400px) {
+            .container { padding: 12px 10px 32px; }
+            .item-card { padding: 14px; }
+            .file-btn { padding: 6px 10px; font-size: 11px; }
+        }
+    </style>
+</head>
+<body>
+    <script>
+        (function() {
+            document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
+        })();
+    </script>
+
+    <div class="header">
+        <button class="back-btn" onclick="goBack()">←</button>
+        <h2>📦 Хранилище</h2>
+    </div>
+
+    <div class="container" id="storageContent">
+        <div class="empty-state">
+            <div class="empty-icon">📦</div>
+            <div class="empty-text">Загрузка...</div>
+        </div>
+    </div>
+
+    <script>
+        function goBack() { window.location.href = 'lobby.html'; }
+
+        async function loadStorage() {
+            try {
+                const res = await fetch('/api/storage');
+                const data = await res.json();
+                const container = document.getElementById('storageContent');
+
+                if (data.success && data.items.length > 0) {
+                    container.innerHTML = data.items.map(item => {
+                        let filesHtml = '';
+                        
+                        if (item.pdf_url) {
+                            filesHtml += `
+                                <div class="file-group">
+                                    <a href="${item.pdf_url}" target="_blank" class="file-btn pdf view">
+                                        <span class="btn-icon">👁️</span> Смотреть
+                                    </a>
+                                    <a href="${item.pdf_url}?download=1" class="file-btn pdf download" download>
+                                        <span class="btn-icon">📥</span> Скачать
+                                    </a>
+                                </div>`;
+                        }
+                        if (item.mp3_url) {
+                            filesHtml += `
+                                <div class="file-group">
+                                    <a href="${item.mp3_url}" target="_blank" class="file-btn mp3 view">
+                                        <span class="btn-icon">▶️</span> Слушать
+                                    </a>
+                                    <a href="${item.mp3_url}?download=1" class="file-btn mp3 download" download>
+                                        <span class="btn-icon">📥</span> Скачать
+                                    </a>
+                                </div>`;
+                        }
+
+                        return `
+                            <div class="item-card">
+                                <div class="item-icon">🎵</div>
+                                <div class="item-info">
+                                    <div class="item-title">${esc(item.title)}</div>
+                                    <div class="item-files">${filesHtml}</div>
+                                </div>
+                            </div>`;
+                    }).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📭</div>
+                            <div class="empty-text">Пока ничего нет</div>
+                        </div>`;
+                }
+            } catch(e) {
+                document.getElementById('storageContent').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">⚠️</div>
+                        <div class="empty-text">Ошибка загрузки</div>
+                    </div>`;
+            }
+        }
+
+        function esc(text) {
+            const d = document.createElement('div');
+            d.textContent = text || '';
+            return d.innerHTML;
+        }
+
+        loadStorage();
+    </script>
+</body>
+</html>
