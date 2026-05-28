@@ -26,6 +26,10 @@
             --accent: #667eea;
             --accent-light: #eef0ff;
             --border-color: #eef0f5;
+            --pdf-color: #ef4444;
+            --pdf-bg: #fef2f2;
+            --mp3-color: #8b5cf6;
+            --mp3-bg: #f5f0ff;
             --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
             --header-bg: rgba(255,255,255,0.85);
             --header-shadow: 0 1px 0 rgba(0,0,0,0.04);
@@ -41,6 +45,10 @@
             --accent: #7c8aff;
             --accent-light: #1e2040;
             --border-color: #2a2a40;
+            --pdf-color: #ff6b6b;
+            --pdf-bg: #3a1a1a;
+            --mp3-color: #a78bfa;
+            --mp3-bg: #2a1a3a;
             --shadow: 0 1px 3px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.2);
             --header-bg: rgba(30,30,50,0.85);
             --header-shadow: 0 1px 0 rgba(255,255,255,0.04);
@@ -84,68 +92,50 @@
         .item-card {
             background: var(--bg-card);
             border-radius: 16px;
+            padding: 18px;
             margin-bottom: 12px;
             box-shadow: var(--shadow);
-            overflow: hidden;
             transition: all 0.2s;
-        }
-
-        .item-preview {
-            width: 100%;
-            height: 280px;
-            object-fit: cover;
-            display: block;
-            cursor: pointer;
-            background: var(--bg-secondary);
-        }
-
-        .item-preview-placeholder {
-            width: 100%;
-            height: 120px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 48px;
-            background: var(--bg-secondary);
+            gap: 14px;
         }
 
-        .item-body {
-            padding: 16px 18px;
+        .item-icon {
+            width: 52px; height: 52px;
+            background: var(--accent-light);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px; flex-shrink: 0;
         }
 
-        .item-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 10px;
-        }
+        .item-info { flex: 1; min-width: 0; }
+        .item-title { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
 
-        .item-actions {
-            display: flex;
-            gap: 8px;
-        }
+        .item-files { display: flex; gap: 6px; flex-wrap: wrap; }
 
-        .action-btn {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 11px 14px;
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.15s;
+        .file-tag {
+            display: flex; align-items: center; gap: 5px;
+            padding: 6px 12px; border-radius: 20px;
+            font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: all 0.15s;
             text-decoration: none;
-            color: var(--text-primary);
-            font-size: 13px;
-            font-weight: 600;
-            border: none;
-            font-family: inherit;
         }
-        .action-btn:hover { background: var(--accent-light); }
-        .action-btn:active { transform: scale(0.97); }
-        .action-btn .btn-icon { font-size: 18px; }
+        .file-tag:active { transform: scale(0.95); }
+
+        .file-tag.pdf {
+            background: var(--pdf-bg); color: var(--pdf-color);
+        }
+        .file-tag.pdf:hover { background: #fecaca; }
+        [data-theme="dark"] .file-tag.pdf:hover { background: #4a2020; }
+
+        .file-tag.mp3 {
+            background: var(--mp3-bg); color: var(--mp3-color);
+        }
+        .file-tag.mp3:hover { background: #ede0ff; }
+        [data-theme="dark"] .file-tag.mp3:hover { background: #3a2050; }
+
+        .file-tag .tag-icon { font-size: 14px; }
 
         .empty-state {
             text-align: center;
@@ -157,9 +147,7 @@
 
         @media (max-width: 400px) {
             .container { padding: 12px 10px 32px; }
-            .item-preview { height: 200px; }
-            .item-body { padding: 12px 14px; }
-            .action-btn { padding: 10px; font-size: 12px; }
+            .item-card { padding: 14px; }
         }
     </style>
 </head>
@@ -185,18 +173,6 @@
     <script>
         function goBack() { window.location.href = 'lobby.html'; }
 
-        function getPreviewUrl(pdfUrl) {
-            // Cloudinary: добавляем параметр для первой страницы PDF как jpg
-            if (!pdfUrl) return null;
-            // Если URL содержит /upload/, вставляем преобразование между /upload/ и путём файла
-            const parts = pdfUrl.split('/upload/');
-            if (parts.length === 2) {
-                return parts[0] + '/upload/pg_1/' + parts[1];
-            }
-            // Fallback: просто добавляем параметр
-            return pdfUrl + '?pg_1';
-        }
-
         async function loadStorage() {
             try {
                 const res = await fetch('/api/storage');
@@ -205,29 +181,21 @@
 
                 if (data.success && data.items.length > 0) {
                     container.innerHTML = data.items.map(item => {
-                        const previewUrl = getPreviewUrl(item.pdf_url);
+                        let tagsHtml = '';
                         
-                        let previewHtml = '';
-                        if (previewUrl) {
-                            previewHtml = `<img src="${previewUrl}" class="item-preview" alt="${esc(item.title)}" onclick="window.open('${item.pdf_url}', '_blank')" loading="lazy">`;
-                        } else {
-                            previewHtml = `<div class="item-preview-placeholder">🎵</div>`;
-                        }
-                        
-                        let buttonsHtml = '';
                         if (item.pdf_url) {
-                            buttonsHtml += `<a href="${item.pdf_url}" target="_blank" class="action-btn"><span class="btn-icon">📄</span> Ноты</a>`;
+                            tagsHtml += `<a href="${item.pdf_url}" target="_blank" class="file-tag pdf"><span class="tag-icon">📄</span> PDF</a>`;
                         }
                         if (item.mp3_url) {
-                            buttonsHtml += `<a href="${item.mp3_url}" target="_blank" class="action-btn"><span class="btn-icon">🎧</span> Аудио</a>`;
+                            tagsHtml += `<a href="${item.mp3_url}" target="_blank" class="file-tag mp3"><span class="tag-icon">🎧</span> MP3</a>`;
                         }
 
                         return `
                             <div class="item-card">
-                                ${previewHtml}
-                                <div class="item-body">
-                                    <div class="item-title">🎵 ${esc(item.title)}</div>
-                                    <div class="item-actions">${buttonsHtml}</div>
+                                <div class="item-icon">🎵</div>
+                                <div class="item-info">
+                                    <div class="item-title">${esc(item.title)}</div>
+                                    <div class="item-files">${tagsHtml}</div>
                                 </div>
                             </div>`;
                     }).join('');
