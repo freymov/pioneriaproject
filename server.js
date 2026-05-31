@@ -60,31 +60,57 @@ function uploadToCloudinary(buffer, folder, resourceType, originalFilename) {
         const bufferStream = new stream.PassThrough();
         bufferStream.end(buffer);
         
-        // Очищаем имя файла для использования как public_id
-        let publicId = undefined;
+        // Извлекаем расширение из оригинального имени файла
+        let extension = '';
+        let nameWithoutExt = '';
+        
         if (originalFilename) {
-            const nameWithoutExt = originalFilename.replace(/\.[^/.]+$/, "");
-            publicId = nameWithoutExt.replace(/[^a-zA-Zа-яА-Я0-9_-]/g, '_').substring(0, 100);
+            const lastDot = originalFilename.lastIndexOf('.');
+            if (lastDot > 0) {
+                extension = originalFilename.substring(lastDot + 1); // pdf, mp3, mp4
+                nameWithoutExt = originalFilename.substring(0, lastDot);
+            } else {
+                nameWithoutExt = originalFilename;
+            }
         }
+        
+        // Очищаем имя файла
+        const safeName = nameWithoutExt
+            .replace(/[^a-zA-Zа-яА-Я0-9_-]/g, '_')
+            .substring(0, 100);
         
         const uploadOptions = {
             folder: folder,
             resource_type: resourceType,
+            public_id: safeName,
             use_filename: true,
             unique_filename: true,
             type: 'upload'
         };
         
-        // Добавляем public_id только если есть оригинальное имя
-        if (publicId) {
-            uploadOptions.public_id = publicId;
+        // ВАЖНО: добавляем format, чтобы Cloudinary сохранил расширение в URL
+        if (extension && extension.length > 0 && extension.length <= 5) {
+            uploadOptions.format = extension;
         }
+        
+        console.log('📤 Загрузка в Cloudinary:', {
+            folder,
+            resourceType,
+            publicId: safeName,
+            format: extension,
+            originalName: originalFilename
+        });
         
         const uploadStream = cloudinary.uploader.upload_stream(
             uploadOptions,
             (error, result) => {
-                if (error) reject(error);
-                else resolve(result);
+                if (error) {
+                    console.error('❌ Ошибка Cloudinary:', error);
+                    reject(error);
+                } else {
+                    console.log('✅ Загружено:', result.secure_url);
+                    resolve(result);
+                }
             }
         );
         bufferStream.pipe(uploadStream);
@@ -161,7 +187,6 @@ async function sendPushNotification(userId, title, body, data = {}) {
 // ========== ИНИЦИАЛИЗАЦИЯ БАЗЫ ДАННЫХ ==========
 async function initDatabase() {
     try {
-        // Пользователи
         await pool.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
@@ -176,7 +201,6 @@ async function initDatabase() {
             )
         `);
         
-        // Верификация email
         await pool.query(`
             CREATE TABLE IF NOT EXISTS email_verifications (
                 id SERIAL PRIMARY KEY,
@@ -187,7 +211,6 @@ async function initDatabase() {
             )
         `);
         
-        // Чаты
         await pool.query(`
             CREATE TABLE IF NOT EXISTS chats (
                 id SERIAL PRIMARY KEY,
@@ -195,7 +218,6 @@ async function initDatabase() {
             )
         `);
         
-        // Участники чатов
         await pool.query(`
             CREATE TABLE IF NOT EXISTS chat_participants (
                 chat_id INTEGER REFERENCES chats(id) ON DELETE CASCADE,
@@ -204,7 +226,6 @@ async function initDatabase() {
             )
         `);
         
-        // Сообщения
         await pool.query(`
             CREATE TABLE IF NOT EXISTS messages (
                 id SERIAL PRIMARY KEY,
@@ -219,7 +240,6 @@ async function initDatabase() {
             )
         `);
         
-        // Ключи приглашения
         await pool.query(`
             CREATE TABLE IF NOT EXISTS invite_keys (
                 id SERIAL PRIMARY KEY,
@@ -231,7 +251,6 @@ async function initDatabase() {
             )
         `);
         
-        // Новости
         await pool.query(`
             CREATE TABLE IF NOT EXISTS news (
                 id SERIAL PRIMARY KEY,
@@ -241,7 +260,6 @@ async function initDatabase() {
             )
         `);
         
-        // Настройки
         await pool.query(`
             CREATE TABLE IF NOT EXISTS settings (
                 key VARCHAR(100) PRIMARY KEY,
@@ -250,7 +268,6 @@ async function initDatabase() {
             )
         `);
         
-        // Группы
         await pool.query(`
             CREATE TABLE IF NOT EXISTS groups (
                 id SERIAL PRIMARY KEY,
@@ -261,7 +278,6 @@ async function initDatabase() {
             )
         `);
         
-        // Закреплённые сообщения
         await pool.query(`
             CREATE TABLE IF NOT EXISTS pinned_messages (
                 id SERIAL PRIMARY KEY,
@@ -272,7 +288,6 @@ async function initDatabase() {
             )
         `);
         
-        // Push подписки
         await pool.query(`
             CREATE TABLE IF NOT EXISTS push_subscriptions (
                 id SERIAL PRIMARY KEY,
@@ -283,7 +298,6 @@ async function initDatabase() {
             )
         `);
         
-        // Пользовательские настройки
         await pool.query(`
             CREATE TABLE IF NOT EXISTS user_settings (
                 user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -293,7 +307,6 @@ async function initDatabase() {
             )
         `);
 
-        // Группы расписания
         await pool.query(`
             CREATE TABLE IF NOT EXISTS schedule_groups (
                 id SERIAL PRIMARY KEY,
@@ -303,7 +316,6 @@ async function initDatabase() {
             )
         `);
 
-        // Занятия расписания
         try {
             await pool.query(`ALTER TABLE schedule_lessons DROP CONSTRAINT IF EXISTS schedule_lessons_day_of_week_check`);
         } catch(e) {}
@@ -325,7 +337,6 @@ async function initDatabase() {
             )
         `);
 
-        // Хранилище
         await pool.query(`
             CREATE TABLE IF NOT EXISTS storage_items (
                 id SERIAL PRIMARY KEY,
@@ -337,17 +348,14 @@ async function initDatabase() {
             )
         `);
 
-        // Добавляем недостающие колонки
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT`);
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(50) UNIQUE`);
         await pool.query(`ALTER TABLE storage_items ADD COLUMN IF NOT EXISTS mp4_url TEXT`);
         
-        // Индекс для username
         try {
             await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users(username) WHERE username IS NOT NULL`);
         } catch(e) {}
 
-        // Создаём группы расписания по умолчанию
         const groupsExist = await pool.query('SELECT COUNT(*) FROM schedule_groups');
         if (parseInt(groupsExist.rows[0].count) === 0) {
             await pool.query(`
@@ -359,7 +367,6 @@ async function initDatabase() {
             console.log('✅ Созданы группы расписания');
         }
 
-        // Создаём админ-ключ
         const existing = await pool.query("SELECT * FROM invite_keys WHERE key_code = 'ADMIN-PIONERIA-2025'");
         if (existing.rows.length === 0) {
             await pool.query("INSERT INTO invite_keys (key_code, role) VALUES ('ADMIN-PIONERIA-2025', 'admin')");
@@ -482,8 +489,6 @@ app.post('/api/set-username', async (req, res) => {
         }
     }
 });
-
-// ========== API ПОЛЬЗОВАТЕЛЕЙ ==========
 
 app.get('/api/search-users', async (req, res) => {
     const { q, userId } = req.query;
@@ -934,7 +939,7 @@ app.post('/api/admin/schedule/:id/status', async (req, res) => {
     }
 });
 
-// ========== API ХРАНИЛИЩА (ПОЛНОСТЬЮ ИСПРАВЛЕНО) ==========
+// ========== API ХРАНИЛИЩА ==========
 
 app.get('/api/storage', async (req, res) => {
     try {
@@ -1042,8 +1047,8 @@ app.delete('/api/admin/storage/:id', async (req, res) => {
                 try {
                     // Извлекаем public_id из URL
                     const urlParts = url.split('/');
-                    const filenameWithExt = urlParts[urlParts.length - 1];
-                    const filename = filenameWithExt.split('.')[0];
+                    const filenameWithExt = urlParts[urlParts.length - 1].split('?')[0];
+                    const filename = filenameWithExt.includes('.') ? filenameWithExt.substring(0, filenameWithExt.lastIndexOf('.')) : filenameWithExt;
                     const folder = urlParts[urlParts.length - 2];
                     const publicId = `${folder}/${filename}`;
                     await cloudinary.uploader.destroy(publicId);
