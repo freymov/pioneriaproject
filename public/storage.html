@@ -192,7 +192,6 @@
 
         .file-btn .btn-icon { font-size: 14px; }
 
-        /* Аудиоплеер */
         .audio-player {
             width: 100%;
             height: 40px;
@@ -213,7 +212,6 @@
         .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
         .empty-state .empty-text { font-size: 15px; }
 
-        /* Адаптивность */
         @media (max-width: 400px) {
             .container { padding: 12px 10px 32px; }
             .item-card { padding: 14px; border-radius: 14px; }
@@ -245,34 +243,6 @@
     <script>
         function goBack() { window.location.href = 'lobby.html'; }
 
-        // Функция для создания URL скачивания через Cloudinary
-        function getDownloadUrl(url, filename) {
-            // Для raw-файлов Cloudinary использует флаг flags: 'attachment'
-            // Добавляем параметр для принудительного скачивания
-            const separator = url.includes('?') ? '&' : '?';
-            return url + separator + 'flags=attachment';
-        }
-
-        // Функция для открытия PDF в браузере (inline)
-        function getViewUrl(url) {
-            // Cloudinary для raw-файлов: добавляем inline-параметр
-            const separator = url.includes('?') ? '&' : '?';
-            return url + separator + 'flags=inline';
-        }
-
-        // Функция для прокси-скачивания с правильным именем
-        function downloadWithName(url, filename) {
-            // Создаём невидимую ссылку и кликаем по ней
-            const link = document.createElement('a');
-            link.href = getDownloadUrl(url);
-            link.download = filename;
-            link.target = '_blank';
-            link.rel = 'noopener';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
         async function loadStorage() {
             try {
                 const res = await fetch('/api/storage');
@@ -285,57 +255,54 @@
                         
                         // PDF секция
                         if (item.pdf_url) {
-                            const pdfFilename = (item.title || 'noty') + '.pdf';
                             filesHtml += `
                                 <div class="file-section">
                                     <div class="file-label">
                                         <span class="dot pdf"></span> Ноты (PDF)
                                     </div>
                                     <div class="file-group">
-                                        <a href="${getViewUrl(item.pdf_url)}" target="_blank" rel="noopener" class="file-btn pdf">
+                                        <a href="/api/storage/file/${item.id}/pdf" target="_blank" rel="noopener" class="file-btn pdf">
                                             <span class="btn-icon">👁️</span> Смотреть
                                         </a>
-                                        <button onclick="downloadWithName('${item.pdf_url}', '${pdfFilename.replace(/'/g, "\\'")}')" class="file-btn pdf">
+                                        <a href="/api/storage/file/${item.id}/pdf?download=1" class="file-btn pdf">
                                             <span class="btn-icon">📥</span> Скачать PDF
-                                        </button>
+                                        </a>
                                     </div>
                                 </div>`;
                         }
 
-                        // MP3 секция со встроенным плеером
+                        // MP3 секция
                         if (item.mp3_url) {
-                            const mp3Filename = (item.title || 'audio') + '.mp3';
                             filesHtml += `
                                 <div class="file-section">
                                     <div class="file-label">
                                         <span class="dot mp3"></span> Аудио (MP3)
                                     </div>
-                                    <audio class="audio-player" controls preload="metadata" src="${item.mp3_url}">
+                                    <audio class="audio-player" controls preload="metadata" src="/api/storage/file/${item.id}/mp3">
                                         Ваш браузер не поддерживает аудио.
                                     </audio>
                                     <div class="file-group">
-                                        <button onclick="downloadWithName('${item.mp3_url}', '${mp3Filename.replace(/'/g, "\\'")}')" class="file-btn mp3">
+                                        <a href="/api/storage/file/${item.id}/mp3?download=1" class="file-btn mp3">
                                             <span class="btn-icon">📥</span> Скачать MP3
-                                        </button>
+                                        </a>
                                     </div>
                                 </div>`;
                         }
 
-                        // MP4 секция со встроенным плеером
+                        // MP4 секция
                         if (item.mp4_url) {
-                            const mp4Filename = (item.title || 'video') + '.mp4';
                             filesHtml += `
                                 <div class="file-section">
                                     <div class="file-label">
                                         <span class="dot mp4"></span> Видео (MP4)
                                     </div>
-                                    <video class="audio-player" controls preload="metadata" style="height:auto; max-height:300px;" src="${item.mp4_url}">
+                                    <video class="audio-player" controls preload="metadata" style="height:auto; max-height:300px;" src="/api/storage/file/${item.id}/mp4">
                                         Ваш браузер не поддерживает видео.
                                     </video>
                                     <div class="file-group">
-                                        <button onclick="downloadWithName('${item.mp4_url}', '${mp4Filename.replace(/'/g, "\\'")}')" class="file-btn mp4">
+                                        <a href="/api/storage/file/${item.id}/mp4?download=1" class="file-btn mp4">
                                             <span class="btn-icon">📥</span> Скачать MP4
-                                        </button>
+                                        </a>
                                     </div>
                                 </div>`;
                         }
