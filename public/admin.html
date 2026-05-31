@@ -10,7 +10,7 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#667eea">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Админ-панель | Pioneria Project</title>
     <link rel="icon" type="image/jpg" href="/favicon.jpg">
     <style>
@@ -18,196 +18,358 @@
 
         :root, [data-theme="light"] {
             --bg: #f0f2f5; --bg-card: #ffffff; --bg-secondary: #f8f9fa;
-            --text: #1a1a1a; --text-secondary: #666;
-            --accent: #667eea; --accent-hover: #5a6fd6;
-            --border: #e8e8e8; --danger: #ff4757; --danger-bg: #fff0f0;
+            --bg-tertiary: #f0f1f5;
+            --text: #1a1a1a; --text-secondary: #666; --text-muted: #999;
+            --accent: #667eea; --accent-hover: #5a6fd6; --accent-light: #eef0ff;
+            --border: #e8e8e8; --danger: #ff4757; --danger-bg: #fff0f0; --danger-hover: #e84141;
             --success: #27ae60; --success-bg: #e8f8e8;
             --warning: #f59e0b; --warning-bg: #fff8e8;
             --concert: #22c55e; --concert-bg: #e8fce8;
             --shadow: 0 2px 12px rgba(0,0,0,0.06);
+            --shadow-hover: 0 4px 20px rgba(0,0,0,0.1);
+            --header-bg: rgba(255,255,255,0.9);
+            --badge-admin: #f0e6ff; --badge-admin-text: #7c3aed;
+            --badge-user: #e0e7ff; --badge-user-text: #4f46e5;
         }
 
         [data-theme="dark"] {
-            --bg: #1a1a2e; --bg-card: #252540; --bg-secondary: #2e2e4a;
-            --text: #e4e6eb; --text-secondary: #a0a3b0;
-            --accent: #7c8aff; --accent-hover: #6a78f0;
-            --border: #3a3a55; --danger: #ff6b6b; --danger-bg: #3a2020;
+            --bg: #13132b; --bg-card: #1e1e35; --bg-secondary: #252540;
+            --bg-tertiary: #2a2a45;
+            --text: #e4e6eb; --text-secondary: #a0a3b0; --text-muted: #6b7280;
+            --accent: #7c8aff; --accent-hover: #6a78f0; --accent-light: #1e2040;
+            --border: #3a3a55; --danger: #ff6b6b; --danger-bg: #3a2020; --danger-hover: #e55555;
             --success: #4caf50; --success-bg: #1a3a20;
             --warning: #f0a030; --warning-bg: #3a3020;
             --concert: #4ade80; --concert-bg: #1a3020;
             --shadow: 0 2px 12px rgba(0,0,0,0.3);
+            --shadow-hover: 0 4px 20px rgba(0,0,0,0.5);
+            --header-bg: rgba(19,19,43,0.9);
+            --badge-admin: #2d1b69; --badge-admin-text: #c4b5fd;
+            --badge-user: #1e3a5f; --badge-user-text: #93c5fd;
         }
 
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: var(--bg); min-height: 100vh;
-            padding: 12px; color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            color: var(--text);
             -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.5;
         }
 
-        .container { max-width: 800px; margin: 0 auto; }
+        .header {
+            background: var(--header-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .back-btn {
+            background: none; border: none;
+            font-size: 20px; cursor: pointer;
+            color: var(--accent); padding: 8px 10px;
+            border-radius: 10px; font-weight: 600;
+            transition: background 0.2s;
+        }
+        .back-btn:active { background: var(--accent-light); }
+
+        .header h1 { 
+            font-size: 18px; font-weight: 700; 
+            color: var(--text); flex: 1; 
+        }
+        .header .admin-badge {
+            font-size: 11px; font-weight: 600;
+            background: var(--accent); color: #fff;
+            padding: 4px 10px; border-radius: 20px;
+        }
+
+        .container { 
+            max-width: 700px; margin: 0 auto; 
+            padding: 16px 12px 40px; 
+        }
 
         .card {
-            background: var(--bg-card); border-radius: 16px;
-            padding: 18px; margin-bottom: 14px; box-shadow: var(--shadow);
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
         }
 
-        h1 { font-size: 1.3rem; color: var(--accent); margin-bottom: 4px; }
-        h2 { font-size: 1.1rem; color: var(--accent); margin-bottom: 12px; }
-        h3 { font-size: 0.9rem; color: var(--text); margin-bottom: 8px; }
+        .card h2 {
+            font-size: 15px; font-weight: 700;
+            color: var(--accent); margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .card h3 {
+            font-size: 13px; font-weight: 600;
+            color: var(--text); margin: 14px 0 8px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+        }
+        .card h3:first-of-type {
+            border-top: none;
+            padding-top: 0;
+            margin-top: 0;
+        }
 
         button {
             background: var(--accent); color: #fff;
             border: none; padding: 10px 16px; border-radius: 10px;
             cursor: pointer; font-size: 13px; font-weight: 600;
+            transition: all 0.2s;
+            font-family: inherit;
+            white-space: nowrap;
         }
         button:hover { background: var(--accent-hover); }
-        .back-btn { background: #777; margin-bottom: 12px; }
+        button:active { transform: scale(0.97); }
+
         .btn-sm { padding: 6px 12px; font-size: 11px; border-radius: 8px; }
+        .btn-block { width: 100%; }
         .btn-danger { background: var(--danger); }
+        .btn-danger:hover { background: var(--danger-hover); }
         .btn-warning { background: var(--warning); color: #000; }
+        .btn-warning:hover { opacity: 0.9; }
         .btn-success { background: var(--success); }
+        .btn-success:hover { opacity: 0.9; }
+        .btn-outline {
+            background: transparent; color: var(--accent);
+            border: 2px solid var(--accent);
+        }
+        .btn-outline:hover { background: var(--accent-light); }
 
         input, select, textarea {
             padding: 10px 12px; border: 2px solid var(--border);
-            border-radius: 10px; font-size: 13px; width: 100%;
-            background: var(--bg-card); color: var(--text); font-family: inherit;
+            border-radius: 10px; font-size: 14px; width: 100%;
+            background: var(--bg-card); color: var(--text);
+            font-family: inherit;
+            transition: border-color 0.2s;
         }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
-
-        .row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
-        .row > * { flex: 1; min-width: 100px; }
-
-        .day-checkboxes {
-            display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;
+        input:focus, select:focus, textarea:focus {
+            outline: none; border-color: var(--accent);
         }
-        .day-checkbox {
-            display: flex; align-items: center; gap: 4px;
-            padding: 8px 12px; border: 2px solid var(--border);
-            border-radius: 10px; cursor: pointer; font-size: 13px;
-            font-weight: 600; transition: all 0.15s;
-            background: var(--bg-card); color: var(--text); user-select: none;
-        }
-        .day-checkbox:hover { border-color: var(--accent); }
-        .day-checkbox.checked { background: var(--accent); color: #fff; border-color: var(--accent); }
-        .day-checkbox input { display: none; }
 
+        textarea { resize: vertical; min-height: 60px; }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+        .form-group label {
+            display: block; font-size: 12px; font-weight: 600;
+            color: var(--text-secondary); margin-bottom: 4px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .row > * { flex: 1; min-width: 0; }
+        .row-wrap { flex-wrap: wrap; }
+        .row-actions {
+            display: flex; gap: 6px;
+            align-items: center;
+        }
+
+        /* Переключатель режима */
         .mode-tabs {
-            display: flex; gap: 0; margin-bottom: 12px;
-            border-radius: 10px; overflow: hidden; border: 2px solid var(--border);
+            display: flex; gap: 0; margin-bottom: 10px;
+            border-radius: 10px; overflow: hidden;
+            border: 2px solid var(--border);
         }
         .mode-tab {
-            flex: 1; padding: 10px; text-align: center;
-            cursor: pointer; font-size: 13px; font-weight: 600;
+            flex: 1; padding: 9px; text-align: center;
+            cursor: pointer; font-size: 12px; font-weight: 600;
             background: var(--bg-card); color: var(--text-secondary);
             border: none; transition: all 0.15s;
+            font-family: inherit;
         }
         .mode-tab.active { background: var(--accent); color: #fff; }
         .mode-tab:not(.active):hover { background: var(--bg-secondary); }
+        .mode-tab:active { transform: none; }
 
-        .file-input-wrapper {
-            margin-bottom: 8px;
+        /* Дни недели */
+        .day-checkboxes {
+            display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;
         }
-        .file-input-wrapper label {
-            display: block; font-size: 12px; color: var(--text-secondary);
-            margin-bottom: 4px; font-weight: 600;
+        .day-checkbox {
+            display: flex; align-items: center; gap: 4px;
+            padding: 7px 11px; border: 2px solid var(--border);
+            border-radius: 10px; cursor: pointer; font-size: 12px;
+            font-weight: 600; transition: all 0.15s;
+            background: var(--bg-card); color: var(--text);
+            user-select: none; flex: 0 0 auto;
+        }
+        .day-checkbox:hover { border-color: var(--accent); }
+        .day-checkbox.checked {
+            background: var(--accent); color: #fff;
+            border-color: var(--accent);
+        }
+        .day-checkbox input { display: none; }
+
+        /* Чекбокс */
+        .checkbox-label {
+            display: flex; align-items: center; gap: 8px;
+            cursor: pointer; font-size: 13px; margin-bottom: 8px;
+            color: var(--text);
+        }
+        .checkbox-label input[type="checkbox"] {
+            width: 18px; height: 18px;
+            accent-color: var(--accent);
+            flex-shrink: 0;
         }
 
-        .keys-box {
-            background: var(--bg-secondary); padding: 12px;
-            border-radius: 10px; font-family: monospace;
-            font-size: 11px; word-break: break-all;
-            max-height: 200px; overflow-y: auto;
-            margin-top: 10px; line-height: 1.6;
+        /* Списки */
+        .list-item {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            flex-wrap: wrap;
+            transition: background 0.2s;
         }
+        .list-item:hover { background: var(--bg-tertiary); }
+        .list-item .item-info { flex: 1; min-width: 120px; }
+        .list-item .item-name { font-weight: 600; font-size: 13px; }
+        .list-item .item-detail { color: var(--text-secondary); font-size: 11px; margin-top: 2px; }
+        .list-item .item-meta { color: var(--text-muted); font-size: 10px; margin-top: 1px; }
 
-        .user-card, .lesson-row, .news-row, .storage-row {
-            background: var(--bg-secondary); border-radius: 10px;
-            padding: 10px 12px; margin-bottom: 6px;
-            display: flex; justify-content: space-between;
-            align-items: center; flex-wrap: wrap; gap: 6px; font-size: 12px;
-        }
-        .user-card .user-info { flex: 1; min-width: 150px; }
-        .user-card .user-name { font-weight: 600; }
-        .user-card .user-email { color: var(--text-secondary); font-size: 11px; }
-        .user-card .user-meta { font-size: 10px; color: var(--text-secondary); }
-
-        .lesson-status, .lesson-type, .badge {
+        /* Бейджи */
+        .badge {
             font-weight: 700; font-size: 10px;
-            padding: 2px 8px; border-radius: 20px; white-space: nowrap;
+            padding: 2px 8px; border-radius: 20px;
+            white-space: nowrap; display: inline-block;
         }
-        .lesson-status.active { background: var(--success-bg); color: var(--success); }
-        .lesson-status.cancelled { background: var(--danger-bg); color: var(--danger); }
-        .lesson-type.rehearsal { background: #eef0ff; color: var(--accent); }
-        .lesson-type.concert { background: var(--concert-bg); color: #15803d; }
-        .badge.admin { background: #f0e6ff; color: #7c3aed; }
-        .badge.user { background: #e0e7ff; color: #4f46e5; }
+        .badge.active { background: var(--success-bg); color: var(--success); }
+        .badge.cancelled { background: var(--danger-bg); color: var(--danger); }
+        .badge.rehearsal { background: #eef0ff; color: var(--accent); }
+        .badge.concert { background: var(--concert-bg); color: #15803d; }
+        .badge.admin { background: var(--badge-admin); color: var(--badge-admin-text); }
+        .badge.user { background: var(--badge-user); color: var(--badge-user-text); }
         .badge.common { background: #ede9fe; color: #7c3aed; }
         .badge.onetime { background: var(--warning-bg); color: #b45309; }
 
-        .msg { padding: 6px 0; font-size: 12px; }
+        /* Сообщения */
+        .msg { padding: 8px 0; font-size: 12px; font-weight: 600; }
         .msg.success { color: var(--success); }
         .msg.error { color: var(--danger); }
 
-        label.checkbox-label {
-            display: flex; align-items: center; gap: 8px;
-            cursor: pointer; font-size: 13px;
+        /* Блок с ключами */
+        .keys-box {
+            background: var(--bg-secondary);
+            padding: 12px;
+            border-radius: 10px;
+            font-family: 'SF Mono', 'Menlo', monospace;
+            font-size: 11px; word-break: break-all;
+            max-height: 180px; overflow-y: auto;
+            margin-top: 10px; line-height: 1.8;
+            color: var(--text);
         }
-        label.checkbox-label input { width: auto; }
 
+        /* Адаптивность */
         @media (max-width: 480px) {
-            body { padding: 8px; }
+            .container { padding: 10px 8px 30px; }
             .card { padding: 14px; margin-bottom: 10px; border-radius: 14px; }
-            h1 { font-size: 1.1rem; } h2 { font-size: 1rem; }
+            .card h2 { font-size: 14px; }
+            .card h3 { font-size: 12px; margin-top: 12px; }
+            
+            .header { padding: 10px 12px; }
+            .header h1 { font-size: 16px; }
+            
             button { padding: 10px 14px; font-size: 12px; }
-            .row > * { min-width: 100%; }
-            .day-checkboxes { gap: 4px; }
+            .btn-sm { padding: 6px 10px; font-size: 10px; }
+            
+            input, select, textarea { padding: 9px 10px; font-size: 13px; }
+            
             .day-checkbox { padding: 6px 10px; font-size: 11px; }
+            .day-checkboxes { gap: 4px; }
+            
+            .list-item { padding: 8px 10px; gap: 6px; }
+            .list-item .item-name { font-size: 12px; }
+            
+            .row { flex-direction: column; gap: 6px; }
+            .row-actions { flex-direction: row; justify-content: flex-end; }
+            
+            .mode-tab { font-size: 11px; padding: 8px; }
+        }
+
+        @media (min-width: 481px) and (max-width: 768px) {
+            .container { padding: 14px 16px 34px; }
+            .card { padding: 16px; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <button class="back-btn" onclick="goToLobby()">← Лобби</button>
+    <div class="header">
+        <button class="back-btn" onclick="goToLobby()">←</button>
+        <h1>🔧 Админ-панель</h1>
+        <span class="admin-badge" id="adminBadge"></span>
+    </div>
 
+    <div class="container">
+        <!-- Приветствие -->
         <div class="card">
-            <h1>🔧 Админ-панель</h1>
-            <p style="font-size:13px; color: var(--text-secondary);">Добро пожаловать, <span id="adminName"></span></p>
+            <h2>👋 Добро пожаловать</h2>
+            <p style="font-size:14px; color: var(--text-secondary);" id="adminGreeting"></p>
         </div>
 
-        <!-- Ключи -->
+        <!-- Ключи доступа -->
         <div class="card">
             <h2>🔑 Ключи доступа</h2>
             <div class="row">
-                <input type="number" id="keyCount" value="1" min="1" max="20" style="flex:0.5; min-width:80px;">
-                <select id="keyRole" style="flex:1;">
-                    <option value="user">Пользователь</option>
-                    <option value="admin">Админ</option>
-                </select>
-                <button onclick="generateKeys()" style="flex:0.8;">Создать</button>
+                <div class="form-group" style="flex: 0.5;">
+                    <label>Кол-во</label>
+                    <input type="number" id="keyCount" value="1" min="1" max="20">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Роль</label>
+                    <select id="keyRole">
+                        <option value="user">Пользователь</option>
+                        <option value="admin">Админ</option>
+                    </select>
+                </div>
             </div>
+            <button onclick="generateKeys()" class="btn-block">Создать ключи</button>
             <div id="keysResult" class="msg"></div>
-            <div id="generatedKeys" class="keys-box"></div>
+            <div id="generatedKeys" class="keys-box" style="display:none;"></div>
         </div>
 
         <!-- Пользователи -->
         <div class="card">
             <h2>👥 Пользователи</h2>
-            <button onclick="loadUsers()" class="btn-sm" style="margin-bottom:10px;">🔄 Обновить</button>
-            <div id="usersList">Загрузка...</div>
+            <button onclick="loadUsers()" class="btn-sm btn-outline" style="margin-bottom:10px;">🔄 Обновить список</button>
+            <div id="usersList" style="font-size:12px; color:var(--text-secondary);">Загрузка...</div>
         </div>
 
         <!-- Расписание -->
         <div class="card">
             <h2>📅 Расписание</h2>
+            
             <h3>Добавить событие</h3>
             
             <div class="mode-tabs">
                 <button class="mode-tab active" onclick="switchMode('week')" id="modeWeek">📅 Дни недели</button>
                 <button class="mode-tab" onclick="switchMode('date')" id="modeDate">📆 Конкретная дата</button>
             </div>
-            
-            <div class="row">
+
+            <div class="form-group">
+                <label>Тип события</label>
                 <select id="scheduleEventType" onchange="onEventTypeChange()">
                     <option value="rehearsal">🎵 Репетиция</option>
                     <option value="concert">🎤 Концерт</option>
@@ -215,7 +377,7 @@
             </div>
             
             <div id="weekMode">
-                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">Выберите дни:</div>
+                <label style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;display:block;font-weight:600;">Выберите дни:</label>
                 <div class="day-checkboxes" id="dayCheckboxes">
                     <label class="day-checkbox" data-day="1"><input type="checkbox">Пн</label>
                     <label class="day-checkbox" data-day="2"><input type="checkbox">Вт</label>
@@ -228,57 +390,93 @@
             </div>
             
             <div id="dateMode" style="display:none;">
-                <input type="date" id="scheduleDate" style="margin-bottom:8px;">
+                <div class="form-group">
+                    <label>Дата</label>
+                    <input type="date" id="scheduleDate">
+                </div>
             </div>
             
-            <div class="row" id="groupRow">
+            <div class="form-group">
+                <label>Группа</label>
                 <select id="scheduleGroup"><option value="">Выберите группу</option></select>
             </div>
+            
             <div class="row">
-                <input type="time" id="scheduleStart" style="flex:1;" placeholder="Начало">
-                <input type="time" id="scheduleEnd" style="flex:1;" placeholder="Конец">
+                <div class="form-group">
+                    <label>Начало</label>
+                    <input type="time" id="scheduleStart">
+                </div>
+                <div class="form-group" id="endTimeGroup">
+                    <label>Конец</label>
+                    <input type="time" id="scheduleEnd">
+                </div>
             </div>
-            <label class="checkbox-label" style="margin-bottom: 8px;">
-                <input type="checkbox" id="scheduleIsCommon"> Общая репетиция (для всех групп)
+            
+            <label class="checkbox-label">
+                <input type="checkbox" id="scheduleIsCommon">
+                <span>Общая репетиция (для всех групп)</span>
             </label>
-            <button onclick="saveScheduleLesson()" style="width:100%;">💾 Сохранить</button>
+            
+            <button onclick="saveScheduleLesson()" class="btn-block">💾 Сохранить событие</button>
 
-            <h3 style="margin-top: 14px;">Все события</h3>
-            <button onclick="loadAllSchedule()" class="btn-sm" style="margin-bottom:8px;">🔄 Обновить</button>
-            <div id="scheduleListAdmin">Загрузка...</div>
+            <h3>Все события</h3>
+            <button onclick="loadAllSchedule()" class="btn-sm btn-outline" style="margin-bottom:8px;">🔄 Обновить</button>
+            <div id="scheduleListAdmin" style="font-size:12px; color:var(--text-secondary);">Загрузка...</div>
         </div>
 
         <!-- Хранилище -->
         <div class="card">
             <h2>📦 Хранилище</h2>
+            
             <h3>Добавить произведение</h3>
-            <input type="text" id="storageTitle" placeholder="Название (например: Motete - Bach)" style="margin-bottom:8px;">
-            <div class="file-input-wrapper">
+            
+            <div class="form-group">
+                <label>Название</label>
+                <input type="text" id="storageTitle" placeholder="Например: Motete - Bach">
+            </div>
+            
+            <div class="form-group">
                 <label>📄 PDF (ноты)</label>
-                <input type="file" id="storagePdf" accept=".pdf" style="margin-bottom:6px;">
+                <input type="file" id="storagePdf" accept=".pdf">
             </div>
-            <div class="file-input-wrapper">
+            
+            <div class="form-group">
                 <label>🎧 MP3 (аудио)</label>
-                <input type="file" id="storageMp3" accept=".mp3,audio/*" style="margin-bottom:6px;">
+                <input type="file" id="storageMp3" accept=".mp3,audio/*">
             </div>
-            <button onclick="uploadStorage()" style="width:100%;">📤 Загрузить</button>
+            
+            <div class="form-group">
+                <label>🎬 MP4 (видео)</label>
+                <input type="file" id="storageMp4" accept=".mp4,video/*">
+            </div>
+            
+            <button onclick="uploadStorage()" class="btn-block">📤 Загрузить</button>
             <div id="storageMsg" class="msg"></div>
 
-            <h3 style="margin-top: 14px;">Загруженные</h3>
-            <button onclick="loadStorageAdmin()" class="btn-sm" style="margin-bottom:8px;">🔄 Обновить</button>
-            <div id="storageListAdmin">Загрузка...</div>
+            <h3>Загруженные файлы</h3>
+            <button onclick="loadStorageAdmin()" class="btn-sm btn-outline" style="margin-bottom:8px;">🔄 Обновить</button>
+            <div id="storageListAdmin" style="font-size:12px; color:var(--text-secondary);">Загрузка...</div>
         </div>
 
         <!-- Новости -->
         <div class="card">
             <h2>📰 Новости</h2>
-            <h3>Создать</h3>
-            <input type="text" id="newsTitle" placeholder="Заголовок" style="margin-bottom:6px;">
-            <textarea id="newsContent" rows="2" placeholder="Текст" style="margin-bottom:6px;"></textarea>
-            <button onclick="createNews()" style="width:100%;">➕ Опубликовать</button>
+            
+            <h3>Создать новость</h3>
+            
+            <div class="form-group">
+                <label>Заголовок</label>
+                <input type="text" id="newsTitle" placeholder="Заголовок новости">
+            </div>
+            <div class="form-group">
+                <label>Текст</label>
+                <textarea id="newsContent" rows="3" placeholder="Содержание новости..."></textarea>
+            </div>
+            <button onclick="createNews()" class="btn-block">➕ Опубликовать</button>
 
-            <h3 style="margin-top:14px;">Опубликованные</h3>
-            <div id="newsListAdmin">Загрузка...</div>
+            <h3>Опубликованные</h3>
+            <button onclick="loadNewsAdmin()" class="btn-sm btn-outline" style="margin-bottom:8px;">🔄 Обновить</button>
+            <div id="newsListAdmin" style="font-size:12px; color:var(--text-secondary);">Загрузка...</div>
         </div>
     </div>
 
@@ -290,9 +488,11 @@
             document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
         })();
 
-        document.getElementById('adminName').textContent = userData.name;
-        function goToLobby(){window.location.href='lobby.html';}
-        function esc(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+        document.getElementById('adminBadge').textContent = '👑 Админ';
+        document.getElementById('adminGreeting').textContent = `Здравствуйте, ${userData.name}!`;
+
+        function goToLobby() { window.location.href = 'lobby.html'; }
+        function esc(t) { const d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; }
 
         let scheduleMode = 'week';
 
@@ -304,6 +504,7 @@
             document.getElementById('dateMode').style.display = mode === 'date' ? 'block' : 'none';
         }
 
+        // Обработчик дней недели
         document.getElementById('dayCheckboxes').addEventListener('click', function(e) {
             const label = e.target.closest('.day-checkbox');
             if (!label) return;
@@ -320,70 +521,93 @@
 
         function onEventTypeChange() {
             const type = document.getElementById('scheduleEventType').value;
-            document.getElementById('scheduleEnd').style.display = type === 'concert' ? 'none' : '';
+            const endTimeGroup = document.getElementById('endTimeGroup');
+            endTimeGroup.style.display = type === 'concert' ? 'none' : '';
             if (type === 'concert') {
                 document.getElementById('scheduleEnd').value = '';
                 document.getElementById('scheduleIsCommon').checked = false;
             }
         }
 
-        async function generateKeys(){
-            const c=document.getElementById('keyCount').value, r=document.getElementById('keyRole').value;
-            try{
-                const res=await fetch('/api/admin/generate-keys',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,count:c,role:r})});
-                const d=await res.json();
-                d.success?(
-                    document.getElementById('generatedKeys').innerHTML='<strong>Ключи:</strong><br>'+d.keys.join('<br>'),
-                    document.getElementById('keysResult').innerHTML='<div class="msg success">✅ Создано</div>',
-                    setTimeout(()=>document.getElementById('keysResult').innerHTML='',3000)
-                ):document.getElementById('keysResult').innerHTML='<div class="msg error">❌ '+d.error+'</div>';
-            }catch(e){}
+        // ====== КЛЮЧИ ======
+        async function generateKeys() {
+            const c = document.getElementById('keyCount').value;
+            const r = document.getElementById('keyRole').value;
+            try {
+                const res = await fetch('/api/admin/generate-keys', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminEmail: userData.email, count: parseInt(c), role: r })
+                });
+                const d = await res.json();
+                if (d.success) {
+                    const box = document.getElementById('generatedKeys');
+                    box.style.display = 'block';
+                    box.innerHTML = '<strong>Новые ключи:</strong><br>' + d.keys.join('<br>');
+                    document.getElementById('keysResult').innerHTML = '<div class="msg success">✅ Создано ' + d.keys.length + ' ключей</div>';
+                    setTimeout(() => document.getElementById('keysResult').innerHTML = '', 3000);
+                } else {
+                    document.getElementById('keysResult').innerHTML = '<div class="msg error">❌ ' + (d.error || 'Ошибка') + '</div>';
+                }
+            } catch (e) {
+                document.getElementById('keysResult').innerHTML = '<div class="msg error">❌ Ошибка соединения</div>';
+            }
         }
 
-        async function loadUsers(){
-            try{
-                const res=await fetch('/api/admin/users?adminEmail='+userData.email);
-                const d=await res.json();
-                if(d.success&&d.users){
-                    document.getElementById('usersList').innerHTML=d.users.map(u=>
-                        `<div class="user-card">
-                            <div class="user-info">
-                                <span class="user-name">${esc(u.name)}</span>
-                                <span class="badge ${u.role}">${u.role==='admin'?'👑 Админ':'👤 Юзер'}</span>
+        // ====== ПОЛЬЗОВАТЕЛИ ======
+        async function loadUsers() {
+            try {
+                const res = await fetch('/api/admin/users?adminEmail=' + encodeURIComponent(userData.email));
+                const d = await res.json();
+                if (d.success && d.users) {
+                    document.getElementById('usersList').innerHTML = d.users.map(u =>
+                        `<div class="list-item">
+                            <div class="item-info">
+                                <span class="item-name">${esc(u.name)}</span>
+                                <span class="badge ${u.role}">${u.role === 'admin' ? '👑 Админ' : '👤 Юзер'}</span>
                                 ${u.username ? `<span style="color:var(--accent);font-size:11px;">@${esc(u.username)}</span>` : ''}
-                                <br><span class="user-email">${esc(u.email)}</span>
-                                <br><span class="user-meta">ID ${u.id} · ${new Date(u.created_at).toLocaleDateString('ru-RU')}</span>
+                                <div class="item-detail">${esc(u.email)}</div>
+                                <div class="item-meta">ID ${u.id} · ${new Date(u.created_at).toLocaleDateString('ru-RU')}</div>
                             </div>
                             <button class="btn-sm btn-danger" onclick="deleteUser(${u.id},'${esc(u.email)}')">🗑</button>
                         </div>`
                     ).join('');
                 }
-            }catch(e){}
+            } catch (e) {}
         }
 
-        async function deleteUser(id,email){
-            if(!confirm('Удалить '+email+'?'))return;
-            await fetch('/api/admin/delete-user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,userId:id})});
+        async function deleteUser(id, email) {
+            if (!confirm('Удалить пользователя ' + email + '?')) return;
+            await fetch('/api/admin/delete-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ adminEmail: userData.email, userId: id })
+            });
             loadUsers();
         }
 
-        async function loadScheduleGroups(){
-            try{
-                const res=await fetch('/api/schedule/groups');
-                const d=await res.json();
-                if(d.success) document.getElementById('scheduleGroup').innerHTML = '<option value="">Выберите группу</option>' + d.groups.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
-            }catch(e){}
+        // ====== РАСПИСАНИЕ ======
+        async function loadScheduleGroups() {
+            try {
+                const res = await fetch('/api/schedule/groups');
+                const d = await res.json();
+                if (d.success) {
+                    document.getElementById('scheduleGroup').innerHTML = 
+                        '<option value="">Выберите группу</option>' + 
+                        d.groups.map(g => `<option value="${g.id}">${esc(g.name)}</option>`).join('');
+                }
+            } catch (e) {}
         }
 
-        async function saveScheduleLesson(){
+        async function saveScheduleLesson() {
             const eventType = document.getElementById('scheduleEventType').value;
             const st = document.getElementById('scheduleStart').value;
             const et = document.getElementById('scheduleEnd').value;
             
-            if(!st){alert('Укажите время');return;}
+            if (!st) { alert('Укажите время начала'); return; }
             
             const gid = document.getElementById('scheduleGroup').value;
-            if(!gid){alert('Выберите группу');return;}
+            if (!gid) { alert('Выберите группу'); return; }
             
             const common = document.getElementById('scheduleIsCommon').checked;
             
@@ -408,34 +632,39 @@
                 body.days = days;
             }
             
-            try{
+            try {
                 const res = await fetch('/api/admin/schedule', {
                     method: 'POST',
-                    headers: {'Content-Type':'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
                 });
                 const d = await res.json();
-                if(d.success){
+                if (d.success) {
                     alert('✅ Добавлено (' + (d.ids ? d.ids.length : 1) + ' зап.)');
                     loadAllSchedule();
-                    document.getElementById('scheduleStart').value='';
-                    document.getElementById('scheduleEnd').value='';
-                    document.getElementById('scheduleIsCommon').checked=false;
-                    document.getElementById('scheduleDate').value='';
+                    // Сброс формы
+                    document.getElementById('scheduleStart').value = '';
+                    document.getElementById('scheduleEnd').value = '';
+                    document.getElementById('scheduleIsCommon').checked = false;
+                    document.getElementById('scheduleDate').value = '';
                     document.querySelectorAll('#dayCheckboxes .day-checkbox.checked').forEach(cb => {
                         cb.classList.remove('checked');
                         cb.querySelector('input').checked = false;
                     });
-                } else alert('❌ '+(d.error||'Ошибка'));
-            }catch(e){alert('Ошибка сервера');}
+                } else {
+                    alert('❌ ' + (d.error || 'Ошибка'));
+                }
+            } catch (e) {
+                alert('Ошибка сервера');
+            }
         }
 
-        async function loadAllSchedule(){
-            try{
+        async function loadAllSchedule() {
+            try {
                 const res = await fetch('/api/schedule');
                 const d = await res.json();
-                const dn = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
-                if(d.success && d.lessons.length){
+                const dn = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+                if (d.success && d.lessons.length) {
                     document.getElementById('scheduleListAdmin').innerHTML = d.lessons.map(l => {
                         const t = l.end_time ? `${l.start_time.substring(0,5)}–${l.end_time.substring(0,5)}` : l.start_time.substring(0,5);
                         const st = l.status === 'active' ? 'active' : 'cancelled';
@@ -443,130 +672,191 @@
                         
                         let dayStr = '';
                         if (l.lesson_date) {
-                            dayStr = '📆 ' + new Date(l.lesson_date).toLocaleDateString('ru-RU', {day:'numeric', month:'long'});
+                            dayStr = '📆 ' + new Date(l.lesson_date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
                         } else if (l.day_of_week !== null && l.day_of_week !== undefined) {
                             dayStr = dn[l.day_of_week];
                         }
                         
                         const typeBadge = l.lesson_date ? '<span class="badge onetime">Разовая</span>' : '';
-                        const commonBadge = l.is_common ? ' <span class="badge common">Общая</span>' : '';
+                        const commonBadge = l.is_common ? '<span class="badge common">Общая</span>' : '';
                         
-                        return `<div class="lesson-row">
-                            <div style="flex:1;min-width:140px;">
-                                <strong>${l.group_name||'Концерт'}</strong>${commonBadge}
-                                <span class="lesson-type ${et}">${et==='concert'?'🎤 Концерт':'🎵 Репетиция'}</span>${typeBadge}
-                                <span style="color:var(--text-secondary);"> — ${dayStr}, ${t}</span>
-                                <span class="lesson-status ${st}">${l.status==='active'?'Активно':'Отменено'}</span>
+                        return `<div class="list-item">
+                            <div class="item-info">
+                                <span class="item-name">${esc(l.group_name || 'Концерт')}</span>
+                                ${commonBadge}
+                                <span class="badge ${et}">${et === 'concert' ? '🎤 Концерт' : '🎵 Репетиция'}</span>
+                                ${typeBadge}
+                                <div class="item-detail">${dayStr}, ${t}</div>
+                                <span class="badge ${st}">${l.status === 'active' ? 'Активно' : 'Отменено'}</span>
                             </div>
-                            <div style="display:flex;gap:4px;">
-                                ${l.status==='active'?`<button class="btn-sm btn-warning" onclick="cancelLesson(${l.id})">Отм.</button>`:`<button class="btn-sm btn-success" onclick="restoreLesson(${l.id})">Восст.</button>`}
+                            <div class="row-actions">
+                                ${l.status === 'active' 
+                                    ? `<button class="btn-sm btn-warning" onclick="cancelLesson(${l.id})">Отм.</button>` 
+                                    : `<button class="btn-sm btn-success" onclick="restoreLesson(${l.id})">Восст.</button>`
+                                }
                                 <button class="btn-sm btn-danger" onclick="deleteScheduleLesson(${l.id})">🗑</button>
                             </div>
                         </div>`;
                     }).join('');
                 } else {
-                    document.getElementById('scheduleListAdmin').innerHTML='<p style="font-size:12px;color:var(--text-secondary);">Нет событий</p>';
+                    document.getElementById('scheduleListAdmin').innerHTML = '<p style="font-size:12px;color:var(--text-secondary);padding:8px;">Нет событий</p>';
                 }
-            } catch(e) { console.error(e); }
+            } catch (e) { console.error(e); }
         }
 
-        async function cancelLesson(id){await fetch(`/api/admin/schedule/${id}/status`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,status:'cancelled'})});loadAllSchedule();}
-        async function restoreLesson(id){await fetch(`/api/admin/schedule/${id}/status`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,status:'active'})});loadAllSchedule();}
-        async function deleteScheduleLesson(id){if(!confirm('Удалить?'))return;await fetch(`/api/admin/schedule/${id}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email})});loadAllSchedule();}
+        async function cancelLesson(id) {
+            await fetch(`/api/admin/schedule/${id}/status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ adminEmail: userData.email, status: 'cancelled' })
+            });
+            loadAllSchedule();
+        }
+
+        async function restoreLesson(id) {
+            await fetch(`/api/admin/schedule/${id}/status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ adminEmail: userData.email, status: 'active' })
+            });
+            loadAllSchedule();
+        }
+
+        async function deleteScheduleLesson(id) {
+            if (!confirm('Удалить событие?')) return;
+            await fetch(`/api/admin/schedule/${id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ adminEmail: userData.email })
+            });
+            loadAllSchedule();
+        }
 
         // ====== ХРАНИЛИЩЕ ======
-        async function uploadStorage(){
+        async function uploadStorage() {
             const title = document.getElementById('storageTitle').value.trim();
-            if(!title){alert('Введите название');return;}
+            if (!title) { alert('Введите название'); return; }
             
             const pdfFile = document.getElementById('storagePdf').files[0];
             const mp3File = document.getElementById('storageMp3').files[0];
+            const mp4File = document.getElementById('storageMp4').files[0];
             
-            if(!pdfFile && !mp3File){alert('Выберите хотя бы один файл');return;}
+            if (!pdfFile && !mp3File && !mp4File) { alert('Выберите хотя бы один файл'); return; }
             
             const fd = new FormData();
             fd.append('adminEmail', userData.email);
             fd.append('title', title);
-            if(pdfFile) fd.append('pdf', pdfFile);
-            if(mp3File) fd.append('mp3', mp3File);
+            if (pdfFile) fd.append('pdf', pdfFile);
+            if (mp3File) fd.append('mp3', mp3File);
+            if (mp4File) fd.append('mp4', mp4File);
             
-            try{
+            const msgEl = document.getElementById('storageMsg');
+            msgEl.innerHTML = '<div class="msg" style="color:var(--text-secondary);">⏳ Загрузка...</div>';
+            
+            try {
                 const res = await fetch('/api/admin/storage', { method: 'POST', body: fd });
                 const d = await res.json();
-                if(d.success){
-                    document.getElementById('storageMsg').innerHTML = '<div class="msg success">✅ Загружено</div>';
+                if (d.success) {
+                    msgEl.innerHTML = '<div class="msg success">✅ Загружено успешно</div>';
                     document.getElementById('storageTitle').value = '';
                     document.getElementById('storagePdf').value = '';
                     document.getElementById('storageMp3').value = '';
+                    document.getElementById('storageMp4').value = '';
                     loadStorageAdmin();
-                    setTimeout(()=>document.getElementById('storageMsg').innerHTML='',3000);
+                    setTimeout(() => msgEl.innerHTML = '', 3000);
                 } else {
-                    document.getElementById('storageMsg').innerHTML = '<div class="msg error">❌ '+(d.error||'Ошибка')+'</div>';
+                    msgEl.innerHTML = '<div class="msg error">❌ ' + (d.error || 'Ошибка') + '</div>';
                 }
-            }catch(e){
-                document.getElementById('storageMsg').innerHTML = '<div class="msg error">❌ Ошибка сервера</div>';
+            } catch (e) {
+                msgEl.innerHTML = '<div class="msg error">❌ Ошибка соединения</div>';
             }
         }
 
-        async function loadStorageAdmin(){
-            try{
+        async function loadStorageAdmin() {
+            try {
                 const res = await fetch('/api/storage');
                 const d = await res.json();
-                if(d.success && d.items.length){
-                    document.getElementById('storageListAdmin').innerHTML = d.items.map(item => `
-                        <div class="storage-row">
-                            <div style="flex:1;min-width:140px;">
-                                <strong>🎵 ${esc(item.title)}</strong>
-                                <span style="color:var(--text-secondary);font-size:11px;">
-                                    ${item.pdf_url ? '📄 PDF ' : ''}
-                                    ${item.mp3_url ? '🎧 MP3 ' : ''}
-                                </span>
+                if (d.success && d.items.length) {
+                    document.getElementById('storageListAdmin').innerHTML = d.items.map(item => {
+                        const files = [];
+                        if (item.pdf_url) files.push('📄 PDF');
+                        if (item.mp3_url) files.push('🎧 MP3');
+                        if (item.mp4_url) files.push('🎬 MP4');
+                        
+                        return `<div class="list-item">
+                            <div class="item-info">
+                                <span class="item-name">🎵 ${esc(item.title)}</span>
+                                <div class="item-detail">${files.join(' · ') || 'Нет файлов'}</div>
+                                <div class="item-meta">${new Date(item.created_at).toLocaleDateString('ru-RU')}</div>
                             </div>
                             <button class="btn-sm btn-danger" onclick="deleteStorage(${item.id})">🗑</button>
-                        </div>
-                    `).join('');
+                        </div>`;
+                    }).join('');
                 } else {
-                    document.getElementById('storageListAdmin').innerHTML='<p style="font-size:12px;color:var(--text-secondary);">Нет произведений</p>';
+                    document.getElementById('storageListAdmin').innerHTML = '<p style="font-size:12px;color:var(--text-secondary);padding:8px;">Нет произведений</p>';
                 }
-            }catch(e){}
+            } catch (e) {}
         }
 
-        async function deleteStorage(id){
-            if(!confirm('Удалить?'))return;
-            await fetch(`/api/admin/storage/${id}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email})});
+        async function deleteStorage(id) {
+            if (!confirm('Удалить запись из хранилища?')) return;
+            await fetch(`/api/admin/storage/${id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ adminEmail: userData.email })
+            });
             loadStorageAdmin();
         }
 
         // ====== НОВОСТИ ======
-        async function loadNewsAdmin(){
-            try{
-                const res=await fetch('/api/news');
-                const d=await res.json();
-                if(d.success&&d.news.length){
-                    document.getElementById('newsListAdmin').innerHTML=d.news.map(n=>
-                        `<div class="news-row">
-                            <div style="flex:1;">
-                                <strong>${esc(n.title)}</strong>
-                                <div style="color:var(--text-secondary);font-size:11px;">${esc(n.content)}</div>
-                                <div style="color:var(--text-secondary);font-size:10px;margin-top:2px;">${new Date(n.created_at).toLocaleDateString('ru-RU')}</div>
+        async function loadNewsAdmin() {
+            try {
+                const res = await fetch('/api/news');
+                const d = await res.json();
+                if (d.success && d.news.length) {
+                    document.getElementById('newsListAdmin').innerHTML = d.news.map(n =>
+                        `<div class="list-item">
+                            <div class="item-info">
+                                <span class="item-name">${esc(n.title)}</span>
+                                <div class="item-detail">${esc(n.content)}</div>
+                                <div class="item-meta">${new Date(n.created_at).toLocaleDateString('ru-RU')}</div>
                             </div>
                             <button class="btn-sm btn-danger" onclick="deleteNews(${n.id})">🗑</button>
                         </div>`
                     ).join('');
-                }else document.getElementById('newsListAdmin').innerHTML='<p style="font-size:12px;color:var(--text-secondary);">Новостей нет</p>';
-            }catch(e){}
+                } else {
+                    document.getElementById('newsListAdmin').innerHTML = '<p style="font-size:12px;color:var(--text-secondary);padding:8px;">Новостей нет</p>';
+                }
+            } catch (e) {}
         }
 
-        async function createNews(){
-            const t=document.getElementById('newsTitle').value.trim(), c=document.getElementById('newsContent').value.trim();
-            if(!t||!c){alert('Заполните');return;}
-            await fetch('/api/admin/news',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email,title:t,content:c})});
-            document.getElementById('newsTitle').value=''; document.getElementById('newsContent').value='';
+        async function createNews() {
+            const t = document.getElementById('newsTitle').value.trim();
+            const c = document.getElementById('newsContent').value.trim();
+            if (!t || !c) { alert('Заполните заголовок и текст'); return; }
+            
+            await fetch('/api/admin/news', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ adminEmail: userData.email, title: t, content: c })
+            });
+            
+            document.getElementById('newsTitle').value = '';
+            document.getElementById('newsContent').value = '';
             loadNewsAdmin();
         }
 
-        async function deleteNews(id){if(!confirm('Удалить?'))return;await fetch(`/api/admin/news/${id}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminEmail:userData.email})});loadNewsAdmin();}
+        async function deleteNews(id) {
+            if (!confirm('Удалить новость?')) return;
+            await fetch(`/api/admin/news/${id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ adminEmail: userData.email })
+            });
+            loadNewsAdmin();
+        }
 
+        // ====== ИНИЦИАЛИЗАЦИЯ ======
         loadUsers();
         loadNewsAdmin();
         loadScheduleGroups();
