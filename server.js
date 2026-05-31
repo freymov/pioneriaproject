@@ -40,7 +40,10 @@ webpush.setVapidDetails(
 );
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+});
 
 const app = express();
 const server = http.createServer(app);
@@ -49,6 +52,7 @@ const io = new Server(server);
 app.use(express.static('public'));
 app.use(express.json());
 
+// ========== ТЕСТ CLOUDINARY ==========
 app.get('/test-cloudinary', async (req, res) => {
     try {
         const result = await cloudinary.api.ping();
@@ -58,13 +62,16 @@ app.get('/test-cloudinary', async (req, res) => {
     }
 });
 
+// ========== ЗАГРУЗКА ФОТО В ЧАТ ==========
 app.post('/api/upload', upload.single('image'), async (req, res) => {
     try {
+        if (!req.file) return res.json({ success: false, error: 'Файл не найден' });
+        
         const bufferStream = new stream.PassThrough();
         bufferStream.end(req.file.buffer);
         const result = await new Promise((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
-                { folder: 'pioneria_chat' },
+                { folder: 'pioneria_chat', resource_type: 'image' },
                 (error, result) => {
                     if (error) reject(error);
                     else resolve(result);
@@ -79,6 +86,7 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
     }
 });
 
+// ========== БАЗА ДАННЫХ ==========
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
     console.error('❌ DATABASE_URL не найдена');
@@ -90,6 +98,7 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
+// ========== PUSH УВЕДОМЛЕНИЯ ==========
 async function sendPushNotification(userId, title, body, data = {}) {
     try {
         const result = await pool.query('SELECT subscription FROM push_subscriptions WHERE user_id = $1', [userId]);
@@ -115,6 +124,7 @@ async function sendPushNotification(userId, title, body, data = {}) {
     }
 }
 
+// ========== ИНИЦИАЛИЗАЦИЯ БАЗЫ ДАННЫХ ==========
 async function initDatabase() {
     try {
         await pool.query(`
@@ -268,11 +278,13 @@ async function initDatabase() {
                 title VARCHAR(255) NOT NULL,
                 pdf_url TEXT,
                 mp3_url TEXT,
+                mp4_url TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
 
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT`);
+        await pool.query(`ALTER TABLE storage_items ADD COLUMN IF NOT EXISTS mp4_url TEXT`);
         
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(50) UNIQUE`);
         try {
@@ -304,7 +316,23 @@ async function initDatabase() {
 
 initDatabase();
 
-// ========== API ==========
+// ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ CLOUDINARY ==========
+function uploadToCloudinary(buffer, folder, resourceType) {
+    return new Promise((resolve, reject) => {
+        const bufferStream = new stream.PassThrough();
+        bufferStream.end(buffer);
+        const uploadStream = cloudinary.uploader.upload_stream(
+            { folder: folder, resource_type: resourceType },
+            (error, result) => {
+                if (error) reject(error);
+                else resolve(result);
+            }
+        );
+        bufferStream.pipe(uploadStream);
+    });
+}
+
+// ========== API АВТОРИЗАЦИИ ==========
 
 app.get('/api/push/public-key', (req, res) => {
     res.json({ publicKey: vapidKeys.publicKey });
@@ -461,6 +489,8 @@ app.get('/api/user/:id', async (req, res) => {
     }
 });
 
+// ========== API АДМИНА ==========
+
 app.post('/api/admin/generate-keys', async (req, res) => {
     const { adminEmail, count, role } = req.body;
     try {
@@ -502,6 +532,8 @@ app.post('/api/admin/delete-user', async (req, res) => {
         res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
+
+// ========== API ПОЛЬЗОВАТЕЛЕЙ И ЧАТОВ ==========
 
 app.get('/api/users', async (req, res) => {
     try {
@@ -547,6 +579,8 @@ app.post('/api/mark-read', async (req, res) => {
     }
 });
 
+// ========== API НОВОСТЕЙ ==========
+
 app.get('/api/news', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM news ORDER BY created_at DESC LIMIT 10');
@@ -581,6 +615,8 @@ app.delete('/api/admin/news/:id', async (req, res) => {
         res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
+
+// ========== API СООБЩЕНИЙ ==========
 
 app.post('/api/delete-message', async (req, res) => {
     const { messageId, userId, userRole, imageUrl } = req.body;
@@ -688,6 +724,8 @@ app.get('/api/get-pinned', async (req, res) => {
         res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
+
+// ========== API ГРУПП ==========
 
 app.post('/api/create-group', async (req, res) => {
     const { name, creatorId, members } = req.body;
@@ -853,7 +891,7 @@ app.post('/api/admin/schedule/:id/status', async (req, res) => {
     }
 });
 
-// ========== API ХРАНИЛИЩА ==========
+// ========== API ХРАНИЛИЩА (ИСПРАВЛЕНО) ==========
 
 app.get('/api/storage', async (req, res) => {
     try {
@@ -864,7 +902,11 @@ app.get('/api/storage', async (req, res) => {
     }
 });
 
-app.post('/api/admin/storage', upload.fields([{ name: 'pdf', maxCount: 1 }, { name: 'mp3', maxCount: 1 }]), async (req, res) => {
+app.post('/api/admin/storage', upload.fields([
+    { name: 'pdf', maxCount: 1 }, 
+    { name: 'mp3', maxCount: 1 },
+    { name: 'mp4', maxCount: 1 }
+]), async (req, res) => {
     const { adminEmail, title } = req.body;
     try {
         const admin = await pool.query('SELECT * FROM users WHERE email = $1 AND role = $2', [adminEmail, 'admin']);
@@ -874,44 +916,69 @@ app.post('/api/admin/storage', upload.fields([{ name: 'pdf', maxCount: 1 }, { na
 
         let pdf_url = null;
         let mp3_url = null;
+        let mp4_url = null;
 
-        if (req.files && req.files.pdf) {
-            const bufferStream = new stream.PassThrough();
-            bufferStream.end(req.files.pdf[0].buffer);
-            const result = await new Promise((resolve, reject) => {
-                const uploadStream = cloudinary.uploader.upload_stream(
-                    { folder: 'pioneria_storage', resource_type: 'auto' },
-                    (error, result) => { if (error) reject(error); else resolve(result); }
+        // Загрузка PDF с явным указанием resource_type: 'raw'
+        if (req.files && req.files.pdf && req.files.pdf[0]) {
+            try {
+                const result = await uploadToCloudinary(
+                    req.files.pdf[0].buffer, 
+                    'pioneria_storage', 
+                    'raw'  // ← ВАЖНО: raw для PDF
                 );
-                bufferStream.pipe(uploadStream);
-            });
-            pdf_url = result.secure_url;
+                pdf_url = result.secure_url;
+                console.log('✅ PDF загружен:', pdf_url);
+            } catch (err) {
+                console.error('❌ Ошибка загрузки PDF:', err);
+                return res.json({ success: false, error: 'Ошибка загрузки PDF: ' + err.message });
+            }
         }
 
-        if (req.files && req.files.mp3) {
-            const bufferStream = new stream.PassThrough();
-            bufferStream.end(req.files.mp3[0].buffer);
-            const result = await new Promise((resolve, reject) => {
-                const uploadStream = cloudinary.uploader.upload_stream(
-                    { folder: 'pioneria_storage', resource_type: 'auto' },
-                    (error, result) => { if (error) reject(error); else resolve(result); }
+        // Загрузка MP3 с явным указанием resource_type: 'video'
+        if (req.files && req.files.mp3 && req.files.mp3[0]) {
+            try {
+                const result = await uploadToCloudinary(
+                    req.files.mp3[0].buffer, 
+                    'pioneria_storage', 
+                    'video'  // ← ВАЖНО: video для аудио
                 );
-                bufferStream.pipe(uploadStream);
-            });
-            mp3_url = result.secure_url;
+                mp3_url = result.secure_url;
+                console.log('✅ MP3 загружен:', mp3_url);
+            } catch (err) {
+                console.error('❌ Ошибка загрузки MP3:', err);
+                return res.json({ success: false, error: 'Ошибка загрузки MP3: ' + err.message });
+            }
         }
 
-        if (!pdf_url && !mp3_url) return res.json({ success: false, error: 'Загрузите хотя бы один файл' });
+        // Загрузка MP4 с явным указанием resource_type: 'video'
+        if (req.files && req.files.mp4 && req.files.mp4[0]) {
+            try {
+                const result = await uploadToCloudinary(
+                    req.files.mp4[0].buffer, 
+                    'pioneria_storage', 
+                    'video'  // ← ВАЖНО: video для видео
+                );
+                mp4_url = result.secure_url;
+                console.log('✅ MP4 загружен:', mp4_url);
+            } catch (err) {
+                console.error('❌ Ошибка загрузки MP4:', err);
+                return res.json({ success: false, error: 'Ошибка загрузки MP4: ' + err.message });
+            }
+        }
+
+        if (!pdf_url && !mp3_url && !mp4_url) {
+            return res.json({ success: false, error: 'Загрузите хотя бы один файл' });
+        }
 
         const result = await pool.query(
-            'INSERT INTO storage_items (title, pdf_url, mp3_url) VALUES ($1, $2, $3) RETURNING id',
-            [title.trim(), pdf_url, mp3_url]
+            'INSERT INTO storage_items (title, pdf_url, mp3_url, mp4_url) VALUES ($1, $2, $3, $4) RETURNING id',
+            [title.trim(), pdf_url, mp3_url, mp4_url]
         );
 
         res.json({ success: true, id: result.rows[0].id });
     } catch (err) {
         console.error('Ошибка загрузки в хранилище:', err);
-        res.json({ success: false, error: 'Ошибка сервера' });
+        res.json({ success: false, error: 'Ошибка сервера: ' + err.message });
     }
 });
 
@@ -920,6 +987,26 @@ app.delete('/api/admin/storage/:id', async (req, res) => {
     try {
         const admin = await pool.query('SELECT * FROM users WHERE email = $1 AND role = $2', [adminEmail, 'admin']);
         if (admin.rows.length === 0) return res.json({ success: false, error: 'Нет прав' });
+        
+        // Получаем URLs для удаления из Cloudinary
+        const item = await pool.query('SELECT pdf_url, mp3_url, mp4_url FROM storage_items WHERE id = $1', [req.params.id]);
+        if (item.rows.length > 0) {
+            const urls = [item.rows[0].pdf_url, item.rows[0].mp3_url, item.rows[0].mp4_url].filter(Boolean);
+            for (const url of urls) {
+                try {
+                    // Извлекаем public_id из URL
+                    const urlParts = url.split('/');
+                    const filename = urlParts[urlParts.length - 1].split('.')[0];
+                    const folder = urlParts[urlParts.length - 2];
+                    const publicId = `${folder}/${filename}`;
+                    await cloudinary.uploader.destroy(publicId);
+                    console.log('🗑 Удалён из Cloudinary:', publicId);
+                } catch (err) {
+                    console.error('Ошибка удаления из Cloudinary:', err);
+                }
+            }
+        }
+        
         await pool.query('DELETE FROM storage_items WHERE id = $1', [req.params.id]);
         res.json({ success: true });
     } catch (err) {
