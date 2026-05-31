@@ -30,9 +30,12 @@
             --pdf-bg: #fef2f2;
             --mp3-color: #8b5cf6;
             --mp3-bg: #f5f0ff;
+            --mp4-color: #f59e0b;
+            --mp4-bg: #fffbf0;
             --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
             --header-bg: rgba(255,255,255,0.85);
             --header-shadow: 0 1px 0 rgba(0,0,0,0.04);
+            --player-bg: #f8f9fb;
         }
 
         [data-theme="dark"] {
@@ -49,9 +52,12 @@
             --pdf-bg: #3a1a1a;
             --mp3-color: #a78bfa;
             --mp3-bg: #2a1a3a;
+            --mp4-color: #fbbf24;
+            --mp4-bg: #3a3020;
             --shadow: 0 1px 3px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.2);
             --header-bg: rgba(30,30,50,0.85);
             --header-shadow: 0 1px 0 rgba(255,255,255,0.04);
+            --player-bg: #1e1e32;
         }
 
         body {
@@ -75,6 +81,7 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .back-btn {
@@ -82,6 +89,7 @@
             font-size: 20px; cursor: pointer;
             color: var(--accent); padding: 6px 10px;
             border-radius: 10px;
+            font-weight: 600;
         }
         .back-btn:active { background: var(--accent-light); }
 
@@ -96,9 +104,14 @@
             margin-bottom: 12px;
             box-shadow: var(--shadow);
             transition: all 0.2s;
+            border: 1px solid var(--border-color);
+        }
+
+        .item-header {
             display: flex;
             align-items: center;
             gap: 14px;
+            margin-bottom: 14px;
         }
 
         .item-icon {
@@ -110,49 +123,87 @@
         }
 
         .item-info { flex: 1; min-width: 0; }
-        .item-title { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+        .item-title { font-size: 15px; font-weight: 700; color: var(--text-primary); word-break: break-word; }
 
-        .item-files { display: flex; gap: 6px; flex-wrap: wrap; }
+        .item-files { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px; 
+        }
+
+        .file-section {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .file-label {
+            font-size: 11px; font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            display: flex; align-items: center; gap: 6px;
+        }
+
+        .file-label .dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .dot.pdf { background: var(--pdf-color); }
+        .dot.mp3 { background: var(--mp3-color); }
+        .dot.mp4 { background: var(--mp4-color); }
 
         .file-group {
-            display: flex; gap: 0;
-            border-radius: 20px; overflow: hidden;
+            display: flex; 
+            gap: 6px;
+            flex-wrap: wrap;
         }
 
         .file-btn {
-            padding: 7px 14px;
+            padding: 8px 16px;
             font-size: 12px; font-weight: 600;
             cursor: pointer; transition: all 0.15s;
             text-decoration: none; border: none;
             font-family: inherit; display: flex;
-            align-items: center; gap: 5px;
+            align-items: center; gap: 6px;
+            border-radius: 10px;
+            white-space: nowrap;
         }
         .file-btn:active { transform: scale(0.95); }
-
-        .file-btn.view {
-            border-radius: 20px 0 0 20px;
-        }
-        .file-btn.download {
-            border-radius: 0 20px 20px 0;
-            border-left: 1px solid rgba(0,0,0,0.1);
-        }
-        .file-btn:only-child {
-            border-radius: 20px;
-        }
 
         .file-btn.pdf {
             background: var(--pdf-bg); color: var(--pdf-color);
         }
-        .file-btn.pdf:hover { background: #fecaca; }
-        [data-theme="dark"] .file-btn.pdf:hover { background: #4a2020; }
+        .file-btn.pdf:hover { filter: brightness(0.95); }
+        [data-theme="dark"] .file-btn.pdf:hover { filter: brightness(1.2); }
 
         .file-btn.mp3 {
             background: var(--mp3-bg); color: var(--mp3-color);
         }
-        .file-btn.mp3:hover { background: #ede0ff; }
-        [data-theme="dark"] .file-btn.mp3:hover { background: #3a2050; }
+        .file-btn.mp3:hover { filter: brightness(0.95); }
+        [data-theme="dark"] .file-btn.mp3:hover { filter: brightness(1.2); }
 
-        .file-btn .btn-icon { font-size: 13px; }
+        .file-btn.mp4 {
+            background: var(--mp4-bg); color: var(--mp4-color);
+        }
+        .file-btn.mp4:hover { filter: brightness(0.95); }
+        [data-theme="dark"] .file-btn.mp4:hover { filter: brightness(1.2); }
+
+        .file-btn .btn-icon { font-size: 14px; }
+
+        /* Аудиоплеер */
+        .audio-player {
+            width: 100%;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--player-bg);
+            border: 1px solid var(--border-color);
+        }
+        .audio-player:focus {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
 
         .empty-state {
             text-align: center;
@@ -162,10 +213,13 @@
         .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
         .empty-state .empty-text { font-size: 15px; }
 
+        /* Адаптивность */
         @media (max-width: 400px) {
             .container { padding: 12px 10px 32px; }
-            .item-card { padding: 14px; }
-            .file-btn { padding: 6px 10px; font-size: 11px; }
+            .item-card { padding: 14px; border-radius: 14px; }
+            .file-btn { padding: 7px 12px; font-size: 11px; }
+            .item-title { font-size: 14px; }
+            .item-icon { width: 44px; height: 44px; font-size: 22px; border-radius: 12px; }
         }
     </style>
 </head>
@@ -191,6 +245,34 @@
     <script>
         function goBack() { window.location.href = 'lobby.html'; }
 
+        // Функция для создания URL скачивания через Cloudinary
+        function getDownloadUrl(url, filename) {
+            // Для raw-файлов Cloudinary использует флаг flags: 'attachment'
+            // Добавляем параметр для принудительного скачивания
+            const separator = url.includes('?') ? '&' : '?';
+            return url + separator + 'flags=attachment';
+        }
+
+        // Функция для открытия PDF в браузере (inline)
+        function getViewUrl(url) {
+            // Cloudinary для raw-файлов: добавляем inline-параметр
+            const separator = url.includes('?') ? '&' : '?';
+            return url + separator + 'flags=inline';
+        }
+
+        // Функция для прокси-скачивания с правильным именем
+        function downloadWithName(url, filename) {
+            // Создаём невидимую ссылку и кликаем по ней
+            const link = document.createElement('a');
+            link.href = getDownloadUrl(url);
+            link.download = filename;
+            link.target = '_blank';
+            link.rel = 'noopener';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         async function loadStorage() {
             try {
                 const res = await fetch('/api/storage');
@@ -201,36 +283,72 @@
                     container.innerHTML = data.items.map(item => {
                         let filesHtml = '';
                         
+                        // PDF секция
                         if (item.pdf_url) {
+                            const pdfFilename = (item.title || 'noty') + '.pdf';
                             filesHtml += `
-                                <div class="file-group">
-                                    <a href="${item.pdf_url}" target="_blank" class="file-btn pdf view">
-                                        <span class="btn-icon">👁️</span> Смотреть
-                                    </a>
-                                    <a href="${item.pdf_url}?download=1" class="file-btn pdf download" download>
-                                        <span class="btn-icon">📥</span> Скачать
-                                    </a>
+                                <div class="file-section">
+                                    <div class="file-label">
+                                        <span class="dot pdf"></span> Ноты (PDF)
+                                    </div>
+                                    <div class="file-group">
+                                        <a href="${getViewUrl(item.pdf_url)}" target="_blank" rel="noopener" class="file-btn pdf">
+                                            <span class="btn-icon">👁️</span> Смотреть
+                                        </a>
+                                        <button onclick="downloadWithName('${item.pdf_url}', '${pdfFilename.replace(/'/g, "\\'")}')" class="file-btn pdf">
+                                            <span class="btn-icon">📥</span> Скачать PDF
+                                        </button>
+                                    </div>
                                 </div>`;
                         }
+
+                        // MP3 секция со встроенным плеером
                         if (item.mp3_url) {
+                            const mp3Filename = (item.title || 'audio') + '.mp3';
                             filesHtml += `
-                                <div class="file-group">
-                                    <a href="${item.mp3_url}" target="_blank" class="file-btn mp3 view">
-                                        <span class="btn-icon">▶️</span> Слушать
-                                    </a>
-                                    <a href="${item.mp3_url}?download=1" class="file-btn mp3 download" download>
-                                        <span class="btn-icon">📥</span> Скачать
-                                    </a>
+                                <div class="file-section">
+                                    <div class="file-label">
+                                        <span class="dot mp3"></span> Аудио (MP3)
+                                    </div>
+                                    <audio class="audio-player" controls preload="metadata" src="${item.mp3_url}">
+                                        Ваш браузер не поддерживает аудио.
+                                    </audio>
+                                    <div class="file-group">
+                                        <button onclick="downloadWithName('${item.mp3_url}', '${mp3Filename.replace(/'/g, "\\'")}')" class="file-btn mp3">
+                                            <span class="btn-icon">📥</span> Скачать MP3
+                                        </button>
+                                    </div>
+                                </div>`;
+                        }
+
+                        // MP4 секция со встроенным плеером
+                        if (item.mp4_url) {
+                            const mp4Filename = (item.title || 'video') + '.mp4';
+                            filesHtml += `
+                                <div class="file-section">
+                                    <div class="file-label">
+                                        <span class="dot mp4"></span> Видео (MP4)
+                                    </div>
+                                    <video class="audio-player" controls preload="metadata" style="height:auto; max-height:300px;" src="${item.mp4_url}">
+                                        Ваш браузер не поддерживает видео.
+                                    </video>
+                                    <div class="file-group">
+                                        <button onclick="downloadWithName('${item.mp4_url}', '${mp4Filename.replace(/'/g, "\\'")}')" class="file-btn mp4">
+                                            <span class="btn-icon">📥</span> Скачать MP4
+                                        </button>
+                                    </div>
                                 </div>`;
                         }
 
                         return `
                             <div class="item-card">
-                                <div class="item-icon">🎵</div>
-                                <div class="item-info">
-                                    <div class="item-title">${esc(item.title)}</div>
-                                    <div class="item-files">${filesHtml}</div>
+                                <div class="item-header">
+                                    <div class="item-icon">🎵</div>
+                                    <div class="item-info">
+                                        <div class="item-title">${esc(item.title)}</div>
+                                    </div>
                                 </div>
+                                <div class="item-files">${filesHtml}</div>
                             </div>`;
                     }).join('');
                 } else {
@@ -241,6 +359,7 @@
                         </div>`;
                 }
             } catch(e) {
+                console.error('Ошибка загрузки хранилища:', e);
                 document.getElementById('storageContent').innerHTML = `
                     <div class="empty-state">
                         <div class="empty-icon">⚠️</div>
