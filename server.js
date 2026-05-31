@@ -44,7 +44,7 @@ webpush.setVapidDetails(
 const resend = new Resend(process.env.RESEND_API_KEY);
 const upload = multer({ 
     storage: multer.memoryStorage(),
-    limits: { fileSize: 50 * 1024 * 1024 } // 50MB
+    limits: { fileSize: 50 * 1024 * 1024 }
 });
 
 const app = express();
@@ -60,21 +60,19 @@ function uploadToCloudinary(buffer, folder, resourceType, originalFilename) {
         const bufferStream = new stream.PassThrough();
         bufferStream.end(buffer);
         
-        // Извлекаем расширение из оригинального имени файла
         let extension = '';
         let nameWithoutExt = '';
         
         if (originalFilename) {
             const lastDot = originalFilename.lastIndexOf('.');
             if (lastDot > 0) {
-                extension = originalFilename.substring(lastDot + 1); // pdf, mp3, mp4
+                extension = originalFilename.substring(lastDot + 1);
                 nameWithoutExt = originalFilename.substring(0, lastDot);
             } else {
                 nameWithoutExt = originalFilename;
             }
         }
         
-        // Очищаем имя файла
         const safeName = nameWithoutExt
             .replace(/[^a-zA-Zа-яА-Я0-9_-]/g, '_')
             .substring(0, 100);
@@ -88,7 +86,6 @@ function uploadToCloudinary(buffer, folder, resourceType, originalFilename) {
             type: 'upload'
         };
         
-        // ВАЖНО: добавляем format, чтобы Cloudinary сохранил расширение в URL
         if (extension && extension.length > 0 && extension.length <= 5) {
             uploadOptions.format = extension;
         }
@@ -941,6 +938,69 @@ app.post('/api/admin/schedule/:id/status', async (req, res) => {
 
 // ========== API ХРАНИЛИЩА ==========
 
+// Прокси для скачивания/просмотра файлов хранилища
+app.get('/api/storage/file/:id/:type', async (req, res) => {
+    const { id, type } = req.params;
+    const { download } = req.query;
+    
+    if (!['pdf', 'mp3', 'mp4'].includes(type)) {
+        return res.status(400).send('Неверный тип файла');
+    }
+    
+    try {
+        const result = await pool.query(
+            `SELECT ${type}_url as url, title FROM storage_items WHERE id = $1`,
+            [id]
+        );
+        
+        if (result.rows.length === 0 || !result.rows[0].url) {
+            return res.status(404).send('Файл не найден');
+        }
+        
+        const fileUrl = result.rows[0].url;
+        const title = result.rows[0].title || 'file';
+        
+        // Скачиваем файл с Cloudinary
+        const response = await fetch(fileUrl);
+        if (!response.ok) {
+            return res.status(502).send('Ошибка загрузки файла из Cloudinary');
+        }
+        
+        const buffer = await response.arrayBuffer();
+        const mimeTypes = {
+            pdf: 'application/pdf',
+            mp3: 'audio/mpeg',
+            mp4: 'video/mp4'
+        };
+        
+        const extensions = {
+            pdf: 'pdf',
+            mp3: 'mp3',
+            mp4: 'mp4'
+        };
+        
+        const mimeType = mimeTypes[type];
+        const ext = extensions[type];
+        const filename = `${title.replace(/[^a-zA-Zа-яА-Я0-9_-]/g, '_')}.${ext}`;
+        
+        res.setHeader('Content-Type', mimeType);
+        res.setHeader('Content-Length', buffer.byteLength);
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        
+        if (download === '1') {
+            res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+        } else {
+            res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(filename)}"`);
+        }
+        
+        res.send(Buffer.from(buffer));
+        
+    } catch (err) {
+        console.error('Ошибка прокси файла:', err);
+        res.status(500).send('Ошибка сервера');
+    }
+});
+
 app.get('/api/storage', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM storage_items ORDER BY created_at DESC');
@@ -966,7 +1026,6 @@ app.post('/api/admin/storage', upload.fields([
         let mp3_url = null;
         let mp4_url = null;
 
-        // Загрузка PDF
         if (req.files && req.files.pdf && req.files.pdf[0]) {
             try {
                 const result = await uploadToCloudinary(
@@ -983,7 +1042,6 @@ app.post('/api/admin/storage', upload.fields([
             }
         }
 
-        // Загрузка MP3
         if (req.files && req.files.mp3 && req.files.mp3[0]) {
             try {
                 const result = await uploadToCloudinary(
@@ -1000,7 +1058,6 @@ app.post('/api/admin/storage', upload.fields([
             }
         }
 
-        // Загрузка MP4
         if (req.files && req.files.mp4 && req.files.mp4[0]) {
             try {
                 const result = await uploadToCloudinary(
@@ -1039,13 +1096,11 @@ app.delete('/api/admin/storage/:id', async (req, res) => {
         const admin = await pool.query('SELECT * FROM users WHERE email = $1 AND role = $2', [adminEmail, 'admin']);
         if (admin.rows.length === 0) return res.json({ success: false, error: 'Нет прав' });
         
-        // Получаем URLs для удаления из Cloudinary
         const item = await pool.query('SELECT pdf_url, mp3_url, mp4_url FROM storage_items WHERE id = $1', [req.params.id]);
         if (item.rows.length > 0) {
             const urls = [item.rows[0].pdf_url, item.rows[0].mp3_url, item.rows[0].mp4_url].filter(Boolean);
             for (const url of urls) {
                 try {
-                    // Извлекаем public_id из URL
                     const urlParts = url.split('/');
                     const filenameWithExt = urlParts[urlParts.length - 1].split('?')[0];
                     const filename = filenameWithExt.includes('.') ? filenameWithExt.substring(0, filenameWithExt.lastIndexOf('.')) : filenameWithExt;
@@ -1153,7 +1208,6 @@ io.on('connection', async (socket) => {
     });
 });
 
-// ========== ЗАПУСК СЕРВЕРА ==========
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`\n🚀 Сервер запущен на порту ${PORT}`);
