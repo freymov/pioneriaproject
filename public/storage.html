@@ -248,90 +248,51 @@
                 const res = await fetch('/api/storage');
                 const data = await res.json();
                 const container = document.getElementById('storageContent');
-
+        
                 if (data.success && data.items.length > 0) {
                     container.innerHTML = data.items.map(item => {
                         let filesHtml = '';
                         
-                        // PDF секция
                         if (item.pdf_url) {
                             filesHtml += `
                                 <div class="file-section">
-                                    <div class="file-label">
-                                        <span class="dot pdf"></span> Ноты (PDF)
-                                    </div>
+                                    <div class="file-label"><span class="dot pdf"></span> Ноты (PDF)</div>
                                     <div class="file-group">
-                                        <a href="/api/storage/file/${item.id}/pdf" target="_blank" rel="noopener" class="file-btn pdf">
-                                            <span class="btn-icon">👁️</span> Смотреть
-                                        </a>
-                                        <a href="/api/storage/file/${item.id}/pdf?download=1" class="file-btn pdf">
-                                            <span class="btn-icon">📥</span> Скачать PDF
-                                        </a>
+                                        <a href="${item.pdf_url}" target="_blank" class="file-btn pdf">👁️ Смотреть</a>
+                                        <a href="${item.pdf_url}" download class="file-btn pdf">📥 Скачать PDF</a>
                                     </div>
                                 </div>`;
                         }
-
-                        // MP3 секция
                         if (item.mp3_url) {
                             filesHtml += `
                                 <div class="file-section">
-                                    <div class="file-label">
-                                        <span class="dot mp3"></span> Аудио (MP3)
-                                    </div>
-                                    <audio class="audio-player" controls preload="metadata" src="/api/storage/file/${item.id}/mp3">
-                                        Ваш браузер не поддерживает аудио.
-                                    </audio>
-                                    <div class="file-group">
-                                        <a href="/api/storage/file/${item.id}/mp3?download=1" class="file-btn mp3">
-                                            <span class="btn-icon">📥</span> Скачать MP3
-                                        </a>
-                                    </div>
+                                    <div class="file-label"><span class="dot mp3"></span> Аудио</div>
+                                    <audio class="audio-player" controls src="${item.mp3_url}"></audio>
+                                    <a href="${item.mp3_url}" download class="file-btn mp3">📥 Скачать MP3</a>
                                 </div>`;
                         }
-
-                        // MP4 секция
                         if (item.mp4_url) {
                             filesHtml += `
                                 <div class="file-section">
-                                    <div class="file-label">
-                                        <span class="dot mp4"></span> Видео (MP4)
-                                    </div>
-                                    <video class="audio-player" controls preload="metadata" style="height:auto; max-height:300px;" src="/api/storage/file/${item.id}/mp4">
-                                        Ваш браузер не поддерживает видео.
-                                    </video>
-                                    <div class="file-group">
-                                        <a href="/api/storage/file/${item.id}/mp4?download=1" class="file-btn mp4">
-                                            <span class="btn-icon">📥</span> Скачать MP4
-                                        </a>
-                                    </div>
+                                    <div class="file-label"><span class="dot mp4"></span> Видео</div>
+                                    <video class="audio-player" controls src="${item.mp4_url}" style="height:auto;max-height:300px;"></video>
+                                    <a href="${item.mp4_url}" download class="file-btn mp4">📥 Скачать MP4</a>
                                 </div>`;
                         }
-
-                        return `
-                            <div class="item-card">
-                                <div class="item-header">
-                                    <div class="item-icon">🎵</div>
-                                    <div class="item-info">
-                                        <div class="item-title">${esc(item.title)}</div>
-                                    </div>
-                                </div>
-                                <div class="item-files">${filesHtml}</div>
-                            </div>`;
+        
+                        return `<div class="item-card">
+                            <div class="item-header">
+                                <div class="item-icon">🎵</div>
+                                <div class="item-info"><div class="item-title">${esc(item.title)}</div></div>
+                            </div>
+                            <div class="item-files">${filesHtml}</div>
+                        </div>`;
                     }).join('');
                 } else {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-icon">📭</div>
-                            <div class="empty-text">Пока ничего нет</div>
-                        </div>`;
+                    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">Пока ничего нет</div></div>`;
                 }
             } catch(e) {
-                console.error('Ошибка загрузки хранилища:', e);
-                document.getElementById('storageContent').innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">⚠️</div>
-                        <div class="empty-text">Ошибка загрузки</div>
-                    </div>`;
+                container.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">Ошибка</div></div>`;
             }
         }
 
