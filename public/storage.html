@@ -34,7 +34,6 @@
             --mp4-bg: #fffbf0;
             --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
             --header-bg: rgba(255,255,255,0.85);
-            --header-shadow: 0 1px 0 rgba(0,0,0,0.04);
             --player-bg: #f8f9fb;
         }
 
@@ -54,9 +53,8 @@
             --mp3-bg: #2a1a3a;
             --mp4-color: #fbbf24;
             --mp4-bg: #3a3020;
-            --shadow: 0 1px 3px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.2);
+            --shadow: 0 1px 3px rgba(0,0,0,0.15);
             --header-bg: rgba(30,30,50,0.85);
-            --header-shadow: 0 1px 0 rgba(255,255,255,0.04);
             --player-bg: #1e1e32;
         }
 
@@ -77,7 +75,7 @@
             display: flex;
             align-items: center;
             gap: 14px;
-            box-shadow: var(--header-shadow);
+            box-shadow: var(--shadow);
             position: sticky;
             top: 0;
             z-index: 100;
@@ -88,11 +86,9 @@
             background: none; border: none;
             font-size: 20px; cursor: pointer;
             color: var(--accent); padding: 6px 10px;
-            border-radius: 10px;
-            font-weight: 600;
+            border-radius: 10px; font-weight: 600;
         }
         .back-btn:active { background: var(--accent-light); }
-
         .header h2 { font-size: 17px; font-weight: 700; flex: 1; }
 
         .container { max-width: 650px; margin: 0 auto; padding: 20px 16px 40px; }
@@ -103,7 +99,6 @@
             padding: 18px;
             margin-bottom: 12px;
             box-shadow: var(--shadow);
-            transition: all 0.2s;
             border: 1px solid var(--border-color);
         }
 
@@ -123,42 +118,24 @@
         }
 
         .item-info { flex: 1; min-width: 0; }
-        .item-title { font-size: 15px; font-weight: 700; color: var(--text-primary); word-break: break-word; }
+        .item-title { font-size: 15px; font-weight: 700; word-break: break-word; }
 
-        .item-files { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 10px; 
-        }
-
-        .file-section {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
+        .item-files { display: flex; flex-direction: column; gap: 10px; }
+        .file-section { display: flex; flex-direction: column; gap: 6px; }
 
         .file-label {
             font-size: 11px; font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            text-transform: uppercase; letter-spacing: 0.5px;
             color: var(--text-muted);
             display: flex; align-items: center; gap: 6px;
         }
 
-        .file-label .dot {
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-        }
+        .file-label .dot { width: 8px; height: 8px; border-radius: 50%; }
         .dot.pdf { background: var(--pdf-color); }
         .dot.mp3 { background: var(--mp3-color); }
         .dot.mp4 { background: var(--mp4-color); }
 
-        .file-group {
-            display: flex; 
-            gap: 6px;
-            flex-wrap: wrap;
-        }
+        .file-group { display: flex; gap: 6px; flex-wrap: wrap; }
 
         .file-btn {
             padding: 8px 16px;
@@ -167,48 +144,22 @@
             text-decoration: none; border: none;
             font-family: inherit; display: flex;
             align-items: center; gap: 6px;
-            border-radius: 10px;
-            white-space: nowrap;
+            border-radius: 10px; white-space: nowrap;
         }
         .file-btn:active { transform: scale(0.95); }
 
-        .file-btn.pdf {
-            background: var(--pdf-bg); color: var(--pdf-color);
-        }
-        .file-btn.pdf:hover { filter: brightness(0.95); }
-        [data-theme="dark"] .file-btn.pdf:hover { filter: brightness(1.2); }
-
-        .file-btn.mp3 {
-            background: var(--mp3-bg); color: var(--mp3-color);
-        }
-        .file-btn.mp3:hover { filter: brightness(0.95); }
-        [data-theme="dark"] .file-btn.mp3:hover { filter: brightness(1.2); }
-
-        .file-btn.mp4 {
-            background: var(--mp4-bg); color: var(--mp4-color);
-        }
-        .file-btn.mp4:hover { filter: brightness(0.95); }
-        [data-theme="dark"] .file-btn.mp4:hover { filter: brightness(1.2); }
-
-        .file-btn .btn-icon { font-size: 14px; }
+        .file-btn.pdf { background: var(--pdf-bg); color: var(--pdf-color); }
+        .file-btn.mp3 { background: var(--mp3-bg); color: var(--mp3-color); }
+        .file-btn.mp4 { background: var(--mp4-bg); color: var(--mp4-color); }
 
         .audio-player {
-            width: 100%;
-            height: 40px;
+            width: 100%; height: 40px;
             border-radius: 10px;
             background: var(--player-bg);
             border: 1px solid var(--border-color);
         }
-        .audio-player:focus {
-            outline: 2px solid var(--accent);
-            outline-offset: 2px;
-        }
 
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-muted);
-        }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
         .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
         .empty-state .empty-text { font-size: 15px; }
 
@@ -244,15 +195,16 @@
         function goBack() { window.location.href = 'lobby.html'; }
 
         async function loadStorage() {
+            const container = document.getElementById('storageContent');
             try {
                 const res = await fetch('/api/storage');
                 const data = await res.json();
-                const container = document.getElementById('storageContent');
-        
+
                 if (data.success && data.items.length > 0) {
                     container.innerHTML = data.items.map(item => {
                         let filesHtml = '';
                         
+                        // PDF — прямые ссылки на /storage/файл.pdf
                         if (item.pdf_url) {
                             filesHtml += `
                                 <div class="file-section">
@@ -263,36 +215,55 @@
                                     </div>
                                 </div>`;
                         }
+
+                        // MP3 — прямой URL для плеера
                         if (item.mp3_url) {
                             filesHtml += `
                                 <div class="file-section">
-                                    <div class="file-label"><span class="dot mp3"></span> Аудио</div>
+                                    <div class="file-label"><span class="dot mp3"></span> Аудио (MP3)</div>
                                     <audio class="audio-player" controls src="${item.mp3_url}"></audio>
-                                    <a href="${item.mp3_url}" download class="file-btn mp3">📥 Скачать MP3</a>
+                                    <div class="file-group">
+                                        <a href="${item.mp3_url}" download class="file-btn mp3">📥 Скачать MP3</a>
+                                    </div>
                                 </div>`;
                         }
+
+                        // MP4 — прямой URL для плеера
                         if (item.mp4_url) {
                             filesHtml += `
                                 <div class="file-section">
-                                    <div class="file-label"><span class="dot mp4"></span> Видео</div>
+                                    <div class="file-label"><span class="dot mp4"></span> Видео (MP4)</div>
                                     <video class="audio-player" controls src="${item.mp4_url}" style="height:auto;max-height:300px;"></video>
-                                    <a href="${item.mp4_url}" download class="file-btn mp4">📥 Скачать MP4</a>
+                                    <div class="file-group">
+                                        <a href="${item.mp4_url}" download class="file-btn mp4">📥 Скачать MP4</a>
+                                    </div>
                                 </div>`;
                         }
-        
-                        return `<div class="item-card">
-                            <div class="item-header">
-                                <div class="item-icon">🎵</div>
-                                <div class="item-info"><div class="item-title">${esc(item.title)}</div></div>
-                            </div>
-                            <div class="item-files">${filesHtml}</div>
-                        </div>`;
+
+                        return `
+                            <div class="item-card">
+                                <div class="item-header">
+                                    <div class="item-icon">🎵</div>
+                                    <div class="item-info">
+                                        <div class="item-title">${esc(item.title)}</div>
+                                    </div>
+                                </div>
+                                <div class="item-files">${filesHtml}</div>
+                            </div>`;
                     }).join('');
                 } else {
-                    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">Пока ничего нет</div></div>`;
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📭</div>
+                            <div class="empty-text">Пока ничего нет</div>
+                        </div>`;
                 }
             } catch(e) {
-                container.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">Ошибка</div></div>`;
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">⚠️</div>
+                        <div class="empty-text">Ошибка загрузки</div>
+                    </div>`;
             }
         }
 
