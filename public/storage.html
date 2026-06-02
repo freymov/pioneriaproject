@@ -7,6 +7,8 @@
             document.documentElement.setAttribute('data-theme', theme);
         })();
     </script>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#667eea">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Хранилище — Pioneria</title>
@@ -14,29 +16,31 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root, [data-theme="light"] {
-            --bg: #f0f2f5; --card: #fff; --text: #1a1a2e; --text2: #6b7280;
-            --accent: #667eea; --pdf: #ef4444; --pdf-bg: #fef2f2;
-            --mp3: #8b5cf6; --mp3-bg: #f5f0ff; --mp4: #f59e0b; --mp4-bg: #fffbf0;
+            --bg: linear-gradient(160deg, #e8ecf5, #f0f2fa);
+            --text: #1a1a2e; --text2: #6b7280; --accent: #667eea;
         }
         [data-theme="dark"] {
-            --bg: #13132b; --card: #252540; --text: #e4e6eb; --text2: #9ca3af;
-            --accent: #7c8aff; --pdf: #ff6b6b; --pdf-bg: #3a1a1a;
-            --mp3: #a78bfa; --mp3-bg: #2a1a3a; --mp4: #fbbf24; --mp4-bg: #3a3020;
+            --bg: linear-gradient(160deg, #13132b, #1a1a35);
+            --text: #e4e6eb; --text2: #9ca3af; --accent: #7c8aff;
         }
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); min-height: 100vh; color: var(--text); }
-        .header { background: var(--card); padding: 12px 20px; display: flex; align-items: center; gap: 14px; position: sticky; top: 0; z-index: 100; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg); min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text);
+        }
+        .header {
+            background: rgba(255,255,255,0.85); backdrop-filter: blur(20px);
+            padding: 12px 20px; display: flex; align-items: center; gap: 14px;
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+        }
+        [data-theme="dark"] .header { background: rgba(30,30,50,0.85); }
         .back-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--accent); }
         .header h2 { font-size: 17px; font-weight: 700; flex: 1; }
-        .container { max-width: 650px; margin: 0 auto; padding: 20px 16px; }
-        .item-card { background: var(--card); border-radius: 16px; padding: 18px; margin-bottom: 12px; }
-        .item-header { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
-        .item-icon { width: 52px; height: 52px; background: #eef0ff; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 26px; }
-        .item-title { font-size: 15px; font-weight: 700; }
-        .file-btn { padding: 10px 16px; font-size: 13px; font-weight: 600; border-radius: 10px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
-        .file-btn.pdf { background: var(--pdf-bg); color: var(--pdf); }
-        .file-btn.mp3 { background: var(--mp3-bg); color: var(--mp3); }
-        .file-btn.mp4 { background: var(--mp4-bg); color: var(--mp4); }
-        .empty-state { text-align: center; padding: 60px 20px; color: var(--text2); }
+        .message { text-align: center; padding: 20px; }
+        .message .icon { font-size: 64px; margin-bottom: 16px; }
+        .message h3 { font-size: 18px; margin-bottom: 8px; }
+        .message p { font-size: 14px; color: var(--text2); }
     </style>
 </head>
 <body>
@@ -44,41 +48,10 @@
         <button class="back-btn" onclick="location.href='lobby.html'">←</button>
         <h2>📦 Хранилище</h2>
     </div>
-    <div class="container" id="content">Загрузка...</div>
-
-    <script>
-        (function(){ document.documentElement.setAttribute('data-theme', localStorage.getItem('theme')||'light'); })();
-        
-        async function load() {
-            try {
-                const r = await fetch('/api/storage');
-                const d = await r.json();
-                const c = document.getElementById('content');
-                
-                if (d.success && d.items.length) {
-                    c.innerHTML = d.items.map(item => `
-                        <div class="item-card">
-                            <div class="item-header">
-                                <div class="item-icon">🎵</div>
-                                <div class="item-title">${esc(item.title)}</div>
-                            </div>
-                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                                ${item.has_pdf ? `<a href="/api/storage/file/${item.id}/pdf" class="file-btn pdf" download>📥 Скачать PDF</a>` : ''}
-                                ${item.has_mp3 ? `<a href="/api/storage/file/${item.id}/mp3" class="file-btn mp3" download>📥 Скачать MP3</a>` : ''}
-                                ${item.has_mp4 ? `<a href="/api/storage/file/${item.id}/mp4" class="file-btn mp4" download>📥 Скачать MP4</a>` : ''}
-                            </div>
-                        </div>
-                    `).join('');
-                } else {
-                    c.innerHTML = '<div class="empty-state"><div style="font-size:48px;">📭</div><div>Пока ничего нет</div></div>';
-                }
-            } catch(e) {
-                document.getElementById('content').innerHTML = '<div class="empty-state">Ошибка</div>';
-            }
-        }
-        
-        function esc(t) { const d = document.createElement('div'); d.textContent = t||''; return d.innerHTML; }
-        load();
-    </script>
+    <div class="message">
+        <div class="icon">🚧</div>
+        <h3>Скоро здесь будут ноты</h3>
+        <p>Раздел в разработке — появится позже</p>
+    </div>
 </body>
 </html>
