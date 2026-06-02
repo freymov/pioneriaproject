@@ -425,37 +425,14 @@
         </div>
 
         <!-- Хранилище -->
+        <!-- Хранилище -->
         <div class="card">
             <h2>📦 Хранилище</h2>
-            
-            <h3>Добавить произведение</h3>
-            
-            <div class="form-group">
-                <label>Название</label>
-                <input type="text" id="storageTitle" placeholder="Например: Motete - Bach">
+            <div style="text-align:center;padding:30px 20px;">
+                <div style="font-size:48px;margin-bottom:12px;">🚧</div>
+                <p style="font-size:15px;font-weight:600;color:var(--text);">Функция в разработке</p>
+                <p style="font-size:13px;color:var(--text-secondary);margin-top:6px;">Возможность загружать ноты и аудио появится позже</p>
             </div>
-            
-            <div class="form-group">
-                <label>📄 PDF (ноты)</label>
-                <input type="file" id="storagePdf" accept=".pdf">
-            </div>
-            
-            <div class="form-group">
-                <label>🎧 MP3 (аудио)</label>
-                <input type="file" id="storageMp3" accept=".mp3,audio/*">
-            </div>
-            
-            <div class="form-group">
-                <label>🎬 MP4 (видео)</label>
-                <input type="file" id="storageMp4" accept=".mp4,video/*">
-            </div>
-            
-            <button onclick="uploadStorage()" class="btn-block">📤 Загрузить</button>
-            <div id="storageMsg" class="msg"></div>
-
-            <h3>Загруженные файлы</h3>
-            <button onclick="loadStorageAdmin()" class="btn-sm btn-outline" style="margin-bottom:8px;">🔄 Обновить</button>
-            <div id="storageListAdmin" style="font-size:12px; color:var(--text-secondary);">Загрузка...</div>
         </div>
 
         <!-- Новости -->
