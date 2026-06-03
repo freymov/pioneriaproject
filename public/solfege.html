@@ -6,18 +6,8 @@
     <title>Сольфеджио — Pioneria Project</title>
     <link rel="icon" type="image/jpg" href="/favicon.jpg">
     
-    <!-- Шрифт Petrucci -->
     <style>
-        @font-face {
-            font-family: 'Petrucci';
-            src: url('/fonts/petrucci.ttf') format('truetype');
-        }
-    </style>
-    
-    <!-- Стили калькулятора -->
-    <link rel="stylesheet" href="/css/calculator.css">
-    
-    <style>
+        /* Основные стили страницы */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
@@ -39,19 +29,14 @@
         }
         
         .back-btn {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 8px;
+            background: none; border: none;
+            font-size: 24px; cursor: pointer;
+            padding: 8px; border-radius: 8px;
         }
-        
         .back-btn:hover { background: #f0f0f0; }
         
         .page-title {
-            font-size: 20px;
-            font-weight: 700;
+            font-size: 20px; font-weight: 700;
         }
         
         .container {
@@ -62,36 +47,32 @@
         
         /* Вкладки */
         .tabs {
-            display: flex;
-            gap: 8px;
+            display: flex; gap: 8px;
             margin-bottom: 20px;
             background: white;
-            padding: 8px;
-            border-radius: 12px;
+            padding: 8px; border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         
         .tab-btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            background: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
+            flex: 1; padding: 12px;
+            border: none; background: none;
+            border-radius: 8px; cursor: pointer;
+            font-size: 14px; font-weight: 500;
             transition: all 0.2s;
         }
         
-        .tab-btn.active {
-            background: #667eea;
-            color: white;
-        }
-        
+        .tab-btn.active { background: #667eea; color: white; }
         .tab-btn:hover:not(.active) { background: #f0f0f5; }
         
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+        
+        /* Шрифт Petrucci */
+        @font-face {
+            font-family: Petrucci;
+            src: url(/fonts/petrucci.ttf);
+        }
     </style>
 </head>
 <body>
@@ -101,65 +82,957 @@
     </div>
     
     <div class="container">
-        <!-- Вкладки -->
         <div class="tabs">
             <button class="tab-btn active" data-tab="calculator">🎹 Калькулятор</button>
             <button class="tab-btn" data-tab="scales">📊 Гаммы</button>
             <button class="tab-btn" data-tab="chords">🎸 Аккорды</button>
         </div>
         
-        <!-- Калькулятор -->
+        <!-- КАЛЬКУЛЯТОР -->
         <div id="calculator" class="tab-content active">
-            <!-- Калькулятор загрузится через JS -->
+            <!-- ОРИГИНАЛЬНЫЙ КАЛЬКУЛЯТОР НАЧИНАЕТСЯ ЗДЕСЬ -->
+            <style>
+                /* ВСТАВЛЯЕМ ОРИГИНАЛЬНЫЕ СТИЛИ */
+                .maj { background: #ffeeee; }
+                .min { background: #ebfdff; }
+                
+                .music_symb {
+                    font-family: Petrucci;
+                    font-size: 200%;
+                    padding: 0; margin: 0;
+                    width: auto; height: auto;
+                }
+                
+                .note_n, .tone_sign, .sign_n {
+                    display: none; position: absolute;
+                }
+                
+                .dop_line {
+                    font-family: Petrucci;
+                    padding: 0; margin: 0;
+                    width: auto; height: auto;
+                    position: absolute;
+                    display: none;
+                    left: -5px; top: -21px; font-size: 150%;
+                }
+                
+                .disabled {
+                    opacity: 0.3;
+                    cursor: default !important;
+                }
+                
+                .calctable td div {
+                    text-align: center;
+                    width: 5.5em; height: 4em;
+                    line-height: 170%;
+                    cursor: pointer;
+                    padding: 18px 0 0 0;
+                }
+                
+                .win_part {
+                    padding: 0;
+                    width: auto; height: 70%;
+                    float: left;
+                }
+                
+                .calctable td div span {
+                    font-size: 250%;
+                }
+                
+                .nota {
+                    border: solid 1px #00448a;
+                    border-radius: 5px;
+                    color: #000000;
+                    background: #f9ff4a;
+                }
+                
+                .lad_type {
+                    width: 11em; height: 1.45em;
+                    line-height: 150%;
+                    cursor: pointer;
+                    padding: 0 3px;
+                    background: #002a53;
+                    border-radius: 5px;
+                    border: solid 1px #002a53;
+                    color: #ffffff;
+                }
+                
+                .lad_type.selected { background: #16487b; }
+                
+                .led {
+                    width: 11em; padding: 0 3px;
+                    height: 1em; line-height: 150%;
+                    color: #999999;
+                    text-align: left; font-size: 90%;
+                }
+                
+                .led div {
+                    width: 1em; height: 1em;
+                    padding: 0;
+                    border-radius: 1em;
+                    border: solid 1px #999999;
+                    float: left; margin-right: 0.5em;
+                    background: #e1e1e1;
+                }
+                
+                .on { color: #000000; }
+                .on div { background: #c4ff67 !important; }
+                
+                .stupen {
+                    border: solid 1px #00448a;
+                    border-radius: 5px;
+                    color: #000000;
+                    background: #ffbb44;
+                    display: none;
+                }
+                
+                .stupen div {
+                    position: relative; top: -15px;
+                }
+                
+                .stupen div span {
+                    font-size: 170%;
+                    font-family: Petrucci;
+                    position: relative; top: -4px;
+                }
+                
+                .chord {
+                    border: solid 1px #73bc00;
+                    border-radius: 5px;
+                    color: #ffffff;
+                    background: #73bc00;
+                    line-height: 90%;
+                }
+                
+                .nota:not(.disabled):hover { background: #fdffc0; }
+                
+                .func {
+                    border: solid 1px #69006a;
+                    border-radius: 5px;
+                    color: #ffffff;
+                    background: #69006a;
+                }
+                .func:not(.disabled):hover { background: #4a005f; }
+                
+                .alt_int {
+                    border: solid 1px #69006a;
+                    border-radius: 5px;
+                    color: #ffffff;
+                    background: #9b4747;
+                }
+                .alt_int:not(.disabled):hover { background: #662828; }
+                
+                .alt {
+                    border-radius: 5px;
+                    border: solid 1px #000000;
+                    color: #ffffff;
+                    background: #000000;
+                }
+                .alt:not(.disabled):hover { background: #333333; }
+                
+                .clear {
+                    background: #ff0000;
+                    width: 41em;
+                    padding-top: 30px; padding-bottom: 0;
+                    border-radius: 5px;
+                    color: #ffffff;
+                }
+                .clear:hover { background: #dd0000; }
+                
+                .number {
+                    border: solid 1px #0e69c7;
+                    border-radius: 5px;
+                    color: #ffffff;
+                    background: #0e69c7;
+                }
+                .number:not(.disabled):hover { background: #144a82; }
+                
+                .chord_name_number { font-size: 100%; display: none; }
+                .interval_name_number { font-size: 100%; }
+                
+                .lad {
+                    border: solid 1px #0e69c7;
+                    border-radius: 5px;
+                    color: #ffffff;
+                }
+                
+                #dur:not(.disabled):hover { background: #ea5a03 !important; }
+                #moll:not(.disabled):hover { background: #005a64 !important; }
+                
+                .up_down {
+                    border: solid 1px #0e69c7;
+                    border-radius: 5px;
+                    color: #ffffff;
+                    background: #0e6900;
+                }
+                
+                .is {
+                    border: solid 1px #0e69c7;
+                    border-radius: 5px;
+                    color: #ffffff;
+                    background: #0e6900;
+                }
+                
+                .up_down:not(.disabled):hover, .is:not(.disabled):hover { background: #144a00; }
+                
+                .tone {
+                    border: solid 1px #16487b;
+                    border-radius: 5px;
+                    color: #ffffff;
+                    background: #16487b;
+                    line-height: 90%;
+                }
+                .tone:not(.disabled):hover { background: #0f3a65; }
+                
+                .tone span, .chord span {
+                    font-size: 140%; line-height: 110%;
+                }
+                
+                .tone span#tone_1, .tone span#tone_2 { padding-right: 0.3em; }
+                
+                .in_tone { color: #16487b; }
+                
+                .set_tone {
+                    animation: glowing 1500ms infinite;
+                }
+                
+                @keyframes glowing {
+                    0% { background-color: #004A7F; box-shadow: 0 0 3px #004A7F; }
+                    50% { background-color: #036dd9; box-shadow: 0 0 10px #036dd9; }
+                    100% { background-color: #004A7F; box-shadow: 0 0 3px #004A7F; }
+                }
+                
+                .tone_error {
+                    animation: glowing2 1500ms infinite;
+                }
+                
+                @keyframes glowing2 {
+                    0% { background-color: #ff0000; box-shadow: 0 0 3px #ff0000; }
+                    50% { background-color: #440000; box-shadow: 0 0 10px #440000; }
+                    100% { background-color: #ff0000; box-shadow: 0 0 3px #ff0000; }
+                }
+                
+                #diez_1 { left: 42px; top: -43px; }
+                #diez_2 { left: 54px; top: -28px; }
+                #diez_3 { left: 66px; top: -48px; }
+                #diez_4 { left: 78px; top: -33px; }
+                #diez_5 { left: 90px; top: -16px; }
+                #diez_6 { left: 102px; top: -38px; }
+                #diez_7 { left: 114px; top: -21px; }
+                
+                #bemol_1 { left: 42px; top: -21px; }
+                #bemol_2 { left: 54px; top: -38px; }
+                #bemol_3 { left: 66px; top: -16px; }
+                #bemol_4 { left: 78px; top: -33px; }
+                #bemol_5 { left: 90px; top: -11px; }
+                #bemol_6 { left: 102px; top: -28px; }
+                #bemol_7 { left: 114px; top: -6px; }
+                
+                .red { background-color: #ff0000 !important; }
+            </style>
+            
+            <center>
+                <div id="win" style="font-size: 130%; padding: 10px 0; width: 900px; height: 1.5em; border: solid 1px #083059; border-radius: 5px; background: #ffffff; color: #000000; margin-top: 20px;">
+                    <div class="win_part" id="operand_1" style="padding-left: 1em;"></div>
+                    <div class="win_part" id="alt_1"></div>
+                    <div class="win_part" id="direction" style="padding-left: 0.2em; padding-right: 0.2em;"></div>
+                    <div class="win_part" id="alt_int"></div>
+                    <div class="win_part" id="operand_2"></div>
+                    <div class="win_part" id="alt_2"></div>
+                    <div class="win_part" id="operand_3"></div>
+                    <div class="win_part" id="alt_3"></div>
+                    <div class="win_part" id="operand_4"></div>
+                    <div class="win_part" id="alt_4"></div>
+                    <div class="win_part" id="operand_5"></div>
+                    <div class="win_part" id="alt_5"></div>
+                    <div class="win_part" id="equal" style="padding-left: 1em; padding-right: 1em; display: none;">=</div>
+                    <div class="win_part" id="result"></div>
+                </div>
+                
+                <div style="clear: both; height: 1px;"></div>
+                
+                <table class="calctable" style="margin-top: 1em;">
+                    <tr>
+                        <td><div class="nota" id="do" rel="1" stup="1" name="До"><span>С</span><br>До</div></td>
+                        <td><div class="nota" id="re" rel="3" stup="2" name="Ре"><span>D</span><br>Ре</div></td>
+                        <td><div class="nota" id="mi" rel="5" stup="3" name="Ми"><span>E</span><br>Ми</div></td>
+                        <td><div class="nota" id="fa" rel="6" stup="4" name="Фа"><span>F</span><br>Фа</div></td>
+                        <td><div class="nota" id="sol" rel="8" stup="5" name="Соль"><span>G</span><br>Соль</div></td>
+                        <td><div class="nota" id="la" rel="10" stup="6" name="Ля"><span>A</span><br>Ля</div></td>
+                        <td><div class="nota" id="si" rel="12" stup="7" name="Си"><span>H</span><br>Си</div></td>
+                    </tr>
+                    <tr>
+                        <td><div class="stupen" rel="1" stup="1" name="I"><span>I</span><br><div></div></div></td>
+                        <td><div class="stupen" rel="3" stup="2" name="II"><span>II</span><br><div></div></div></td>
+                        <td><div class="stupen" rel="5" stup="3" name="III"><span>III</span><br><div></div></div></td>
+                        <td><div class="stupen" rel="6" stup="4" name="IV"><span>IV</span><br><div></div></div></td>
+                        <td><div class="stupen" rel="8" stup="5" name="V"><span>V</span><br><div></div></div></td>
+                        <td><div class="stupen" rel="10" stup="6" name="VI"><span>VI</span><br><div></div></div></td>
+                        <td><div class="stupen" rel="12" stup="7" name="VII"><span>VII</span><br><div></div></div></td>
+                    </tr>
+                    <tr>
+                        <td><div class="alt disabled" id="flat" rel="-1" name="бемоль"><span>&#9837;</span><br>Бемоль</div></td>
+                        <td><div class="alt disabled" id="sharp" rel="1" name="диез"><span>&#9839;</span><br>Диез</div></td>
+                        <td><div class="alt disabled" id="bekar" rel="0" name=""><span>&#9838;</span><br>Бекар</div></td>
+                        <td colspan="2"><div class="lad disabled" name="Мажор" id="dur" style="background: #ff6000; width: 11em; padding-left: 3px; padding-right: 3px;"><span>Dur</span><br>Мажор</div></td>
+                        <td colspan="2"><div class="lad disabled" name="Минор" id="moll" style="background: #006a76; width: 11em; padding-left: 3px; padding-right: 3px;"><span>moll</span><br>Минор</div></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" rowspan="3">
+                            <table>
+                                <tr><td><div class="led off" id="set_interval" rel="2" name="set_interval"><div></div>Определяем интервал</div></td></tr>
+                                <tr><td><div class="led off" id="set_chord" rel="2" name="set_chord"><div></div>Строим аккорд</div></td></tr>
+                                <tr><td><div class="led off" id="find_note" rel="2" name="find_note"><div></div>Строим интервал</div></td></tr>
+                                <tr><td><div class="led off" id="make_chord" rel="2" name="make_chord"><div></div>Определяем аккорд</div></td></tr>
+                            </table>
+                        </td>
+                        <td rowspan="3" colspan="3"><div class="tone" name="Тональность" id="ton"><span>Тональность</span><br><span id="tone_1"></span><span id="tone_2"></span><span id="tone_3"></span></div></td>
+                        <td colspan="2"><div class="lad_type disabled" id="harmonic" rel="1" name="гармонический">Гармонический</div></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><div class="lad_type disabled" id="melodic" rel="2" name="мелодический">Мелодический</div></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><div class="lad_type disabled" id="natural" rel="0" name="натуральный">Натуральный</div></td>
+                    </tr>
+                    <tr>
+                        <td><div class="number disabled" id="1" name="Прима" rel="0"><span>1</span><br>Прима</div></td>
+                        <td><div class="number disabled" id="2" name="Секунда" rel="2"><span>2</span><br><span class="interval_name_number">Секунда</span></div></td>
+                        <td><div class="number disabled" id="3" name="Терция" rel="4"><span>3</span><br><span class="interval_name_number">Терция</span></div></td>
+                        <td><div class="number disabled" id="4" name="Кварта" rel="5"><span>4</span><br><span class="interval_name_number">Кварта</span></div></td>
+                        <td><div class="func disabled" id="t"><span>T</span><br>Тоника</div></td>
+                        <td><div class="func disabled" id="s"><span>S</span><br>Субдомин.</div></td>
+                        <td><div class="func disabled" id="d"><span>D</span><br>Доминанта</div></td>
+                    </tr>
+                    <tr>
+                        <td><div class="number disabled" id="5" name="Квинта" rel="7"><span>5</span><br><span class="interval_name_number">Квинта</span></div></td>
+                        <td><div class="number disabled" id="6" name="Секста" rel="9"><span>6</span><br><span class="interval_name_number">Секста</span></div></td>
+                        <td><div class="number disabled" id="7" name="Септима" rel="11"><span>7</span><br><span class="interval_name_number">Септима</span></div></td>
+                        <td><div class="number disabled" id="8" name="Октава" rel="12"><span>8</span><br>Октава</div></td>
+                        <td><div class="alt_int disabled" rel="-1" id="m" name="Малая"><span>М</span><br>Малая</div></td>
+                        <td><div class="alt_int disabled" rel="0" id="b" name="Большая"><span>Б</span><br>Большая</div></td>
+                        <td><div class="alt_int disabled" rel="0" id="ch" name="Чистая"><span>Ч</span><br>Чистая</div></td>
+                    </tr>
+                    <tr>
+                        <td><div class="number disabled" id="9" name="Нона" rel="14"><span>9</span><br>Нона</div></td>
+                        <td><div class="number disabled" id="10" name="Децима" rel="16"><span>10</span><br>Децима</div></td>
+                        <td><div class="up_down disabled" rel="1" id="up" name="↑"><span>&#8593;</span><br>вверх</div></td>
+                        <td><div class="up_down disabled" rel="-1" id="down" name="↓"><span>&#8595;</span><br>вниз</div></td>
+                        <td><div class="alt_int disabled" rel="-2" id="dim" name="Уменьшенная"><span>Ум</span><br>Уменьшенная</div></td>
+                        <td><div class="alt_int disabled" rel="1" id="sus" name="Увеличенная"><span>Ув</span><br>Увеличенная</div></td>
+                        <td><div class="is disabled" id="is"><div style="padding: 0; height: 12px;"></div><span>=</span></div></td>
+                    </tr>
+                    <tr>
+                        <td colspan="7"><div class="clear" id="clear" style=""><span>C</span></div></td>
+                    </tr>
+                </table>
+                
+                <div class="music" style="position: relative; margin-top: 30px; font-size: 127%; padding: 10px 0; width: 900px;">
+                    <div style="position: absolute; top: 0; left: 0;" class="music_symb">=====================</div>
+                    <div style="position: absolute; top: 3.2em; left: 80px; text-align: center; width: 200px;" id="int_res"></div>
+                    <div style="position: absolute; top: -0.25em; left: 0.2em;" class="music_symb">&amp;</div>
+                    <div id="note_1" class="note_n music_symb" style="left: 120px; top: 10.7px;">w<div class="dop_line"></div></div>
+                    <div id="note_2" class="note_n music_symb" style="left: 220px; top: 0.1px;">w<div class="dop_line"></div></div>
+                    <div id="note_3" class="note_n music_symb">w<div class="dop_line"></div></div>
+                    <div id="note_4" class="note_n music_symb">w<div class="dop_line"></div></div>
+                    <div id="note_5" class="note_n music_symb">w<div class="dop_line"></div></div>
+                    <div id="sign_1" class="sign_n music_symb" style="left: 106px; top: 10.7px;"></div>
+                    <div id="sign_2" class="sign_n music_symb" style="left: 206px; top: 0.1px;"></div>
+                    <div id="sign_3" class="sign_n music_symb"></div>
+                    <div id="sign_4" class="sign_n music_symb"></div>
+                    <div id="sign_5" class="sign_n music_symb"></div>
+                </div>
+            </center>
+            <!-- КОНЕЦ КАЛЬКУЛЯТОРА -->
         </div>
         
-        <!-- Гаммы -->
         <div id="scales" class="tab-content">
-            <h2>Гаммы</h2>
+            <h2>📊 Гаммы</h2>
             <p>В разработке...</p>
         </div>
         
-        <!-- Аккорды -->
         <div id="chords" class="tab-content">
-            <h2>Аккорды</h2>
+            <h2>🎸 Аккорды</h2>
             <p>В разработке...</p>
         </div>
     </div>
     
-    <!-- Подключаем скрипты -->
-    <script src="/js/music-calculator.js"></script>
-    <script src="/js/calculator-ui.js"></script>
+    <script src="https://code.jquery.com/jquery-1.3.2.js"></script>
     
-    <!-- Инициализация -->
     <script>
-        // Ждем полной загрузки страницы
-        window.addEventListener('DOMContentLoaded', function() {
-            console.log('📄 DOM загружен');
-            console.log('MusicCalc:', typeof MusicCalc);
-            console.log('CalculatorUI:', typeof CalculatorUI);
+    // ОРИГИНАЛЬНЫЙ JS КАЛЬКУЛЯТОРА
+    function winpolutonov(a) {
+        polutonov = new Array(0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24, 26, 28, 29, 31, 33, 35, 36);
+        return polutonov[a];
+    }
+    
+    window.operand_1 = '';
+    window.operand_2 = '';
+    window.operand_3 = '';
+    window.operand_4 = '';
+    window.operand_5 = '';
+    window.stupen_1 = '';
+    window.stupen_2 = '';
+    window.stupen_3 = '';
+    window.stupen_4 = '';
+    window.stupen_5 = '';
+    window.alt_1 = 0;
+    window.alt_2 = 0;
+    window.alt_3 = 0;
+    window.alt_4 = 0;
+    window.alt_5 = 0;
+    window.alt_int = 0;
+    window.direction = 1;
+    window.tone_nota = '';
+    window.tone_alt = '';
+    window.tone_lad = '';
+    window.tek = '';
+    window.mode = '';
+    window.chord_terz = 0;
+    window.clear_tone = 0;
+    window.intervals = new Array("Прима", "Секунда", "Терция", "Кварта", "Квинта", "Секста", "Септима", "Октава", "Нона", "Децима");
+    window.interval_types = new Array("Чистая", "Малая", "Большая", "Малая", "Большая", "Чистая", "", "Чистая", "Малая", "Большая", "Малая", "Большая", "Чистая", "Малая", "Большая", "Малая", "Большая");
+    window.interval_types_breaf = new Array("ч.", "м.", "б.", "м.", "б.", "ч.", "", "ч.", "м.", "б.", "м.", "б.", "ч.", "м.", "б.", "м.", "б.");
+    window.chrom = new Array(0, 1, 1, 2, 2, 3, "3.5", 4, 5, 5, 6, 6, 7);
+    window.polutonov = new Array(0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24, 26, 28, 29, 31, 33, 35, 36);
+    window.notes = new Array("До", "Ре", "Ми", "Фа", "Соль", "Ля", "Си", "До", "Ре", "Ми", "Фа", "Соль", "Ля", "Си", "До", "Ре", "Ми", "Фа", "Соль", "Ля", "Си");
+    window.notes[100] = '';
+    window.signs = new Array("дубль-бемоль", "бемоль", "", "диез", "дубль-диез");
+    window.signs_symb = new Array("bb", "b", "", "#", "x");
+    window.signs_symb[100] = 'n';
+    window.structure = new Array();
+    window.structure["Мажор"] = new Array(0, 2, 4, 5, 7, 9, 11);
+    window.structure["Минор"] = new Array(0, 2, 3, 5, 7, 8, 10);
+    window.stupeni = new Array("", "I", "II", "III", "IV", "V", "VI", "VII");
+    window.sizes = new Array("дважды ум.", "ум.", "", "ув.", "дважды ув.");
+    window.majors = new Array(5, 0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5, 12);
+    window.minors = new Array(2, 9, 4, 11, 6, 1, 8, 3, 10, 5, 0, 7, 2, 9);
+    window.lad_type_arr = new Array();
+    window.lad_type_arr["Мажор"] = new Array();
+    window.lad_type_arr["Мажор"]["natural"] = new Array(0, 0, 0, 0, 0, 0, 0);
+    window.lad_type_arr["Мажор"]["harmonic"] = new Array(0, 0, 0, 0, 0, -1, 0);
+    window.lad_type_arr["Мажор"]["melodic"] = new Array(0, 0, 0, 0, 0, -1, -1);
+    window.lad_type_arr["Минор"] = new Array();
+    window.lad_type_arr["Минор"]["natural"] = new Array(0, 0, 0, 0, 0, 0, 0);
+    window.lad_type_arr["Минор"]["harmonic"] = new Array(0, 0, 0, 0, 0, 0, 1);
+    window.lad_type_arr["Минор"]["melodic"] = new Array(0, 0, 0, 0, 0, 1, 1);
+    window.clef_signs = new Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    
+    $(document).ready(function() {
+        
+        $(".nota").click(function() {
+            if($(this).hasClass('disabled')) return;
+            window.clear_tone = 0;
+            $(".alt").removeClass('disabled');
+            $(".lad").removeClass('disabled');
+            $("#result").html('');
+            $("#equal").hide();
+            $("#alt_int").html('');
             
-            // Переключение вкладок
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            if(window.mode=="set_tone") {
+                window.tone_nota = parseInt($(this).attr('stup'));
+                $("#tone_1").html($(this).attr('name'));
+            } else {
+                $(".number").removeClass('disabled');
+                $(".up_down").removeClass('disabled');
+                $(".alt_int").removeClass('disabled');
+                $(".tone").addClass('disabled');
+                
+                if(window.operand_1=="") {
+                    window.operand_1 = parseInt($(this).attr('rel'));
+                    window.stupen_1 = parseInt($(this).attr('stup'));
+                    window.tek = "operand_1";
+                    $("#operand_1").html("<span style='font-size: 70%;'>От ноты</span> &nbsp;" + $(this).attr('name'));
+                    note_on(1, window.alt_1, window.stupen_1, 1, 0, 0, 0);
+                } else if(window.operand_2=="") {
+                    $(".is").removeClass('disabled');
+                    note_on(1, window.alt_1, window.stupen_1, 1, 0, 0, 0);
+                    note_off(2); note_off(3); note_off(4); note_off(5);
                     
-                    btn.classList.add('active');
-                    document.getElementById(btn.dataset.tab).classList.add('active');
-                });
-            });
-            
-            // Запуск калькулятора с задержкой для уверенности
-            setTimeout(function() {
-                if (typeof CalculatorUI !== 'undefined' && CalculatorUI.init) {
-                    console.log('🚀 Запускаем калькулятор...');
-                    CalculatorUI.init();
-                } else {
-                    console.error('❌ CalculatorUI не найден!');
-                    // Попробуем вручную
-                    document.getElementById('calculator').innerHTML = '<p style="padding:20px;color:red;">Ошибка загрузки калькулятора. Проверь консоль (F12).</p>';
+                    window.operand_2 = parseInt($(this).attr('rel'));
+                    window.stupen_2 = parseInt($(this).attr('stup'));
+                    
+                    if((window.stupen_2 - window.stupen_1) * window.direction < 0) {
+                        window.stupen_2 = window.stupen_2 + 7 * window.direction;
+                        window.operand_2 = window.operand_2 + 12 * window.direction;
+                    }
+                    if((window.stupen_2 - window.stupen_1) * window.direction > 7) {
+                        window.stupen_2 = window.stupen_2 - 7 * window.direction;
+                        window.operand_2 = window.operand_2 - 12 * window.direction;
+                    }
+                    
+                    $(".nota").addClass('disabled');
+                    window.tek = "operand_2";
+                    window.mode = "make_interval";
+                    $(".led").removeClass('on');
+                    $("#set_interval").addClass('on');
+                    $(".interval_name_number").show();
+                    $(".chord_name_number").hide();
+                    $("#operand_2").html("<span style='font-size: 70%;'>до ноты</span> &nbsp;" + $(this).attr('name'));
+                    note_on(2, window.alt_2, window.stupen_2, 2, 0, 0, 0);
                 }
-            }, 100);
+            }
+        });
+        
+        $(".alt").click(function() {
+            if($(this).hasClass('disabled')) return;
+            window.clear_tone = 0;
+            $("#result").html('');
+            $("#equal").hide();
+            
+            if(window.mode=="set_tone") {
+                window.tone_alt = parseInt($(this).attr('rel'));
+                $("#tone_2").html($(this).attr('name'));
+            } else {
+                if(window.tek == "operand_1") {
+                    window.alt_1 = parseInt($(this).attr('rel'));
+                    $("#alt_1").html('&nbsp;' + $(this).attr('name'));
+                    note_on(1, window.alt_1, window.stupen_1, 1, 0, 0, 0);
+                }
+                if((window.tek == "operand_2") && (window.mode == "make_interval")) {
+                    window.alt_2 = parseInt($(this).attr('rel'));
+                    $("#alt_2").html('&nbsp;' + $(this).attr('name'));
+                    note_on(2, window.alt_2, window.stupen_2, 2, 0, 0, 0);
+                }
+            }
+        });
+        
+        $(".tone").click(function() {
+            window.clear_tone = 0;
+            clear();
+            $("body").removeClass('maj');
+            $("body").removeClass('min');
+            $(".func").addClass('disabled');
+            $(".lad_type").addClass('disabled');
+            $(".nota").show();
+            $(".stupen").hide();
+            
+            if($(this).hasClass('disabled')) return;
+            $(".alt").addClass('disabled');
+            $(".number").addClass('disabled');
+            $(".lad").addClass('disabled');
+            $(".up_down").addClass('disabled');
+            $(".alt_int").addClass('disabled');
+            $(".is").addClass('disabled');
+            $("#result").html('');
+            $("#equal").hide();
+            
+            window.tone_nota = '';
+            window.tone_lad = '';
+            window.tone_alt = 0;
+            $("#tone_1").html('');
+            $("#tone_2").html('');
+            $("#tone_3").html('');
+            window.mode = "set_tone";
+            $(".led").removeClass('on');
+            $(".interval_name_number").show();
+            $(".chord_name_number").hide();
+            $(this).addClass('set_tone');
+            $('.music').addClass('in_tone');
+            $('.tone_sign').hide();
+        });
+        
+        $(".up_down").click(function() {
+            if($(this).hasClass('disabled')) return;
+            window.clear_tone = 0;
+            note_off(1); note_off(2); note_off(3); note_off(4); note_off(5); note_off(6);
+            $(".alt").addClass('disabled');
+            $("#result").html('');
+            $("#equal").hide();
+            window.direction = parseInt($(this).attr('rel'));
+            window.tek = "direction";
+            $("#direction").html("&nbsp;" + $(this).attr('name') + "&nbsp;");
+            
+            if(window.direction>0 && window.stupen_1 >= 8) {
+                window.stupen_1 = window.stupen_1 - 7;
+                window.operand_1 = window.operand_1 - 12;
+            }
+            if(window.direction<0 && window.stupen_1 < 8) {
+                window.stupen_1 = window.stupen_1 + 7;
+                window.operand_1 = window.operand_1 + 12;
+            }
+            note_on(1, window.alt_1, window.stupen_1, 1, 0, 0, 0);
+            if(window.operand_2 && window.mode == 'make_interval') {
+                note_on(2, window.alt_2, window.stupen_2, 2, 0, 0, 0);
+            }
+        });
+        
+        $(".number").click(function() {
+            if($(this).hasClass('disabled')) return;
+            window.clear_tone = 0;
+            $(".alt").addClass('disabled');
+            $("#result").html('');
+            $("#equal").hide();
+            
+            if(window.operand_1) {
+                if(window.mode != "make_chord" && window.mode != "make_func") {
+                    $(".is").removeClass('disabled');
+                    $("#result").html('');
+                    $("#alt_2").html('');
+                    $("#equal").hide();
+                    window.operand_2 = parseInt($(this).attr('rel'));
+                    window.stupen_2 = parseInt($(this).attr('id')) - 1;
+                    
+                    if(window.alt_int == -2 && (window.stupen_2 == 0 || window.stupen_2 == 3 || window.stupen_2 == 4 || window.stupen_2 == 7)) {
+                        window.alt_int = -1;
+                    }
+                    if(window.stupen_2 == 0 || window.stupen_2 == 3 || window.stupen_2 == 4 || window.stupen_2 == 7) {
+                        $("#m").addClass('disabled'); $("#b").addClass('disabled'); $("#ch").removeClass('disabled');
+                    } else {
+                        $("#m").removeClass('disabled'); $("#b").removeClass('disabled'); $("#ch").addClass('disabled');
+                    }
+                    
+                    window.tek = "operand_2";
+                    window.mode = "make_note";
+                    $(".led").removeClass('on');
+                    $("#find_note").addClass('on');
+                    $(".interval_name_number").show();
+                    $(".chord_name_number").hide();
+                    $("#operand_2").html($(this).attr('name'));
+                    
+                    if(!window.alt_int) {
+                        if(window.stupen_2 == 0 || window.stupen_2 == 3 || window.stupen_2 == 4 || window.stupen_2 == 7) {
+                            $("#alt_int").html("Чистая&nbsp;");
+                        } else {
+                            $("#alt_int").html("Большая&nbsp;");
+                        }
+                    }
+                }
+            }
+        });
+        
+        $(".alt_int").click(function() {
+            if($(this).hasClass('disabled')) return;
+            window.clear_tone = 0;
+            $(".alt").addClass('disabled');
+            $(".nota").removeClass('disabled');
+            
+            if(window.mode != "make_note") {
+                $("#alt_int").html('');
+                $("#operand_2").html('');
+                $("#alt_2").html('');
+            }
+            
+            $("#result").html('');
+            $("#equal").hide();
+            
+            if(window.operand_2) {
+                if(window.stupen_2 == 0 || window.stupen_2 == 3 || window.stupen_2 == 4 || window.stupen_2 == 7) {
+                    if(parseInt($(this).attr('rel')) == -2) {
+                        window.alt_int = -1;
+                        $("#alt_int").html($(this).attr('name')+'&nbsp;');
+                        window.mode = "make_note";
+                        $(".led").removeClass('on');
+                        $("#find_note").addClass('on');
+                    }
+                    if(parseInt($(this).attr('rel')) == 1) {
+                        window.alt_int = 1;
+                        $("#alt_int").html($(this).attr('name')+'&nbsp;');
+                        window.mode = "make_note";
+                        $(".led").removeClass('on');
+                        $("#find_note").addClass('on');
+                    }
+                } else {
+                    window.alt_int = parseInt($(this).attr('rel'));
+                    $("#alt_int").html($(this).attr('name')+'&nbsp;');
+                    window.mode = "make_note";
+                    $(".led").removeClass('on');
+                    $("#find_note").addClass('on');
+                }
+            } else {
+                window.alt_int = parseInt($(this).attr('rel'));
+                $("#alt_int").html($(this).attr('name')+'&nbsp;');
+                window.mode = "make_note";
+                $(".led").removeClass('on');
+                $("#find_note").addClass('on');
+            }
+        });
+        
+        $(".lad").click(function() {
+            if($(this).hasClass('disabled')) return;
+            window.clear_tone = 0;
+            
+            if(window.mode=="set_tone") {
+                window.tone_lad = $(this).attr('name');
+                set_tone(window.tone_nota, window.tone_alt, window.tone_lad);
+                if($(this).attr('name')=="Мажор") { $("#t").find("span").html("T"); $("#s").find("span").html("S"); }
+                if($(this).attr('name')=="Минор") { $("#t").find("span").html("t"); $("#s").find("span").html("s"); }
+            } else {
+                $(".alt").addClass('disabled');
+                $(".is").addClass('disabled');
+                $("#result").html('');
+                $("#alt_int").html('');
+                $("#alt_2").html('');
+                $("#equal").hide();
+                note_off(2);
+                
+                window.lad = $(this).attr('name');
+                $("#operand_2").html('&nbsp;' + window.lad + 'ный(-ое)');
+                window.mode = "make_chord";
+                $(".led").removeClass('on');
+                $("#set_chord").addClass('on');
+                $(".interval_name_number").hide();
+                $(".chord_name_number").show();
+                window.chord = "3_5";
+            }
+        });
+        
+        $("#is").click(function() {
+            if($(this).hasClass('disabled')) return;
+            
+            if(window.mode=='make_interval') {
+                window.stepsis = window.direction * (window.stupen_2 - window.stupen_1);
+            }
+            if(window.mode=='make_note') {
+                window.stepsis = window.stupen_1 - 1 + window.direction * window.stupen_2;
+            }
+            if(window.mode=='make_func') {
+                window.stepsis = window.stupen_1;
+            }
+            if(window.mode=='make_chord') {
+                window.stepsis = window.stupen_1;
+            }
+            execute(window.stepsis);
+        });
+        
+        function execute(windowsteps) {
+            window.clear_tone = 0;
+            
+            if(window.mode == "set_tone") {
+                var zzz = winpolutonov(window.tone_nota-1) + 1 + window.tone_alt;
+                if(zzz == 0 || zzz == 1 || zzz == 5 || zzz == 6 || zzz == 12 || zzz == 13) {
+                    window.tone_nota = window.tone_nota + window.tone_alt;
+                    window.tone_alt = 0;
+                    if(window.tone_nota < 1) window.tone_nota = window.tone_nota + 7;
+                    if(window.tone_nota > 7) window.tone_nota = window.tone_nota - 7;
+                } else {
+                    window.tone_nota = window.tone_nota + window.tone_alt;
+                    window.tone_alt = 0 - window.tone_alt;
+                }
+                set_tone(window.tone_nota, window.tone_alt, window.tone_lad);
+                $("#operand_1").html('');
+                $("#operand_2").html('');
+            }
+            
+            if(window.mode == "make_interval") {
+                window.steps = windowsteps;
+                if(window.steps < 0) { window.steps = window.steps + 7; }
+                window.result = window.direction * ((window.operand_2 + window.alt_2) - (window.operand_1 + window.alt_1));
+                if(window.result < 0) { window.result = window.result + 12; }
+                
+                if(window.chrom[window.result] == window.steps) {
+                    $("#equal").show();
+                    $("#result").html(window.interval_types[window.result] + " " + window.intervals[window.steps]);
+                    $("#int_res").html(window.interval_types_breaf[window.result] + (window.steps+1));
+                }
+                if(window.chrom[window.result] > window.steps) {
+                    $("#equal").show();
+                    $("#result").html("Увеличенная " + window.intervals[window.steps]);
+                    $("#int_res").html("ув." + (window.steps+1));
+                }
+                if(window.chrom[window.result] < window.steps) {
+                    $("#equal").show();
+                    $("#result").html("Уменьшенная " + window.intervals[window.steps]);
+                    $("#int_res").html("ум." + (window.steps+1));
+                }
+            }
+            
+            if(window.mode == "make_note") {
+                window.steps = windowsteps;
+                window.result = window.operand_1 + window.alt_1 - 1 + window.direction * (window.operand_2 + window.alt_int);
+                
+                if(window.steps < 0) {
+                    window.steps = window.steps + 7;
+                    window.result = window.result + 12;
+                    window.operand_1 = window.operand_1 + 12;
+                    window.stupen_1 = window.stupen_1 + 7;
+                    note_on(1, window.alt_1, window.stupen_1, 1, 0, 0, 0);
+                }
+                if(window.result < 0) {
+                    window.steps = window.steps + 7;
+                    window.result = window.result + 12;
+                    window.operand_1 = window.operand_1 + 12;
+                    window.stupen_1 = window.stupen_1 + 7;
+                    note_on(1, window.alt_1, window.stupen_1, 1, 0, 0, 0);
+                }
+                
+                alteratio = window.result - winpolutonov(window.steps);
+                $("#equal").show();
+                $("#result").html(window.notes[window.steps] + " " + window.signs[alteratio + 2]);
+                note_on(2, alteratio, window.steps+1, 2, 0, 0, 0);
+            }
+        }
+        
+        $("#clear").click(function() {
+            clear();
+            window.clear_tone = 1;
+        });
+        
+        function clear() {
+            if(window.mode=="set_tone" || window.clear_tone==1) {
+                window.clear_tone = 0;
+                $("body").removeClass('maj');
+                $("body").removeClass('min');
+                window.tone_nota = '';
+                window.tone_lad = '';
+                window.tone_alt = 0;
+                $("#tone_1").html('');
+                $("#tone_2").html('');
+                $("#tone_3").html('');
+                window.mode = '';
+                $(".led").removeClass('on');
+                $(".music").removeClass('in_tone');
+                $(".tone").removeClass('set_tone');
+                $('.tone_sign').hide();
+                $(".tone").removeClass('tone_error');
+                $(".is").addClass('disabled');
+                $(".nota").removeClass('disabled');
+                $(".lad").addClass('disabled');
+                $(".alt").addClass('disabled');
+                $(".lad_type").addClass('disabled');
+                $(".nota").show();
+                $(".stupen").hide();
+                $(".func").addClass('disabled');
+                window.clef_signs = new Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            } else {
+                $(".alt").addClass('disabled');
+                $(".nota").removeClass('disabled');
+                $(".number").addClass('disabled');
+                $(".lad").addClass('disabled');
+                $(".up_down").addClass('disabled');
+                $(".alt_int").addClass('disabled');
+                $(".is").addClass('disabled');
+                $(".tone").removeClass('disabled');
+                
+                window.operand_1 = '';
+                window.operand_2 = '';
+                window.operand_3 = '';
+                window.operand_4 = '';
+                window.operand_5 = '';
+                window.alt_1 = 0;
+                window.alt_2 = 0;
+                window.alt_3 = 0;
+                window.alt_4 = 0;
+                window.alt_5 = 0;
+                window.alt_int = 0;
+                window.direction = 1;
+                window.tek = '';
+                window.mode = '';
+                $(".led").removeClass('on');
+                
+                $("#equal").hide();
+                $("#direction").html('');
+                $("#result").html('');
+                $("#int_res").html('');
+                $("#alt_1").html('');
+                $("#alt_2").html('');
+                $("#alt_int").html('');
+                $("#operand_1").html('');
+                $("#operand_2").html('');
+                
+                note_off(1); note_off(2); note_off(3); note_off(4); note_off(5);
+            }
+        }
+        
+        function note_on(note_num, sign, note, pos, shift, shift_sign, prinud) {
+            $("#note_" + note_num).show();
+            $("#note_" + note_num).css({left: 20 + pos*100 + shift*12, top: 16-note*5.3});
+            $("#note_" + note_num).find(".dop_line").hide();
+            
+            if(note < 2 || note > 12) {
+                $("#note_" + note_num).find(".dop_line").show();
+                $("#note_" + note_num).find(".dop_line").css({left: -5, top: -20});
+            }
+            
+            if(sign == 0 && window.clef_signs[note-1] != 0) {
+                $("#sign_" + note_num).html('n');
+            } else if(sign == 1) {
+                $("#sign_" + note_num).html('#');
+            } else if(sign == -1) {
+                $("#sign_" + note_num).html('b');
+            } else if(sign == -2) {
+                $("#sign_" + note_num).html('bb');
+            } else if(sign > 50) {
+                $("#sign_" + note_num).html('n');
+            } else {
+                $("#sign_" + note_num).html('');
+            }
+            
+            $("#sign_" + note_num).show();
+            $("#sign_" + note_num).css({left: 20 + pos*100-14 + shift_sign*13, top: 16-note*5.3});
+        }
+        
+        function note_off(note_num) {
+            $("#note_" + note_num).hide();
+            $("#note_" + note_num).find(".dop_line").hide();
+            $("#sign_" + note_num).hide();
+        }
+        
+        function set_tone(nota, alt, lad) {
+            window.tone_alt = alt;
+            $("#tone_1").html(window.notes[nota-1]);
+            $("#tone_2").html(window.signs[alt+2]);
+            $("#tone_3").html(lad);
+            $(".music").addClass('in_tone');
+            $(".tone").removeClass('set_tone');
+            $(".nota").hide();
+            $(".stupen").show();
+            
+            var diezov = 0;
+            var bemoley = 0;
+            
+            if(lad == "Мажор") {
+                diezov = window.majors[winpolutonov(nota-1) + 1 + alt];
+                $("body").addClass('maj');
+                $("body").removeClass('min');
+            } else {
+                diezov = window.minors[winpolutonov(nota-1) + 1 + alt];
+                $("body").addClass('min');
+                $("body").removeClass('maj');
+            }
+            
+            if((diezov > 6 && alt == 0) || alt < 0) {
+                bemoley = 12 - diezov;
+                diezov = 0;
+            }
+            
+            if(diezov == 0 && bemoley == 0) {
+                window.mode = '';
+                $(".led").removeClass('on');
+                window.lad_type = "natural";
+                $(".tone").removeClass('tone_error');
+                $(".is").addClass('disabled');
+                $(".nota").removeClass('disabled');
+                $(".lad").addClass('disabled');
+                $(".alt").removeClass('disabled');
+                $(".lad_type").removeClass('disabled');
+                $("#natural").addClass('selected');
+                $(".func").removeClass('disabled');
+                $(".lad_type").removeClass('selected');
+                $("#natural").addClass('selected');
+                window.mode = '';
+            } else {
+                $("#operand_1").html('<span style="font-size: 70%;">Тональность на практике не используется. Нажмите "=" для энгармонической замены.</span>');
+                $(".tone").addClass('tone_error');
+                $(".is").removeClass('disabled');
+                $(".nota").addClass('disabled');
+                $(".lad").addClass('disabled');
+                $(".alt").addClass('disabled');
+                $(".lad_type").addClass('disabled');
+            }
+        }
+    });
+    </script>
+    
+    <script>
+        // Переключение вкладок
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+            });
         });
     </script>
 </body>
