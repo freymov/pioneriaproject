@@ -6,7 +6,7 @@
     <title>Сольфеджио — Pioneria Project</title>
     <link rel="icon" type="image/jpg" href="/favicon.jpg">
     
-    <!-- Подключаем шрифт Petrucci -->
+    <!-- Шрифт Petrucci -->
     <style>
         @font-face {
             font-family: 'Petrucci';
@@ -14,12 +14,10 @@
         }
     </style>
     
-    <!-- Подключаем стили калькулятора -->
+    <!-- Стили калькулятора -->
     <link rel="stylesheet" href="/css/calculator.css">
     
-    <!-- Основные стили страницы -->
     <style>
-        /* Стили из твоего лобби, адаптированные */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
@@ -49,9 +47,7 @@
             border-radius: 8px;
         }
         
-        .back-btn:hover {
-            background: #f0f0f0;
-        }
+        .back-btn:hover { background: #f0f0f0; }
         
         .page-title {
             font-size: 20px;
@@ -92,17 +88,10 @@
             color: white;
         }
         
-        .tab-btn:hover:not(.active) {
-            background: #f0f0f5;
-        }
+        .tab-btn:hover:not(.active) { background: #f0f0f5; }
         
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
     </style>
 </head>
 <body>
@@ -121,8 +110,7 @@
         
         <!-- Калькулятор -->
         <div id="calculator" class="tab-content active">
-            <!-- Здесь будет весь HTML калькулятора из примера -->
-            <!-- Я подготовлю его в calculator.html -->
+            <!-- Калькулятор загрузится через JS -->
         </div>
         
         <!-- Гаммы -->
@@ -138,13 +126,8 @@
         </div>
     </div>
     
-    <!-- Подключаем музыкальный движок -->
+    <!-- Подключаем скрипты -->
     <script src="/js/music-calculator.js"></script>
-    
-    <!-- Подключаем jQuery (нужен для старого кода) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
-    <!-- Подключаем логику UI калькулятора -->
     <script src="/js/calculator-ui.js"></script>
     
     <!-- Инициализация -->
@@ -160,9 +143,11 @@
             });
         });
         
-        // Инициализация калькулятора
+        // Запуск калькулятора
         if (window.CalculatorUI) {
             CalculatorUI.init();
+        } else {
+            console.error('CalculatorUI не загружен!');
         }
     </script>
 </body>
