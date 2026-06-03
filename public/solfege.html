@@ -132,23 +132,35 @@
     
     <!-- Инициализация -->
     <script>
-        // Переключение вкладок
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                
-                btn.classList.add('active');
-                document.getElementById(btn.dataset.tab).classList.add('active');
+        // Ждем полной загрузки страницы
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('📄 DOM загружен');
+            console.log('MusicCalc:', typeof MusicCalc);
+            console.log('CalculatorUI:', typeof CalculatorUI);
+            
+            // Переключение вкладок
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    btn.classList.add('active');
+                    document.getElementById(btn.dataset.tab).classList.add('active');
+                });
             });
+            
+            // Запуск калькулятора с задержкой для уверенности
+            setTimeout(function() {
+                if (typeof CalculatorUI !== 'undefined' && CalculatorUI.init) {
+                    console.log('🚀 Запускаем калькулятор...');
+                    CalculatorUI.init();
+                } else {
+                    console.error('❌ CalculatorUI не найден!');
+                    // Попробуем вручную
+                    document.getElementById('calculator').innerHTML = '<p style="padding:20px;color:red;">Ошибка загрузки калькулятора. Проверь консоль (F12).</p>';
+                }
+            }, 100);
         });
-        
-        // Запуск калькулятора
-        if (window.CalculatorUI) {
-            CalculatorUI.init();
-        } else {
-            console.error('CalculatorUI не загружен!');
-        }
     </script>
 </body>
 </html>
