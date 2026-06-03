@@ -1,26 +1,32 @@
 // public/js/calculator-ui.js
+console.log('✅ calculator-ui.js загружен');
+
 const CalculatorUI = {
-    // Состояние калькулятора
     state: {
         operand1: null,
         operand2: null,
         alt1: 0,
         alt2: 0,
         direction: 1,
-        mode: 'interval' // 'interval' | 'chord' | 'note'
+        mode: 'interval'
     },
     
     init() {
+        console.log('🚀 CalculatorUI.init() запущен');
         this.renderCalculator();
         this.attachEvents();
+        console.log('✅ Калькулятор отрисован');
     },
     
     renderCalculator() {
         const container = document.getElementById('calculator');
+        if (!container) {
+            console.error('❌ Контейнер #calculator не найден!');
+            return;
+        }
         
         container.innerHTML = `
             <div class="music-calc-container">
-                <!-- Дисплей -->
                 <div class="calc-display" id="calcDisplay">
                     <span id="operand1">Выберите ноту</span>
                     <span id="direction"></span>
@@ -28,7 +34,6 @@ const CalculatorUI = {
                     <span id="result"></span>
                 </div>
                 
-                <!-- Режимы -->
                 <div class="calc-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 16px;">
                     <button class="calc-btn chord-btn mode-btn active" data-mode="interval">🎵 Интервалы</button>
                     <button class="calc-btn chord-btn mode-btn" data-mode="chord">🎸 Аккорды</button>
@@ -36,7 +41,6 @@ const CalculatorUI = {
                     <button class="calc-btn mod-btn mode-btn" data-mode="tonality">🎹 Тон-ти</button>
                 </div>
                 
-                <!-- Ноты -->
                 <div class="calc-grid" id="noteButtons">
                     ${MusicCalc.notes.slice(0, 7).map((note, i) => `
                         <button class="calc-btn note-btn" data-note="${note}" data-stup="${i + 1}" data-rel="${MusicCalc.polutonov[i]}">
@@ -45,21 +49,18 @@ const CalculatorUI = {
                     `).join('')}
                 </div>
                 
-                <!-- Модификаторы -->
                 <div class="calc-grid" style="grid-template-columns: repeat(3, 1fr); margin-top: 8px;">
                     <button class="calc-btn mod-btn" data-alt="-1">♭ Бемоль</button>
                     <button class="calc-btn mod-btn" data-alt="1">♯ Диез</button>
                     <button class="calc-btn mod-btn" data-alt="0">♮ Бекар</button>
                 </div>
                 
-                <!-- Направление -->
                 <div class="calc-grid" style="grid-template-columns: repeat(2, 1fr); margin-top: 8px;">
                     <button class="calc-btn interval-btn" data-dir="1">↑ Вверх</button>
                     <button class="calc-btn interval-btn" data-dir="-1">↓ Вниз</button>
                 </div>
                 
-                <!-- Интервалы -->
-                <div class="calc-grid" style="grid-template-columns: repeat(5, 1fr); margin-top: 8px;" id="intervalButtons">
+                <div class="calc-grid" style="grid-template-columns: repeat(4, 1fr); margin-top: 8px;" id="intervalButtons">
                     ${['Прима','Секунда','Терция','Кварта','Квинта','Секста','Септима','Октава'].map((name, i) => `
                         <button class="calc-btn interval-btn" data-interval="${i + 1}" data-sem="${MusicCalc.polutonov[i]}">
                             ${i + 1}<br>${name}
@@ -67,28 +68,27 @@ const CalculatorUI = {
                     `).join('')}
                 </div>
                 
-                <!-- Очистка -->
                 <div class="calc-grid" style="margin-top: 8px;">
-                    <button class="calc-btn clear-btn" id="clearBtn">CLEAR</button>
+                    <button class="calc-btn clear-btn" id="clearBtn">ОЧИСТИТЬ</button>
                 </div>
                 
-                <!-- Нотный стан -->
                 <div class="note-staff" id="noteStaff">
-                    <div class="staff-lines">=====================</div>
-                    <div class="note-symbol" id="note1" style="left: 120px;">w</div>
-                    <div class="note-symbol" id="note2" style="left: 220px;">w</div>
+                    <div class="staff-lines" style="font-family: Petrucci;">=====================</div>
+                    <div class="note-symbol" id="note1" style="left: 120px; font-family: Petrucci;">w</div>
+                    <div class="note-symbol" id="note2" style="left: 220px; font-family: Petrucci;">w</div>
                 </div>
             </div>
         `;
     },
     
     attachEvents() {
-        // Здесь будет логика обработки кликов
-        document.getElementById('calculator').addEventListener('click', (e) => {
+        const calc = document.getElementById('calculator');
+        if (!calc) return;
+        
+        calc.addEventListener('click', (e) => {
             const btn = e.target.closest('button');
             if (!btn) return;
             
-            // Обработка разных типов кнопок
             if (btn.dataset.note) {
                 this.handleNoteClick(btn);
             } else if (btn.dataset.alt !== undefined) {
@@ -106,6 +106,7 @@ const CalculatorUI = {
     },
     
     handleNoteClick(btn) {
+        console.log('🎵 Нажата нота:', btn.dataset.note);
         const note = btn.dataset.note;
         const stup = parseInt(btn.dataset.stup);
         const rel = parseInt(btn.dataset.rel);
@@ -122,7 +123,42 @@ const CalculatorUI = {
         }
     },
     
+    handleAltClick(btn) {
+        console.log('🎵 Альтерация:', btn.dataset.alt);
+        const alt = parseInt(btn.dataset.alt);
+        
+        if (this.state.operand2) {
+            this.state.alt2 = alt;
+        } else if (this.state.operand1) {
+            this.state.alt1 = alt;
+        }
+    },
+    
+    handleDirectionClick(btn) {
+        console.log('🎵 Направление:', btn.dataset.dir);
+        this.state.direction = parseInt(btn.dataset.dir);
+        document.getElementById('direction').textContent = btn.dataset.dir === '1' ? '↑' : '↓';
+    },
+    
+    handleIntervalClick(btn) {
+        console.log('🎵 Интервал:', btn.dataset.interval);
+        // Заглушка для будущей функциональности
+    },
+    
+    setMode(mode) {
+        console.log('🎵 Режим:', mode);
+        this.state.mode = mode;
+        
+        // Обновляем активную кнопку
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-mode="${mode}"]`)?.classList.add('active');
+        
+        this.clear();
+    },
+    
     calculateResult() {
+        if (!this.state.operand1 || !this.state.operand2) return;
+        
         const result = MusicCalc.getInterval(
             this.state.operand1.stup,
             this.state.alt1,
@@ -131,6 +167,7 @@ const CalculatorUI = {
         );
         
         document.getElementById('result').textContent = `= ${result.type} ${result.name}`;
+        console.log('✅ Результат:', result);
     },
     
     showNoteOnStaff(noteId, step) {
@@ -142,16 +179,24 @@ const CalculatorUI = {
     },
     
     clear() {
+        console.log('🧹 Очистка');
         this.state.operand1 = null;
         this.state.operand2 = null;
         this.state.alt1 = 0;
         this.state.alt2 = 0;
         
-        document.getElementById('operand1').textContent = 'Выберите ноту';
-        document.getElementById('operand2').textContent = '';
-        document.getElementById('result').textContent = '';
+        const op1 = document.getElementById('operand1');
+        const op2 = document.getElementById('operand2');
+        const res = document.getElementById('result');
+        const dir = document.getElementById('direction');
+        const n1 = document.getElementById('note1');
+        const n2 = document.getElementById('note2');
         
-        document.getElementById('note1').style.display = 'none';
-        document.getElementById('note2').style.display = 'none';
+        if (op1) op1.textContent = 'Выберите ноту';
+        if (op2) op2.textContent = '';
+        if (res) res.textContent = '';
+        if (dir) dir.textContent = '';
+        if (n1) n1.style.display = 'none';
+        if (n2) n2.style.display = 'none';
     }
 };
