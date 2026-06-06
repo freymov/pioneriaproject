@@ -6,7 +6,6 @@
     <title>Сольфеджио — Pioneria Project</title>
     <link rel="icon" type="image/jpg" href="/favicon.jpg">
     
-    <!-- Тема применяется ДО загрузки страницы -->
     <script>
         (function() {
             var theme = localStorage.getItem('theme') || 'light';
@@ -22,75 +21,45 @@
             background: #f0f2f5;
             color: #333;
             -webkit-tap-highlight-color: transparent;
-            -webkit-font-smoothing: antialiased;
         }
-        
-        [data-theme="dark"] body {
-            background: #13132b;
-            color: #e4e6eb;
-        }
+        [data-theme="dark"] body { background: #13132b; color: #e4e6eb; }
         
         .header {
-            background: white;
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
+            background: white; padding: 12px 20px;
+            display: flex; align-items: center; gap: 16px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            position: sticky; top: 0; z-index: 100;
         }
-        
-        [data-theme="dark"] .header {
-            background: #1e1e32;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
+        [data-theme="dark"] .header { background: #1e1e32; }
         
         .back-btn {
             background: none; border: none;
             font-size: 24px; cursor: pointer;
             padding: 8px 12px; border-radius: 8px;
-            color: inherit;
-            text-decoration: none;
-            -webkit-tap-highlight-color: transparent;
+            color: inherit; text-decoration: none;
         }
         .back-btn:hover { background: #f0f0f0; }
-        .back-btn:active { transform: scale(0.94); }
         [data-theme="dark"] .back-btn:hover { background: #2a2a40; }
         
         .page-title { font-size: 20px; font-weight: 700; }
         
-        .container {
-            max-width: 780px;
-            margin: 0 auto;
-            padding: 16px;
-        }
+        .container { max-width: 960px; margin: 0 auto; padding: 16px; }
         
         /* Вкладки */
         .tabs {
-            display: flex; gap: 8px;
-            margin-bottom: 16px;
-            background: white;
-            padding: 6px; border-radius: 12px;
+            display: flex; gap: 8px; margin-bottom: 16px;
+            background: white; padding: 6px; border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        
-        [data-theme="dark"] .tabs {
-            background: #1e1e32;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-        }
+        [data-theme="dark"] .tabs { background: #1e1e32; }
         
         .tab-btn {
             flex: 1; padding: 12px 8px;
             border: none; background: none;
             border-radius: 8px; cursor: pointer;
             font-size: 14px; font-weight: 500;
-            transition: all 0.2s;
             color: inherit;
-            -webkit-tap-highlight-color: transparent;
         }
-        
         .tab-btn.active { background: #667eea; color: white; }
         .tab-btn:hover:not(.active) { background: #f0f0f5; }
         [data-theme="dark"] .tab-btn:hover:not(.active) { background: #2a2a40; }
@@ -98,32 +67,28 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         
+        /* Шрифт */
         @font-face {
             font-family: Petrucci;
             src: url(/fonts/petrucci.ttf);
         }
         
-        /* ===== СТИЛИ КАЛЬКУЛЯТОРА ===== */
-        
+        /* ===== ОРИГИНАЛЬНЫЕ СТИЛИ КАЛЬКУЛЯТОРА (БЕЗ ИЗМЕНЕНИЙ) ===== */
         .maj { background: #ffeeee; }
         .min { background: #ebfdff; }
-        [data-theme="dark"] .maj { background: #3a2020; }
-        [data-theme="dark"] .min { background: #1a2a30; }
         
-        .music_symb {
+        div .music_symb {
             font-family: Petrucci;
-            font-size: 180%;
+            font-size: 200%;
             padding: 0; margin: 0;
             width: auto; height: auto;
         }
-        
-        [data-theme="dark"] .music_symb { color: #ccc; }
         
         .note_n, .tone_sign, .sign_n {
             display: none; position: absolute;
         }
         
-        .dop_line {
+        .dop_line, .dop_dop_line {
             font-family: Petrucci;
             padding: 0; margin: 0;
             width: auto; height: auto;
@@ -133,233 +98,163 @@
         }
         
         .disabled {
-            opacity: 0.35;
+            opacity: 0.3;
             cursor: default !important;
-            pointer-events: none;
-        }
-        
-        .calctable {
-            margin: 0.5em auto;
-            border-spacing: 4px;
-            width: 100%;
-            max-width: 750px;
-        }
-        
-        .calctable td {
-            padding: 0;
         }
         
         .calctable td div {
             text-align: center;
-            width: 100%;
-            height: 58px;
-            line-height: 1.3;
+            width: 5.5em; height: 4em;
+            line-height: 170%;
             cursor: pointer;
-            padding: 6px 3px 0 3px;
-            border-radius: 6px;
-            font-size: 12px;
-            box-sizing: border-box;
-            overflow: hidden;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-        }
-        
-        .calctable td div span {
-            font-size: 170%;
-            display: block;
-            line-height: 1;
-            margin-bottom: 1px;
-        }
-        
-        /* Дисплей */
-        #calc-win {
-            font-size: 14px;
-            padding: 10px 14px;
-            width: 100%;
-            max-width: 750px;
-            min-height: 44px;
-            border-radius: 8px;
-            background: #fff;
-            color: #000;
-            border: 1px solid #083059;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            margin: 0 auto 12px auto;
-            text-align: center;
-        }
-        
-        [data-theme="dark"] #calc-win {
-            background: #1e1e32;
-            color: #e4e6eb;
-            border-color: #4a6fa5;
+            padding: 18px 0 0 0;
         }
         
         .win_part {
-            padding: 2px 5px;
-            font-size: 13px;
-            white-space: nowrap;
+            padding: 0;
+            width: auto; height: 70%;
+            float: left;
         }
         
-        /* Ноты */
+        .calctable td div span { font-size: 250%; }
+        
         .nota {
             border: solid 1px #00448a;
-            color: #000;
+            border-radius: 5px;
+            color: #000000;
             background: #f9ff4a;
         }
-        .nota:not(.disabled):hover { background: #fdffc0; }
-        .nota:not(.disabled):active { transform: scale(0.94); background: #fdffc0; }
-        [data-theme="dark"] .nota {
-            background: #3e3520;
-            color: #ffe082;
-        }
-        [data-theme="dark"] .nota:not(.disabled):hover { background: #4a4028; }
         
-        /* Альтерации */
-        .alt {
-            border: solid 1px #000;
-            color: #fff;
-            background: #000;
-        }
-        .alt:not(.disabled):hover { background: #333; }
-        .alt:not(.disabled):active { transform: scale(0.94); }
-        [data-theme="dark"] .alt { background: #555; border-color: #777; }
-        
-        /* Лад */
-        .lad {
-            border: solid 1px #0e69c7;
-            color: #fff;
-        }
-        #dur { background: #ff6000; }
-        #moll { background: #006a76; }
-        #dur:not(.disabled):hover { background: #ea5a03 !important; }
-        #moll:not(.disabled):hover { background: #005a64 !important; }
-        
-        /* Типы лада */
         .lad_type {
-            height: auto !important;
-            padding: 7px 3px !important;
+            width: 11em; height: 1.45em;
+            line-height: 150%; cursor: pointer;
+            padding: 0 3px 0 3px;
             background: #002a53;
             border-radius: 5px;
-            color: #fff;
-            font-size: 11px;
+            border: solid 1px #002a53;
+            color: #ffffff;
         }
         .lad_type.selected { background: #16487b; }
         
-        /* Индикаторы */
         .led {
-            padding: 3px 6px;
-            height: auto;
-            color: #999;
-            text-align: left;
-            font-size: 10px;
-            white-space: nowrap;
+            width: 11em; padding-left: 3px; padding-right: 3px;
+            height: 1em; line-height: 150%;
+            padding: 0 3px 0 3px;
+            color: #999999; text-align: left; font-size: 90%;
         }
         .led div {
-            width: 9px; height: 9px;
-            border-radius: 9px;
-            border: solid 1px #999;
-            float: left; margin-right: 4px;
+            width: 1em; height: 1em;
+            padding: 0 0 0 0;
+            border-radius: 1em;
+            border: solid 1px #999999;
+            float: left; margin-right: 0.5em;
             background: #e1e1e1;
-            flex-shrink: 0;
         }
-        .on { color: #000; }
+        .on { color: #000000; }
         .on div { background: #c4ff67 !important; }
-        [data-theme="dark"] .on { color: #fff; }
         
-        /* Ступени */
         .stupen {
             border: solid 1px #00448a;
-            color: #000;
+            border-radius: 5px;
+            color: #000000;
             background: #ffbb44;
             display: none;
         }
-        .stupen div { position: relative; top: -8px; }
+        .stupen div { position: relative; top: -15px; }
         .stupen div span {
-            font-size: 130%;
+            font-size: 170%;
             font-family: Petrucci;
-            position: relative; top: -2px;
+            position: relative; top: -4px;
         }
-        [data-theme="dark"] .stupen { background: #5a3a10; color: #fff; }
         
-        /* Аккорды */
         .chord {
             border: solid 1px #73bc00;
-            color: #fff;
+            border-radius: 5px;
+            color: #ffffff;
             background: #73bc00;
+            line-height: 90%;
         }
-        [data-theme="dark"] .chord { background: #2a4a1a; }
         
-        /* Функции */
+        .nota:not(.disabled):hover { background: #fdffc0; }
+        
         .func {
             border: solid 1px #69006a;
-            color: #fff;
+            border-radius: 5px;
+            color: #ffffff;
             background: #69006a;
         }
         .func:not(.disabled):hover { background: #4a005f; }
-        [data-theme="dark"] .func { background: #3a1a3a; }
         
-        /* Интервалы */
         .alt_int {
             border: solid 1px #69006a;
-            color: #fff;
+            border-radius: 5px;
+            color: #ffffff;
             background: #9b4747;
         }
         .alt_int:not(.disabled):hover { background: #662828; }
-        [data-theme="dark"] .alt_int { background: #5a2a2a; }
         
-        /* Цифры */
+        .alt {
+            border-radius: 5px;
+            border: solid 1px #000000;
+            color: #ffffff;
+            background: #000000;
+        }
+        .alt:not(.disabled):hover { background: #333333; }
+        
+        .clear {
+            background: #ff0000;
+            width: 41em;
+            padding-top: 30px; padding-bottom: 0;
+            border-radius: 5px;
+            color: #ffffff;
+        }
+        .clear:hover { background: #dd0000; }
+        
         .number {
             border: solid 1px #0e69c7;
-            color: #fff;
+            border-radius: 5px;
+            color: #ffffff;
             background: #0e69c7;
         }
         .number:not(.disabled):hover { background: #144a82; }
-        [data-theme="dark"] .number { background: #1a3a5c; }
         
-        /* Вверх/вниз */
-        .up_down, .is {
+        .chord_name_number { font-size: 100%; display: none; }
+        .interval_name_number { font-size: 100%; }
+        
+        .lad {
             border: solid 1px #0e69c7;
-            color: #fff;
+            border-radius: 5px;
+            color: #ffffff;
+        }
+        #dur:not(.disabled):hover { background: #ea5a03 !important; }
+        #moll:not(.disabled):hover { background: #005a64 !important; }
+        
+        .up_down {
+            border: solid 1px #0e69c7;
+            border-radius: 5px;
+            color: #ffffff;
+            background: #0e6900;
+        }
+        .is {
+            border: solid 1px #0e69c7;
+            border-radius: 5px;
+            color: #ffffff;
             background: #0e6900;
         }
         .up_down:not(.disabled):hover, .is:not(.disabled):hover { background: #144a00; }
-        [data-theme="dark"] .up_down, [data-theme="dark"] .is { background: #1a3a1a; }
         
-        /* Тональность */
         .tone {
             border: solid 1px #16487b;
-            color: #fff;
+            border-radius: 5px;
+            color: #ffffff;
             background: #16487b;
-            min-height: 60px;
-            padding: 10px 6px !important;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            line-height: 90%;
         }
-        .tone span { font-size: 110%; }
         .tone:not(.disabled):hover { background: #0f3a65; }
-        [data-theme="dark"] .tone { background: #1a2a40; }
+        .tone span, .chord span { font-size: 140%; line-height: 110%; }
+        .tone span#tone_1, .tone span#tone_2 { padding-right: 0.3em; }
         .in_tone { color: #16487b; }
         
-        /* Очистка */
-        .clear-btn {
-            background: #ff0000;
-            width: 100% !important;
-            height: auto !important;
-            padding: 14px 0 !important;
-            border-radius: 5px;
-            color: #fff;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .clear-btn:hover { background: #dd0000; }
-        [data-theme="dark"] .clear-btn { background: #8b0000; }
-        
-        /* Анимации */
         .set_tone { animation: glowing 1500ms infinite; }
         @keyframes glowing {
             0% { background-color: #004A7F; box-shadow: 0 0 3px #004A7F; }
@@ -367,144 +262,44 @@
             100% { background-color: #004A7F; box-shadow: 0 0 3px #004A7F; }
         }
         
-        /* Нотный стан */
-        .music-staff {
-            position: relative;
-            margin: 16px auto 0 auto;
-            font-size: 110%;
-            padding: 10px 0;
-            width: 100%;
-            max-width: 750px;
-            min-height: 70px;
-            overflow-x: auto;
-            overflow-y: hidden;
-            background: #fffef5;
-            border-radius: 8px;
+        .tone_error { animation: glowing2 1500ms infinite; }
+        @keyframes glowing2 {
+            0% { background-color: #ff0000; box-shadow: 0 0 3px #ff0000; }
+            50% { background-color: #440000; box-shadow: 0 0 10px #440000; }
+            100% { background-color: #ff0000; box-shadow: 0 0 3px #ff0000; }
         }
         
-        [data-theme="dark"] .music-staff {
-            background: #252535;
+        /* ===== ТЁМНАЯ ТЕМА ===== */
+        [data-theme="dark"] #calc-win {
+            background: #1e1e32 !important;
+            color: #e4e6eb !important;
+            border-color: #4a6fa5 !important;
         }
-        
-        #int_res {
-            font-family: Petrucci;
-            font-size: 20px;
+        [data-theme="dark"] .music {
+            background: #252535 !important;
         }
+        [data-theme="dark"] .nota {
+            background: #3e3520;
+            color: #ffe082;
+        }
+        [data-theme="dark"] .nota:not(.disabled):hover { background: #4a4028; }
+        [data-theme="dark"] .alt { background: #555; border-color: #777; }
+        [data-theme="dark"] .alt:not(.disabled):hover { background: #666; }
+        [data-theme="dark"] .number { background: #1a3a5c; }
+        [data-theme="dark"] .alt_int { background: #5a2a2a; }
+        [data-theme="dark"] .func { background: #3a1a3a; }
+        [data-theme="dark"] .chord { background: #2a4a1a; }
+        [data-theme="dark"] .up_down, [data-theme="dark"] .is { background: #1a3a1a; }
+        [data-theme="dark"] .tone { background: #1a2a40; }
+        [data-theme="dark"] .stupen { background: #5a3a10; color: #fff; }
+        [data-theme="dark"] .clear { background: #8b0000; }
+        [data-theme="dark"] .maj { background: #3a2020; }
+        [data-theme="dark"] .min { background: #1a2a30; }
+        [data-theme="dark"] .music_symb { color: #ccc; }
+        [data-theme="dark"] .on { color: #fff; }
         
-        /* Убираем табы "Аккорды" */
-        #tab-chords { display: none; }
-        
-        /* ===== МОБИЛЬНАЯ АДАПТАЦИЯ ===== */
         @media (max-width: 768px) {
-            .container {
-                padding: 8px;
-            }
-            
-            .header {
-                padding: 10px 14px;
-            }
-            
-            .page-title {
-                font-size: 17px;
-            }
-            
-            .calctable {
-                border-spacing: 2px;
-            }
-            
-            .calctable td div {
-                height: 48px;
-                padding: 4px 1px 0 1px;
-                font-size: 9px;
-                border-radius: 4px;
-            }
-            
-            .calctable td div span {
-                font-size: 130%;
-            }
-            
-            #calc-win {
-                font-size: 11px;
-                gap: 3px;
-                padding: 8px 10px;
-                min-height: 38px;
-            }
-            
-            .win_part {
-                font-size: 10px;
-                padding: 1px 3px;
-            }
-            
-            .music-staff {
-                font-size: 85%;
-                min-height: 55px;
-                padding: 8px 0;
-            }
-            
-            .music_symb {
-                font-size: 140%;
-            }
-            
-            .led {
-                font-size: 8px;
-                padding: 2px 3px;
-            }
-            
-            .led div {
-                width: 7px; height: 7px;
-            }
-            
-            .tone {
-                min-height: 48px;
-                padding: 6px 4px !important;
-                font-size: 10px;
-            }
-            
-            .tone span {
-                font-size: 100%;
-            }
-            
-            .lad_type {
-                font-size: 9px;
-                padding: 5px 2px !important;
-            }
-            
-            .tab-btn {
-                font-size: 12px;
-                padding: 10px 6px;
-            }
-            
-            /* Скрываем длинные тексты на мобилках */
-            .func br, .alt_int br, .number br {
-                display: none;
-            }
-        }
-        
-        @media (max-width: 400px) {
-            .calctable td div {
-                height: 42px;
-                padding: 3px 1px 0 1px;
-                font-size: 8px;
-            }
-            
-            .calctable td div span {
-                font-size: 115%;
-            }
-            
-            .calctable {
-                border-spacing: 1px;
-            }
-            
-            #calc-win {
-                font-size: 10px;
-                gap: 2px;
-                padding: 6px 8px;
-            }
-            
-            .music-staff {
-                font-size: 75%;
-                min-height: 45px;
-            }
+            .container { padding: 8px; overflow-x: auto; }
         }
     </style>
 </head>
@@ -520,104 +315,122 @@
             <button class="tab-btn" data-tab="terms">📖 Термины</button>
         </div>
         
-        <!-- КАЛЬКУЛЯТОР -->
         <div id="calculator" class="tab-content active">
+            <!-- НАЧАЛО ОРИГИНАЛЬНОГО КАЛЬКУЛЯТОРА -->
             <center>
-                <div id="calc-win">
-                    <span class="win_part" id="operand_1"></span>
-                    <span class="win_part" id="alt_1"></span>
-                    <span class="win_part" id="direction"></span>
-                    <span class="win_part" id="alt_int"></span>
-                    <span class="win_part" id="operand_2"></span>
-                    <span class="win_part" id="alt_2"></span>
-                    <span class="win_part" id="equal" style="display:none;">=</span>
-                    <span class="win_part" id="result"></span>
-                </div>
+            <div id="calc-win" style="font-size: 130%; padding: 10px 0 10px 0; width: 900px; height: 1.5em; border: solid 1px #083059; border-radius: 5px; background: #ffffff; color: #000000; margin-top: 10px;">
+                <div class="win_part" id="operand_1" style="padding-left: 1em;"></div>
+                <div class="win_part" id="alt_1"></div>
+                <div class="win_part" id="direction" style="padding-left: 0.2em; padding-right: 0.2em;"></div>
+                <div class="win_part" id="alt_int"></div>
+                <div class="win_part" id="operand_2"></div>
+                <div class="win_part" id="alt_2"></div>
+                <div class="win_part" id="operand_3"></div>
+                <div class="win_part" id="alt_3"></div>
+                <div class="win_part" id="operand_4"></div>
+                <div class="win_part" id="alt_4"></div>
+                <div class="win_part" id="operand_5"></div>
+                <div class="win_part" id="alt_5"></div>
+                <div class="win_part" id="equal" style="padding-left: 1em; padding-right: 1em; display: none;">=</div>
+                <div class="win_part" id="result"></div>
+            </div>
+            
+            <div style="clear: both; height: 1px;"></div>
+            
+            <table class="calctable" style="margin-top: 1em;">
+                <tr>
+                    <td><div class="nota" id="do" rel="1" stup="1" name="До"><span>С</span><br>До</div></td>
+                    <td><div class="nota" id="re" rel="3" stup="2" name="Ре"><span>D</span><br>Ре</div></td>
+                    <td><div class="nota" id="mi" rel="5" stup="3" name="Ми"><span>E</span><br>Ми</div></td>
+                    <td><div class="nota" id="fa" rel="6" stup="4" name="Фа"><span>F</span><br>Фа</div></td>
+                    <td><div class="nota" id="sol" rel="8" stup="5" name="Соль"><span>G</span><br>Соль</div></td>
+                    <td><div class="nota" id="la" rel="10" stup="6" name="Ля"><span>A</span><br>Ля</div></td>
+                    <td><div class="nota" id="si" rel="12" stup="7" name="Си"><span>H</span><br>Си</div></td>
+                </tr>
+                <tr>
+                    <td><div class="stupen" rel="1" stup="1" name="I"><span>I</span><br><div></div></div></td>
+                    <td><div class="stupen" rel="3" stup="2" name="II"><span>II</span><br><div></div></div></td>
+                    <td><div class="stupen" rel="5" stup="3" name="III"><span>III</span><br><div></div></div></td>
+                    <td><div class="stupen" rel="6" stup="4" name="IV"><span>IV</span><br><div></div></div></td>
+                    <td><div class="stupen" rel="8" stup="5" name="V"><span>V</span><br><div></div></div></td>
+                    <td><div class="stupen" rel="10" stup="6" name="VI"><span>VI</span><br><div></div></div></td>
+                    <td><div class="stupen" rel="12" stup="7" name="VII"><span>VII</span><br><div></div></div></td>
+                </tr>
+                <tr>
+                    <td><div class="alt disabled" id="flat" rel="-1" name="бемоль"><span>&#9837;</span><br>Бемоль</div></td>
+                    <td><div class="alt disabled" id="sharp" rel="1" name="диез"><span>&#9839;</span><br>Диез</div></td>
+                    <td><div class="alt disabled" id="bekar" rel="0" name=""><span>&#9838;</span><br>Бекар</div></td>
+                    <td colspan="2"><div class="lad disabled" name="Мажор" id="dur" style="background: #ff6000; width: 11em; padding-left: 3px; padding-right: 3px;"><span>Dur</span><br>Мажор</div></td>
+                    <td colspan="2"><div class="lad disabled" name="Минор" id="moll" style="background: #006a76; width: 11em; padding-left: 3px; padding-right: 3px;"><span>moll</span><br>Минор</div></td>
+                </tr>
+                <tr>
+                    <td colspan="2" rowspan="3">
+                        <table>
+                            <tr><td><div class="led off" id="set_interval" rel="2" name="set_interval"><div></div>Определяем интервал</div></td></tr>
+                            <tr><td><div class="led off" id="set_chord" rel="2" name="set_chord"><div></div>Строим аккорд</div></td></tr>
+                            <tr><td><div class="led off" id="find_note" rel="2" name="find_note"><div></div>Строим интервал</div></td></tr>
+                            <tr><td><div class="led off" id="make_chord" rel="2" name="make_chord"><div></div>Определяем аккорд</div></td></tr>
+                        </table>
+                    </td>
+                    <td rowspan="3" colspan="3"><div style="width: 16.8em; padding-left: 3px; padding-right: 3px" class="tone" name="Тональность" id="ton"><span>Тональность</span><br><span id="tone_1"></span><span id="tone_2"></span><span id="tone_3"></span></div></td>
+                    <td colspan="2"><div class="lad_type disabled" id="harmonic" rel="1" name="гармонический">Гармонический</div></td>
+                </tr>
+                <tr><td colspan="2"><div class="lad_type disabled" id="melodic" rel="2" name="мелодический">Мелодический</div></td></tr>
+                <tr><td colspan="2"><div class="lad_type disabled" id="natural" rel="0" name="натуральный">Натуральный</div></td></tr>
+                <tr>
+                    <td><div class="number disabled" id="1" name="Прима" rel="0"><span>1</span><br>Прима</div></td>
+                    <td><div class="number disabled" id="2" name="Секунда" rel="2"><span>2</span><br><span class="interval_name_number">Секунда</span></div></td>
+                    <td><div class="number disabled" id="3" name="Терция" rel="4"><span>3</span><br><span class="interval_name_number">Терция</span></div></td>
+                    <td><div class="number disabled" id="4" name="Кварта" rel="5"><span>4</span><br><span class="interval_name_number">Кварта</span></div></td>
+                    <td><div class="func disabled" id="t"><span>T</span><br>Тоника</div></td>
+                    <td><div class="func disabled" id="s"><span>S</span><br>Субдомин.</div></td>
+                    <td><div class="func disabled" id="d"><span>D</span><br>Доминанта</div></td>
+                </tr>
+                <tr>
+                    <td><div class="number disabled" id="5" name="Квинта" rel="7"><span>5</span><br><span class="interval_name_number">Квинта</span></div></td>
+                    <td><div class="number disabled" id="6" name="Секста" rel="9"><span>6</span><br><span class="interval_name_number">Секста</span></div></td>
+                    <td><div class="number disabled" id="7" name="Септима" rel="11"><span>7</span><br><span class="interval_name_number">Септима</span></div></td>
+                    <td><div class="number disabled" id="8" name="Октава" rel="12"><span>8</span><br>Октава</div></td>
+                    <td style="position: relative"><div class="alt_int disabled" rel="-1" id="m" name="Малая"><span>М</span><br>Малая</div></td>
+                    <td><div class="alt_int disabled" rel="0" id="b" name="Большая"><span>Б</span><br>Большая</div></td>
+                    <td><div class="alt_int disabled" rel="0" id="ch" name="Чистая"><span>Ч</span><br>Чистая</div></td>
+                </tr>
+                <tr>
+                    <td><div class="number disabled" id="9" name="Нона" rel="14"><span>9</span><br>Нона</div></td>
+                    <td><div class="number disabled" id="10" name="Децима" rel="16"><span>10</span><br>Децима</div></td>
+                    <td><div class="up_down disabled" rel="1" id="up" name="↑"><span>&#8593;</span><br>вверх</div></td>
+                    <td><div class="up_down disabled" rel="-1" id="down" name="↓"><span>&#8595;</span><br>вниз</div></td>
+                    <td><div class="alt_int disabled" rel="-2" id="dim" name="Уменьшенная"><span>Ум</span><br><span style="font-size: 70%;">Уменьшенная</span></div></td>
+                    <td><div class="alt_int disabled" rel="1" id="sus" name="Увеличенная"><span>Ув</span><br><span style="font-size: 70%;">Увеличенная</span></div></td>
+                    <td><div class="is disabled" id="is"><div style="padding: 0; height: 12px;"></div><span>=</span></div></td>
+                </tr>
+                <tr>
+                    <td colspan="7"><div class="clear" id="clear"><span>C</span></div></td>
+                </tr>
+            </table>
+            
+            <!-- НОТНЫЙ СТАН - ОРИГИНАЛ БЕЗ ИЗМЕНЕНИЙ -->
+            <div class="music" style="position: relative; margin-top: 30px; font-size: 127%; padding: 10px 0 10px 0; width: 900px;">
+                <div style="position: absolute; top: 0em; left: 0;" class="music_symb">=====================</div>
+                <div style="position: absolute; top: 3.2em; padding: 0; left: 80px; text-align: center; width: 200px;" id="int_res"></div>
+                <div style="position: absolute; top: -0.25em; left: 0.2em;" class="music_symb">&amp;</div>
                 
-                <table class="calctable">
-                    <tr>
-                        <td><div class="nota" id="do" rel="1" stup="1" name="До"><span>С</span>До</div></td>
-                        <td><div class="nota" id="re" rel="3" stup="2" name="Ре"><span>D</span>Ре</div></td>
-                        <td><div class="nota" id="mi" rel="5" stup="3" name="Ми"><span>E</span>Ми</div></td>
-                        <td><div class="nota" id="fa" rel="6" stup="4" name="Фа"><span>F</span>Фа</div></td>
-                        <td><div class="nota" id="sol" rel="8" stup="5" name="Соль"><span>G</span>Соль</div></td>
-                        <td><div class="nota" id="la" rel="10" stup="6" name="Ля"><span>A</span>Ля</div></td>
-                        <td><div class="nota" id="si" rel="12" stup="7" name="Си"><span>H</span>Си</div></td>
-                    </tr>
-                    <tr>
-                        <td><div class="alt disabled" id="flat" rel="-1" name="бемоль"><span>&#9837;</span>Бемоль</div></td>
-                        <td><div class="alt disabled" id="sharp" rel="1" name="диез"><span>&#9839;</span>Диез</div></td>
-                        <td><div class="alt disabled" id="bekar" rel="0" name=""><span>&#9838;</span>Бекар</div></td>
-                        <td colspan="2"><div class="lad disabled" name="Мажор" id="dur"><span>Dur</span>Мажор</div></td>
-                        <td colspan="2"><div class="lad disabled" name="Минор" id="moll"><span>moll</span>Минор</div></td>
-                    </tr>
-                    <tr>
-                        <td colspan="2" rowspan="3">
-                            <table>
-                                <tr><td><div class="led off" id="set_interval"><div></div>Интервал</div></td></tr>
-                                <tr><td><div class="led off" id="set_chord"><div></div>Аккорд</div></td></tr>
-                                <tr><td><div class="led off" id="find_note"><div></div>Построить</div></td></tr>
-                                <tr><td><div class="led off" id="make_chord"><div></div>Определить</div></td></tr>
-                            </table>
-                        </td>
-                        <td rowspan="3" colspan="3"><div class="tone" id="ton"><span>Тональность</span><br><span id="tone_1"></span><span id="tone_2"></span><span id="tone_3"></span></div></td>
-                        <td colspan="2"><div class="lad_type disabled" id="harmonic">Гармонический</div></td>
-                    </tr>
-                    <tr><td colspan="2"><div class="lad_type disabled" id="melodic">Мелодический</div></td></tr>
-                    <tr><td colspan="2"><div class="lad_type disabled" id="natural">Натуральный</div></td></tr>
-                    <tr>
-                        <td><div class="number disabled" id="num1" name="Прима" rel="0"><span>1</span>Прима</div></td>
-                        <td><div class="number disabled" id="num2" name="Секунда" rel="2"><span>2</span>Секунда</div></td>
-                        <td><div class="number disabled" id="num3" name="Терция" rel="4"><span>3</span>Терция</div></td>
-                        <td><div class="number disabled" id="num4" name="Кварта" rel="5"><span>4</span>Кварта</div></td>
-                        <td><div class="func disabled" id="t"><span>T</span>Тоника</div></td>
-                        <td><div class="func disabled" id="s"><span>S</span>Субдом.</div></td>
-                        <td><div class="func disabled" id="d"><span>D</span>Домин.</div></td>
-                    </tr>
-                    <tr>
-                        <td><div class="number disabled" id="num5" name="Квинта" rel="7"><span>5</span>Квинта</div></td>
-                        <td><div class="number disabled" id="num6" name="Секста" rel="9"><span>6</span>Секста</div></td>
-                        <td><div class="number disabled" id="num7" name="Септима" rel="11"><span>7</span>Септима</div></td>
-                        <td><div class="number disabled" id="num8" name="Октава" rel="12"><span>8</span>Октава</div></td>
-                        <td><div class="alt_int disabled" rel="-1" id="m" name="Малая"><span>М</span>Малая</div></td>
-                        <td><div class="alt_int disabled" rel="0" id="b" name="Большая"><span>Б</span>Большая</div></td>
-                        <td><div class="alt_int disabled" rel="0" id="ch" name="Чистая"><span>Ч</span>Чистая</div></td>
-                    </tr>
-                    <tr>
-                        <td><div class="number disabled" id="num9" name="Нона" rel="14"><span>9</span>Нона</div></td>
-                        <td><div class="number disabled" id="num10" name="Децима" rel="16"><span>10</span>Децима</div></td>
-                        <td><div class="up_down disabled" rel="1" id="up" name="↑"><span>&#8593;</span>Вверх</div></td>
-                        <td><div class="up_down disabled" rel="-1" id="down" name="↓"><span>&#8595;</span>Вниз</div></td>
-                        <td><div class="alt_int disabled" rel="-2" id="dim" name="Ум."><span>Ум</span>Ум.</div></td>
-                        <td><div class="alt_int disabled" rel="1" id="sus" name="Ув."><span>Ув</span>Ув.</div></td>
-                        <td><div class="is disabled" id="is"><span>=</span></div></td>
-                    </tr>
-                    <tr>
-                        <td colspan="7"><div class="clear-btn" id="clear">CLEAR</div></td>
-                    </tr>
-                </table>
+                <div id="note_1" class="note_n music_symb" style="display: none; left: 120px; top: 10.7px;">w<div class="dop_line" style="display: none; left: -5px; top: -20px;">_</div><div class="dop_dop_line" style="display: none;">_</div></div>
+                <div id="note_2" class="note_n music_symb" style="display: none; left: 220px; top: 0.1px;">w<div class="dop_line" style="display: none;">_</div><div class="dop_dop_line" style="display: none;">_</div></div>
+                <div id="note_3" class="note_n music_symb" style="display: none;">w<div class="dop_line" style="display: none;">_</div><div class="dop_dop_line">_</div></div>
+                <div id="note_4" class="note_n music_symb" style="display: none;">w<div class="dop_line" style="display: none;">_</div><div class="dop_dop_line">_</div></div>
+                <div id="note_5" class="note_n music_symb" style="display: none;">w<div class="dop_line" style="display: none;">_</div><div class="dop_dop_line">_</div></div>
                 
-                <div class="music-staff">
-                    <div style="position: relative; width: 100%; min-height: 60px;">
-                        <div style="position: absolute; top: -5px; left: 35px;" class="music_symb">=========================</div>
-                        <div style="position: absolute; top: -8px; left: 2px; font-size: 220%;" class="music_symb">&amp;</div>
-                        <div style="position: absolute; top: 2.8em; left: 60px; text-align: center; width: 200px;" id="int_res"></div>
-                        <div id="note_1" class="note_n music_symb" style="left: 110px; top: 8px;">w<div class="dop_line"></div></div>
-                        <div id="note_2" class="note_n music_symb" style="left: 210px; top: 8px;">w<div class="dop_line"></div></div>
-                        <div id="note_3" class="note_n music_symb">w<div class="dop_line"></div></div>
-                        <div id="note_4" class="note_n music_symb">w<div class="dop_line"></div></div>
-                        <div id="note_5" class="note_n music_symb">w<div class="dop_line"></div></div>
-                        <div id="sign_1" class="sign_n music_symb" style="left: 96px; top: 8px;"></div>
-                        <div id="sign_2" class="sign_n music_symb" style="left: 196px; top: 8px;"></div>
-                        <div id="sign_3" class="sign_n music_symb"></div>
-                        <div id="sign_4" class="sign_n music_symb"></div>
-                        <div id="sign_5" class="sign_n music_symb"></div>
-                    </div>
-                </div>
+                <div id="sign_1" class="sign_n music_symb" style="display: none; left: 106px; top: 10.7px;"></div>
+                <div id="sign_2" class="sign_n music_symb" style="display: none; left: 206px; top: 0.1px;"></div>
+                <div id="sign_3" class="sign_n music_symb" style="display: none;"></div>
+                <div id="sign_4" class="sign_n music_symb" style="display: none;"></div>
+                <div id="sign_5" class="sign_n music_symb" style="display: none;"></div>
+            </div>
             </center>
+            <!-- КОНЕЦ ОРИГИНАЛЬНОГО КАЛЬКУЛЯТОРА -->
         </div>
         
-        <!-- ТЕРМИНЫ -->
         <div id="terms" class="tab-content">
             <h2>📖 Музыкальные термины</h2>
             <p style="padding: 20px; color: #999;">Скоро здесь появится словарь терминов...</p>
@@ -627,10 +440,11 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
     <script>
-    // ===== МУЗЫКАЛЬНЫЙ КАЛЬКУЛЯТОР =====
+    // ===== ОРИГИНАЛЬНЫЙ JS КАЛЬКУЛЯТОРА (ПОЛНОСТЬЮ) =====
     function winpolutonov(a) {
-        var p = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24, 26, 28, 29, 31, 33, 35, 36];
-        return p[a];
+        polutonov = new Array(0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24, 26, 28, 29, 31, 33, 35, 36);
+        x = polutonov[a];
+        return x;
     }
     
     window.operand_1 = ''; window.operand_2 = ''; window.operand_3 = ''; window.operand_4 = ''; window.operand_5 = '';
@@ -640,45 +454,56 @@
     window.tone_nota = ''; window.tone_alt = ''; window.tone_lad = '';
     window.tek = ''; window.mode = ''; window.chord_terz = 0; window.clear_tone = 0;
     
-    window.intervals = ["Прима","Секунда","Терция","Кварта","Квинта","Секста","Септима","Октава","Нона","Децима"];
-    window.interval_types = ["Чистая","Малая","Большая","Малая","Большая","Чистая","","Чистая","Малая","Большая","Малая","Большая","Чистая","Малая","Большая","Малая","Большая"];
-    window.interval_types_breaf = ["ч.","м.","б.","м.","б.","ч.","","ч.","м.","б.","м.","б.","ч.","м.","б.","м.","б."];
-    window.chrom = [0,1,1,2,2,3,"3.5",4,5,5,6,6,7];
-    window.polutonov = [0,2,4,5,7,9,11,12,14,16,17,19,21,23,24,26,28,29,31,33,35,36];
-    window.notes = ["До","Ре","Ми","Фа","Соль","Ля","Си","До","Ре","Ми","Фа","Соль","Ля","Си","До","Ре","Ми","Фа","Соль","Ля","Си"];
+    window.intervals = new Array("Прима", "Секунда", "Терция", "Кварта", "Квинта", "Секста", "Септима", "Октава", "Нона", "Децима");
+    window.interval_types= new Array("Чистая", "Малая", "Большая", "Малая", "Большая", "Чистая", "", "Чистая", "Малая", "Большая", "Малая", "Большая", "Чистая", "Малая", "Большая", "Малая", "Большая");
+    window.interval_types_breaf= new Array("ч.", "м.", "б.", "м.", "б.", "ч.", "", "ч.", "м.", "б.", "м.", "б.", "ч.", "м.", "б.", "м.", "б.");
+    window.chrom = new Array(0, 1, 1, 2, 2, 3, "3.5", 4, 5, 5, 6, 6, 7);
+    window.polutonov = new Array(0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24, 26, 28, 29, 31, 33, 35, 36);
+    window.notes = new Array("До", "Ре", "Ми", "Фа", "Соль", "Ля", "Си", "До", "Ре", "Ми", "Фа", "Соль", "Ля", "Си", "До", "Ре", "Ми", "Фа", "Соль", "Ля", "Си");
     window.notes[100] = '';
-    window.signs = ["дубль-бемоль","бемоль","","диез","дубль-диез"];
-    window.signs_symb = ["bb","b","","#","x"]; window.signs_symb[100] = 'n';
-    window.structure = {"Мажор":[0,2,4,5,7,9,11],"Минор":[0,2,3,5,7,8,10]};
-    window.stupeni = ["","I","II","III","IV","V","VI","VII"];
-    window.sizes = ["дважды ум.","ум.","","ув.","дважды ув."];
-    window.majors = [5,0,7,2,9,4,11,6,1,8,3,10,5,12];
-    window.minors = [2,9,4,11,6,1,8,3,10,5,0,7,2,9];
-    window.lad_type_arr = {
-        "Мажор":{"natural":[0,0,0,0,0,0,0],"harmonic":[0,0,0,0,0,-1,0],"melodic":[0,0,0,0,0,-1,-1]},
-        "Минор":{"natural":[0,0,0,0,0,0,0],"harmonic":[0,0,0,0,0,0,1],"melodic":[0,0,0,0,0,1,1]}
-    };
-    window.clef_signs = [0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+    window.signs = new Array("дубль-бемоль", "бемоль", "", "диез", "дубль-диез");
+    window.signs_symb = new Array("bb", "b", "", "#", "x");
+    window.signs_symb[100] = 'n';
+    window.structure = new Array();
+    window.structure["Мажор"] = new Array(0, 2, 4, 5, 7, 9, 11);
+    window.structure["Минор"] = new Array(0, 2, 3, 5, 7, 8, 10);
+    window.stupeni = new Array("", "I", "II", "III", "IV", "V", "VI", "VII");
+    window.sizes = new Array("дважды ум.", "ум.", "", "ув.", "дважды ув.");
+    window.majors = new Array(5, 0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5, 12);
+    window.minors = new Array(2, 9, 4, 11, 6, 1, 8, 3, 10, 5, 0, 7, 2, 9);
+    window.lad_type_arr = new Array();
+    window.lad_type_arr["Мажор"] = new Array();
+    window.lad_type_arr["Мажор"]["natural"] = new Array(0, 0, 0, 0, 0, 0, 0);
+    window.lad_type_arr["Мажор"]["harmonic"] = new Array(0, 0, 0, 0, 0, -1, 0);
+    window.lad_type_arr["Мажор"]["melodic"] = new Array(0, 0, 0, 0, 0, -1, -1);
+    window.lad_type_arr["Минор"] = new Array();
+    window.lad_type_arr["Минор"]["natural"] = new Array(0, 0, 0, 0, 0, 0, 0);
+    window.lad_type_arr["Минор"]["harmonic"] = new Array(0, 0, 0, 0, 0, 0, 1);
+    window.lad_type_arr["Минор"]["melodic"] = new Array(0, 0, 0, 0, 0, 1, 1);
+    window.clef_signs = new Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     
     $(function() {
         $(".nota").click(function() {
             if($(this).hasClass('disabled')) return;
             window.clear_tone = 0;
-            $(".alt,.lad").removeClass('disabled');
+            $(".alt").removeClass('disabled');
+            $(".lad").removeClass('disabled');
             $("#result").html(''); $("#equal").hide(); $("#alt_int").html('');
             
             if(window.mode=="set_tone") {
                 window.tone_nota = parseInt($(this).attr('stup'));
                 $("#tone_1").html($(this).attr('name'));
             } else {
-                $(".number,.up_down,.alt_int").removeClass('disabled');
+                $(".number").removeClass('disabled');
+                $(".up_down").removeClass('disabled');
+                $(".alt_int").removeClass('disabled');
                 $(".tone").addClass('disabled');
                 
                 if(window.operand_1=="") {
                     window.operand_1 = parseInt($(this).attr('rel'));
                     window.stupen_1 = parseInt($(this).attr('stup'));
                     window.tek = "operand_1";
-                    $("#operand_1").html("От ноты: " + $(this).attr('name'));
+                    $("#operand_1").html("<span style='font-size: 70%;'>От ноты</span> &nbsp;" + $(this).attr('name'));
                     note_on(1, window.alt_1, window.stupen_1, 1, 0, 0, 0);
                 } else if(window.operand_2=="") {
                     $(".is").removeClass('disabled');
@@ -689,19 +514,20 @@
                     window.stupen_2 = parseInt($(this).attr('stup'));
                     
                     if((window.stupen_2 - window.stupen_1) * window.direction < 0) {
-                        window.stupen_2 += 7 * window.direction;
-                        window.operand_2 += 12 * window.direction;
+                        window.stupen_2 = window.stupen_2 + 7 * window.direction;
+                        window.operand_2 = window.operand_2 + 12 * window.direction;
                     }
                     if((window.stupen_2 - window.stupen_1) * window.direction > 7) {
-                        window.stupen_2 -= 7 * window.direction;
-                        window.operand_2 -= 12 * window.direction;
+                        window.stupen_2 = window.stupen_2 - 7 * window.direction;
+                        window.operand_2 = window.operand_2 - 12 * window.direction;
                     }
                     
                     $(".nota").addClass('disabled');
                     window.tek = "operand_2";
                     window.mode = "make_interval";
                     $(".led").removeClass('on'); $("#set_interval").addClass('on');
-                    $("#operand_2").html("до: " + $(this).attr('name'));
+                    $(".interval_name_number").show(); $(".chord_name_number").hide();
+                    $("#operand_2").html("<span style='font-size: 70%;'>до ноты</span> &nbsp;" + $(this).attr('name'));
                     note_on(2, window.alt_2, window.stupen_2, 2, 0, 0, 0);
                 }
             }
@@ -718,12 +544,12 @@
             } else {
                 if(window.tek == "operand_1") {
                     window.alt_1 = parseInt($(this).attr('rel'));
-                    $("#alt_1").html($(this).attr('name'));
+                    $("#alt_1").html('&nbsp;' + $(this).attr('name'));
                     note_on(1, window.alt_1, window.stupen_1, 1, 0, 0, 0);
                 }
-                if(window.tek == "operand_2" && window.mode == "make_interval") {
+                if((window.tek == "operand_2") && (window.mode == "make_interval")) {
                     window.alt_2 = parseInt($(this).attr('rel'));
-                    $("#alt_2").html($(this).attr('name'));
+                    $("#alt_2").html('&nbsp;' + $(this).attr('name'));
                     note_on(2, window.alt_2, window.stupen_2, 2, 0, 0, 0);
                 }
             }
@@ -733,7 +559,7 @@
             window.clear_tone = 0;
             clear();
             $("body").removeClass('maj min');
-            $(".func,.lad_type").addClass('disabled');
+            $(".func").addClass('disabled'); $(".lad_type").addClass('disabled');
             $(".nota").show(); $(".stupen").hide();
             if($(this).hasClass('disabled')) return;
             $(".alt,.number,.lad,.up_down,.alt_int,.is").addClass('disabled');
@@ -742,8 +568,9 @@
             $("#tone_1,#tone_2,#tone_3").html('');
             window.mode = "set_tone";
             $(".led").removeClass('on');
+            $(".interval_name_number").show(); $(".chord_name_number").hide();
             $(this).addClass('set_tone');
-            $('.music-staff').addClass('in_tone');
+            $('.music').addClass('in_tone');
         });
         
         $(".up_down").click(function() {
@@ -754,13 +581,15 @@
             $("#result").html(''); $("#equal").hide();
             window.direction = parseInt($(this).attr('rel'));
             window.tek = "direction";
-            $("#direction").html($(this).attr('name'));
+            $("#direction").html("&nbsp;" + $(this).attr('name') + "&nbsp;");
             
             if(window.direction>0 && window.stupen_1 >= 8) {
-                window.stupen_1 -= 7; window.operand_1 -= 12;
+                window.stupen_1 = window.stupen_1 - 7;
+                window.operand_1 = window.operand_1 - 12;
             }
             if(window.direction<0 && window.stupen_1 < 8) {
-                window.stupen_1 += 7; window.operand_1 += 12;
+                window.stupen_1 = window.stupen_1 + 7;
+                window.operand_1 = window.operand_1 + 12;
             }
             note_on(1, window.alt_1, window.stupen_1, 1, 0, 0, 0);
             if(window.operand_2 && window.mode == 'make_interval') {
@@ -776,9 +605,9 @@
             
             if(window.operand_1 && window.mode != "make_chord" && window.mode != "make_func") {
                 $(".is").removeClass('disabled');
+                $("#result").html(''); $("#alt_2").html(''); $("#equal").hide();
                 window.operand_2 = parseInt($(this).attr('rel'));
-                window.stupen_2 = parseInt($(this).attr('id').replace('num','')) - 1;
-                
+                window.stupen_2 = parseInt($(this).attr('id')) - 1;
                 if(window.alt_int == -2 && (window.stupen_2 == 0 || window.stupen_2 == 3 || window.stupen_2 == 4 || window.stupen_2 == 7)) {
                     window.alt_int = -1;
                 }
@@ -787,17 +616,16 @@
                 } else {
                     $("#m,#b").removeClass('disabled'); $("#ch").addClass('disabled');
                 }
-                
                 window.tek = "operand_2";
                 window.mode = "make_note";
                 $(".led").removeClass('on'); $("#find_note").addClass('on');
+                $(".interval_name_number").show(); $(".chord_name_number").hide();
                 $("#operand_2").html($(this).attr('name'));
-                
                 if(!window.alt_int) {
                     if(window.stupen_2 == 0 || window.stupen_2 == 3 || window.stupen_2 == 4 || window.stupen_2 == 7) {
-                        $("#alt_int").html("Чистая");
+                        $("#alt_int").html("Чистая&nbsp;");
                     } else {
-                        $("#alt_int").html("Большая");
+                        $("#alt_int").html("Большая&nbsp;");
                     }
                 }
             }
@@ -809,7 +637,7 @@
             $(".alt").addClass('disabled');
             $(".nota").removeClass('disabled');
             if(window.mode != "make_note") {
-                $("#alt_int,#operand_2,#alt_2").html('');
+                $("#alt_int").html(''); $("#operand_2").html(''); $("#alt_2").html('');
             }
             $("#result").html(''); $("#equal").hide();
             
@@ -817,25 +645,25 @@
                 if(window.stupen_2 == 0 || window.stupen_2 == 3 || window.stupen_2 == 4 || window.stupen_2 == 7) {
                     if(parseInt($(this).attr('rel')) == -2) {
                         window.alt_int = -1;
-                        $("#alt_int").html($(this).attr('name'));
+                        $("#alt_int").html($(this).attr('name')+'&nbsp;');
                         window.mode = "make_note";
                         $(".led").removeClass('on'); $("#find_note").addClass('on');
                     }
                     if(parseInt($(this).attr('rel')) == 1) {
                         window.alt_int = 1;
-                        $("#alt_int").html($(this).attr('name'));
+                        $("#alt_int").html($(this).attr('name')+'&nbsp;');
                         window.mode = "make_note";
                         $(".led").removeClass('on'); $("#find_note").addClass('on');
                     }
                 } else {
                     window.alt_int = parseInt($(this).attr('rel'));
-                    $("#alt_int").html($(this).attr('name'));
+                    $("#alt_int").html($(this).attr('name')+'&nbsp;');
                     window.mode = "make_note";
                     $(".led").removeClass('on'); $("#find_note").addClass('on');
                 }
             } else {
                 window.alt_int = parseInt($(this).attr('rel'));
-                $("#alt_int").html($(this).attr('name'));
+                $("#alt_int").html($(this).attr('name')+'&nbsp;');
                 window.mode = "make_note";
                 $(".led").removeClass('on'); $("#find_note").addClass('on');
             }
@@ -848,16 +676,17 @@
             if(window.mode=="set_tone") {
                 window.tone_lad = $(this).attr('name');
                 set_tone(window.tone_nota, window.tone_alt, window.tone_lad);
-                if($(this).attr('name')=="Мажор") { $("#t span").html("T"); $("#s span").html("S"); }
-                if($(this).attr('name')=="Минор") { $("#t span").html("t"); $("#s span").html("s"); }
+                if($(this).attr('name')=="Мажор") { $("#t").find("span").html("T"); $("#s").find("span").html("S"); }
+                if($(this).attr('name')=="Минор") { $("#t").find("span").html("t"); $("#s").find("span").html("s"); }
             } else {
-                $(".alt,.is").addClass('disabled');
-                $("#result,#alt_int,#alt_2").html('');
+                $(".alt").addClass('disabled'); $(".is").addClass('disabled');
+                $("#result").html(''); $("#alt_int").html(''); $("#alt_2").html('');
                 $("#equal").hide(); note_off(2);
                 window.lad = $(this).attr('name');
-                $("#operand_2").html(window.lad + 'ный(-ое)');
+                $("#operand_2").html('&nbsp;' + window.lad + 'ный(-ое)');
                 window.mode = "make_chord";
                 $(".led").removeClass('on'); $("#set_chord").addClass('on');
+                $(".interval_name_number").hide(); $(".chord_name_number").show();
                 window.chord = "3_5";
             }
         });
@@ -871,29 +700,29 @@
             execute(window.stepsis);
         });
         
-        function execute(ws) {
+        function execute(windowsteps) {
             window.clear_tone = 0;
             
             if(window.mode == "set_tone") {
                 var zzz = winpolutonov(window.tone_nota-1) + 1 + window.tone_alt;
                 if(zzz == 0 || zzz == 1 || zzz == 5 || zzz == 6 || zzz == 12 || zzz == 13) {
-                    window.tone_nota += window.tone_alt;
+                    window.tone_nota = window.tone_nota + window.tone_alt;
                     window.tone_alt = 0;
-                    if(window.tone_nota < 1) window.tone_nota += 7;
-                    if(window.tone_nota > 7) window.tone_nota -= 7;
+                    if(window.tone_nota < 1) window.tone_nota = window.tone_nota + 7;
+                    if(window.tone_nota > 7) window.tone_nota = window.tone_nota - 7;
                 } else {
-                    window.tone_nota += window.tone_alt;
-                    window.tone_alt = -window.tone_alt;
+                    window.tone_nota = window.tone_nota + window.tone_alt;
+                    window.tone_alt = 0 - window.tone_alt;
                 }
                 set_tone(window.tone_nota, window.tone_alt, window.tone_lad);
-                $("#operand_1,#operand_2").html('');
+                $("#operand_1").html(''); $("#operand_2").html('');
             }
             
             if(window.mode == "make_interval") {
-                window.steps = ws;
-                if(window.steps < 0) window.steps += 7;
+                window.steps = windowsteps;
+                if(window.steps < 0) { window.steps = window.steps + 7; }
                 window.result = window.direction * ((window.operand_2 + window.alt_2) - (window.operand_1 + window.alt_1));
-                if(window.result < 0) window.result += 12;
+                if(window.result < 0) { window.result = window.result + 12; }
                 
                 if(window.chrom[window.result] == window.steps) {
                     $("#equal").show();
@@ -913,16 +742,16 @@
             }
             
             if(window.mode == "make_note") {
-                window.steps = ws;
+                window.steps = windowsteps;
                 window.result = window.operand_1 + window.alt_1 - 1 + window.direction * (window.operand_2 + window.alt_int);
                 if(window.steps < 0) {
-                    window.steps += 7; window.result += 12;
-                    window.operand_1 += 12; window.stupen_1 += 7;
+                    window.steps = window.steps + 7; window.result = window.result + 12;
+                    window.operand_1 = window.operand_1 + 12; window.stupen_1 = window.stupen_1 + 7;
                     note_on(1, window.alt_1, window.stupen_1, 1, 0, 0, 0);
                 }
                 if(window.result < 0) {
-                    window.steps += 7; window.result += 12;
-                    window.operand_1 += 12; window.stupen_1 += 7;
+                    window.steps = window.steps + 7; window.result = window.result + 12;
+                    window.operand_1 = window.operand_1 + 12; window.stupen_1 = window.stupen_1 + 7;
                     note_on(1, window.alt_1, window.stupen_1, 1, 0, 0, 0);
                 }
                 alteratio = window.result - winpolutonov(window.steps);
@@ -940,44 +769,101 @@
                 $("body").removeClass('maj min');
                 window.tone_nota = ''; window.tone_lad = ''; window.tone_alt = 0;
                 $("#tone_1,#tone_2,#tone_3").html('');
-                window.mode = ''; $(".led").removeClass('on');
-                $('.music-staff').removeClass('in_tone');
+                window.mode = '';
+                $(".led").removeClass('on');
+                $(".interval_name_number").show(); $(".chord_name_number").hide();
+                $(".music").removeClass('in_tone');
                 $(".tone").removeClass('set_tone tone_error');
                 $(".is").addClass('disabled');
-                $(".nota").removeClass('disabled').show();
-                $(".lad,.alt,.lad_type").addClass('disabled');
-                $(".stupen").hide(); $(".func").addClass('disabled');
-                window.clef_signs = [0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-            } else {
-                $(".alt,.number,.lad,.up_down,.alt_int,.is").addClass('disabled');
                 $(".nota").removeClass('disabled');
+                $(".lad").addClass('disabled'); $(".alt").addClass('disabled');
+                $(".lad_type").addClass('disabled');
+                $(".nota").show(); $(".stupen").hide();
+                $(".func").addClass('disabled');
+                window.clef_signs = new Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            } else {
+                $(".alt").addClass('disabled');
+                $(".nota").removeClass('disabled');
+                $(".number").addClass('disabled');
+                $(".lad").addClass('disabled');
+                $(".up_down").addClass('disabled');
+                $(".alt_int").addClass('disabled');
+                $(".is").addClass('disabled');
                 $(".tone").removeClass('disabled');
+                
                 window.operand_1 = ''; window.operand_2 = ''; window.operand_3 = ''; window.operand_4 = ''; window.operand_5 = '';
                 window.alt_1 = 0; window.alt_2 = 0; window.alt_3 = 0; window.alt_4 = 0; window.alt_5 = 0;
                 window.alt_int = 0; window.direction = 1; window.tek = ''; window.mode = '';
                 $(".led").removeClass('on');
-                $("#equal").hide(); $("#direction,#result,#int_res,#alt_1,#alt_2,#alt_int,#operand_1,#operand_2").html('');
+                $(".interval_name_number").show(); $(".chord_name_number").hide();
+                
+                $("#equal").hide();
+                $("#direction").html(''); $("#result").html(''); $("#int_res").html('');
+                $("#alt_1").html(''); $("#alt_2").html(''); $("#alt_3").html(''); $("#alt_4").html(''); $("#alt_5").html('');
+                $("#alt_int").html('');
+                $("#operand_1").html(''); $("#operand_2").html(''); $("#operand_3").html(''); $("#operand_4").html(''); $("#operand_5").html('');
+                
                 note_off(1); note_off(2); note_off(3); note_off(4); note_off(5);
+                note_off(6); note_off(7); note_off(8); note_off(9); note_off(10);
+                note_off(11); note_off(12); note_off(13); note_off(14); note_off(15);
             }
         }
         
         function note_on(note_num, sign, note, pos, shift, shift_sign, prinud) {
             $("#note_" + note_num).show();
-            $("#note_" + note_num).css({left: 20 + pos*100 + (shift||0)*12, top: 16-note*5.3});
+            $("#note_" + note_num).css({left: 20 + pos*100 + shift*12, top: 16-note*5.3});
+            $("#note_" + note_num).find(".dop_dop_line").hide();
             $("#note_" + note_num).find(".dop_line").hide();
+            
             if(note < 2 || note > 12) {
-                $("#note_" + note_num).find(".dop_line").show().css({left: -5, top: -20});
+                $("#note_" + note_num).find(".dop_line").show();
+                $("#note_" + note_num).find(".dop_line").css({left: -5, top: -20});
+                if(note == 14) {
+                    $("#note_" + note_num).find(".dop_line").css({left: -5, top: -15.5});
+                }
+                if(note == 15) {
+                    $("#note_" + note_num).find(".dop_line").css({left: -5, top: -20});
+                    $("#note_" + note_num).find(".dop_dop_line").show();
+                    $("#note_" + note_num).find(".dop_dop_line").css({left: -5, top: -9.5});
+                }
+                if(note == 16) {
+                    $("#note_" + note_num).find(".dop_line").css({left: -5, top: -15.5});
+                    $("#note_" + note_num).find(".dop_dop_line").show();
+                    $("#note_" + note_num).find(".dop_dop_line").css({left: -5, top: -6});
+                }
+                if(note == 0) {
+                    $("#note_" + note_num).find(".dop_line").css({left: -5, top: -26.5});
+                }
             }
             
-            var s = '';
-            if(sign == 0 && window.clef_signs[note-1] != 0) s = 'n';
-            else if(sign == 1) s = '#';
-            else if(sign == -1) s = 'b';
-            else if(sign == -2) s = 'bb';
-            else if(sign > 50) s = 'n';
+            if(prinud) {
+                if(sign==0) $("#sign_" + note_num).html('n');
+                if(sign==2) $("#sign_" + note_num).html('x');
+                if(sign==1) $("#sign_" + note_num).html('#');
+                if(sign==-1) $("#sign_" + note_num).html('b');
+                if(sign==-2) { $("#sign_" + note_num).html('bb'); shift_sign = shift_sign*1.5-0.5; }
+            } else {
+                if(sign == window.clef_signs[note-1]) {
+                    $("#sign_" + note_num).html('');
+                } else {
+                    if(sign == 0 && window.clef_signs[note-1] != 0) { $("#sign_" + note_num).html('n'); }
+                    else {
+                        if(sign==2) $("#sign_" + note_num).html('x');
+                        if(sign==1) $("#sign_" + note_num).html('#');
+                        if(sign==-1) $("#sign_" + note_num).html('b');
+                        if(sign==-2) { $("#sign_" + note_num).html('bb'); shift_sign = shift_sign*1.5-0.5; }
+                        if(sign==0) {
+                            if((window.stupen_1 == window.stupen_2) && window.alt_1 && window.operand_2 && pos==2) {
+                                $("#sign_" + note_num).html('n');
+                            } else { $("#sign_" + note_num).html(''); }
+                        }
+                        if(sign>50) { $("#sign_" + note_num).html('n'); }
+                    }
+                }
+            }
             
-            $("#sign_" + note_num).html(s).show();
-            $("#sign_" + note_num).css({left: 20 + pos*100-14 + (shift_sign||0)*13, top: 16-note*5.3});
+            $("#sign_" + note_num).show();
+            $("#sign_" + note_num).css({left: 20 + pos*100-14 + shift_sign*13, top: 16-note*5.3});
         }
         
         function note_off(note_num) {
@@ -991,39 +877,43 @@
             $("#tone_1").html(window.notes[nota-1]);
             $("#tone_2").html(window.signs[alt+2]);
             $("#tone_3").html(lad);
-            $('.music-staff').addClass('in_tone');
+            $(".music").addClass('in_tone');
             $(".tone").removeClass('set_tone');
             $(".nota").hide(); $(".stupen").show();
             
-            var diezov = 0, bemoley = 0;
+            var diezov = 0; var bemoley = 0;
             if(lad == "Мажор") {
                 diezov = window.majors[winpolutonov(nota-1) + 1 + alt];
-                $("body").addClass('maj').removeClass('min');
+                $("body").addClass('maj'); $("body").removeClass('min');
             } else {
                 diezov = window.minors[winpolutonov(nota-1) + 1 + alt];
-                $("body").addClass('min').removeClass('maj');
+                $("body").addClass('min'); $("body").removeClass('maj');
             }
             
-            if((diezov > 6 && alt == 0) || alt < 0) {
-                bemoley = 12 - diezov; diezov = 0;
-            }
+            if((diezov > 6 && alt == 0) || alt < 0) { bemoley = 12 - diezov; diezov = 0; }
             
             if(diezov == 0 && bemoley == 0) {
-                window.mode = ''; $(".led").removeClass('on');
+                window.mode = '';
+                $(".led").removeClass('on');
+                $(".interval_name_number").show(); $(".chord_name_number").hide();
                 window.lad_type = "natural";
                 $(".tone").removeClass('tone_error');
                 $(".is").addClass('disabled');
                 $(".nota").removeClass('disabled');
                 $(".lad").addClass('disabled');
-                $(".alt,.lad_type").removeClass('disabled');
+                $(".alt").removeClass('disabled');
+                $(".lad_type").removeClass('disabled');
                 $("#natural").addClass('selected');
                 $(".func").removeClass('disabled');
+                $(".lad_type").removeClass('selected');
+                $("#natural").addClass('selected');
                 window.mode = '';
             } else {
-                $("#operand_1").html('Тональность не используется. Нажмите "=" для замены.');
+                $("#operand_1").html('<span style="font-size: 70%;">Тональность не используется. Нажмите "=" для замены.</span>');
                 $(".tone").addClass('tone_error');
                 $(".is").removeClass('disabled');
-                $(".nota,.lad,.alt,.lad_type").addClass('disabled');
+                $(".nota").addClass('disabled'); $(".lad").addClass('disabled');
+                $(".alt").addClass('disabled'); $(".lad_type").addClass('disabled');
             }
         }
     });
