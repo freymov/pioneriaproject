@@ -43,7 +43,7 @@
         
         .page-title { font-size: 20px; font-weight: 700; }
         
-        .container { max-width: 960px; margin: 0 auto; padding: 16px; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 16px; }
         
         /* Вкладки */
         .tabs {
@@ -102,60 +102,193 @@
             cursor: default !important;
         }
         
+        /* Улучшенная сетка калькулятора */
+        .calculator-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 0 -8px;
+            padding: 0 8px;
+        }
+        
+        .calctable {
+            margin: 1em auto;
+            border-collapse: collapse;
+            min-width: 700px;
+            width: 100%;
+        }
+        
+        .calctable td {
+            padding: 4px;
+            vertical-align: middle;
+            text-align: center;
+        }
+        
         .calctable td div {
             text-align: center;
-            width: 5.5em; height: 4em;
-            line-height: 170%;
+            width: 5.5em;
+            min-width: 70px;
+            height: 4em;
+            line-height: 1.4;
             cursor: pointer;
-            padding: 18px 0 0 0;
+            padding: 12px 0 0 0;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        
+        /* Адаптация для мобильных */
+        @media (max-width: 768px) {
+            .calctable td div {
+                width: auto;
+                min-width: 55px;
+                padding: 8px 4px 0 4px;
+                font-size: 0.85rem;
+            }
+            .calctable td div span {
+                font-size: 1.2rem !important;
+            }
+            .calctable {
+                min-width: 600px;
+            }
+            .win_part {
+                font-size: 0.8rem;
+            }
+            #calc-win {
+                font-size: 100% !important;
+                padding: 8px !important;
+                height: auto !important;
+                min-height: 2.5em;
+                word-break: break-word;
+            }
+            .tone {
+                font-size: 0.85rem !important;
+            }
+            .lad_type {
+                width: auto !important;
+                font-size: 0.75rem !important;
+                padding: 4px !important;
+            }
+            .led {
+                width: auto !important;
+                font-size: 0.75rem !important;
+            }
+            .func, .alt_int, .alt, .number, .up_down, .is {
+                font-size: 0.8rem !important;
+            }
+            .music {
+                width: 100% !important;
+                overflow-x: auto;
+                font-size: 100% !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .calctable td div {
+                min-width: 48px;
+                font-size: 0.75rem;
+                height: 3.5em;
+            }
+            .calctable td div span {
+                font-size: 1rem !important;
+            }
+            .tabs .tab-btn {
+                font-size: 12px;
+                padding: 10px 4px;
+            }
+            .page-title {
+                font-size: 18px;
+            }
+            .back-btn {
+                font-size: 20px;
+                padding: 6px 10px;
+            }
         }
         
         .win_part {
             padding: 0;
-            width: auto; height: 70%;
+            width: auto;
+            height: auto;
             float: left;
+            white-space: nowrap;
         }
         
-        .calctable td div span { font-size: 250%; }
+        #calc-win {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 4px 8px;
+            font-size: 130%;
+            padding: 10px 16px;
+            width: 100%;
+            max-width: 900px;
+            min-height: 3em;
+            border: solid 1px #083059;
+            border-radius: 12px;
+            background: #ffffff;
+            color: #000000;
+            margin: 10px auto;
+            box-sizing: border-box;
+        }
+        
+        #calc-win .win_part {
+            white-space: nowrap;
+            float: none;
+            display: inline-block;
+        }
         
         .nota {
             border: solid 1px #00448a;
-            border-radius: 5px;
+            border-radius: 8px;
             color: #000000;
             background: #f9ff4a;
         }
         
         .lad_type {
-            width: 11em; height: 1.45em;
-            line-height: 150%; cursor: pointer;
-            padding: 0 3px 0 3px;
+            width: 11em;
+            height: auto;
+            line-height: 1.4;
+            cursor: pointer;
+            padding: 6px 3px;
             background: #002a53;
-            border-radius: 5px;
+            border-radius: 8px;
             border: solid 1px #002a53;
             color: #ffffff;
+            font-size: 0.9rem;
         }
         .lad_type.selected { background: #16487b; }
         
         .led {
-            width: 11em; padding-left: 3px; padding-right: 3px;
-            height: 1em; line-height: 150%;
-            padding: 0 3px 0 3px;
-            color: #999999; text-align: left; font-size: 90%;
+            width: 11em;
+            padding: 6px 3px;
+            height: auto;
+            line-height: 1.4;
+            color: #999999;
+            text-align: left;
+            font-size: 90%;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
         }
         .led div {
-            width: 1em; height: 1em;
-            padding: 0 0 0 0;
+            width: 1em;
+            height: 1em;
+            padding: 0;
             border-radius: 1em;
             border: solid 1px #999999;
-            float: left; margin-right: 0.5em;
+            float: left;
+            margin-right: 0.5em;
             background: #e1e1e1;
+        }
+        .led.off:hover {
+            background: rgba(102, 126, 234, 0.2);
         }
         .on { color: #000000; }
         .on div { background: #c4ff67 !important; }
         
         .stupen {
             border: solid 1px #00448a;
-            border-radius: 5px;
+            border-radius: 8px;
             color: #000000;
             background: #ffbb44;
             display: none;
@@ -169,89 +302,93 @@
         
         .chord {
             border: solid 1px #73bc00;
-            border-radius: 5px;
+            border-radius: 8px;
             color: #ffffff;
             background: #73bc00;
-            line-height: 90%;
+            line-height: 1.4;
         }
         
-        .nota:not(.disabled):hover { background: #fdffc0; }
+        .nota:not(.disabled):hover { background: #fdffc0; transform: translateY(-2px); }
         
         .func {
             border: solid 1px #69006a;
-            border-radius: 5px;
+            border-radius: 8px;
             color: #ffffff;
             background: #69006a;
         }
-        .func:not(.disabled):hover { background: #4a005f; }
+        .func:not(.disabled):hover { background: #4a005f; transform: translateY(-2px); }
         
         .alt_int {
             border: solid 1px #69006a;
-            border-radius: 5px;
+            border-radius: 8px;
             color: #ffffff;
             background: #9b4747;
         }
-        .alt_int:not(.disabled):hover { background: #662828; }
+        .alt_int:not(.disabled):hover { background: #662828; transform: translateY(-2px); }
         
         .alt {
-            border-radius: 5px;
+            border-radius: 8px;
             border: solid 1px #000000;
             color: #ffffff;
             background: #000000;
         }
-        .alt:not(.disabled):hover { background: #333333; }
+        .alt:not(.disabled):hover { background: #333333; transform: translateY(-2px); }
         
         .clear {
             background: #ff0000;
-            width: 41em;
-            padding-top: 30px; padding-bottom: 0;
-            border-radius: 5px;
+            width: 100%;
+            max-width: 41em;
+            padding: 12px 0;
+            border-radius: 8px;
             color: #ffffff;
+            text-align: center;
+            margin: 0 auto;
         }
-        .clear:hover { background: #dd0000; }
+        .clear:hover { background: #dd0000; transform: translateY(-2px); }
         
         .number {
             border: solid 1px #0e69c7;
-            border-radius: 5px;
+            border-radius: 8px;
             color: #ffffff;
             background: #0e69c7;
         }
-        .number:not(.disabled):hover { background: #144a82; }
+        .number:not(.disabled):hover { background: #144a82; transform: translateY(-2px); }
         
         .chord_name_number { font-size: 100%; display: none; }
         .interval_name_number { font-size: 100%; }
         
         .lad {
             border: solid 1px #0e69c7;
-            border-radius: 5px;
+            border-radius: 8px;
             color: #ffffff;
         }
-        #dur:not(.disabled):hover { background: #ea5a03 !important; }
-        #moll:not(.disabled):hover { background: #005a64 !important; }
+        #dur:not(.disabled):hover { background: #ea5a03 !important; transform: translateY(-2px); }
+        #moll:not(.disabled):hover { background: #005a64 !important; transform: translateY(-2px); }
         
         .up_down {
             border: solid 1px #0e69c7;
-            border-radius: 5px;
+            border-radius: 8px;
             color: #ffffff;
             background: #0e6900;
         }
         .is {
             border: solid 1px #0e69c7;
-            border-radius: 5px;
+            border-radius: 8px;
             color: #ffffff;
             background: #0e6900;
         }
-        .up_down:not(.disabled):hover, .is:not(.disabled):hover { background: #144a00; }
+        .up_down:not(.disabled):hover, .is:not(.disabled):hover { background: #144a00; transform: translateY(-2px); }
         
         .tone {
             border: solid 1px #16487b;
-            border-radius: 5px;
+            border-radius: 8px;
             color: #ffffff;
             background: #16487b;
-            line-height: 90%;
+            line-height: 1.4;
+            transition: all 0.2s;
         }
-        .tone:not(.disabled):hover { background: #0f3a65; }
-        .tone span, .chord span { font-size: 140%; line-height: 110%; }
+        .tone:not(.disabled):hover { background: #0f3a65; transform: translateY(-2px); }
+        .tone span, .chord span { font-size: 140%; line-height: 1.2; }
         .tone span#tone_1, .tone span#tone_2 { padding-right: 0.3em; }
         .in_tone { color: #16487b; }
         
@@ -297,9 +434,27 @@
         [data-theme="dark"] .min { background: #1a2a30; }
         [data-theme="dark"] .music_symb { color: #ccc; }
         [data-theme="dark"] .on { color: #fff; }
+        [data-theme="dark"] .led.off:hover { background: rgba(102, 126, 234, 0.3); }
         
-        @media (max-width: 768px) {
-            .container { padding: 8px; overflow-x: auto; }
+        /* Термины */
+        #terms {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        [data-theme="dark"] #terms {
+            background: #1e1e32;
+        }
+        #terms h2 {
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+        .terms-placeholder {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+            font-size: 1rem;
         }
     </style>
 </head>
@@ -316,124 +471,126 @@
         </div>
         
         <div id="calculator" class="tab-content active">
-            <!-- НАЧАЛО ОРИГИНАЛЬНОГО КАЛЬКУЛЯТОРА -->
-            <center>
-            <div id="calc-win" style="font-size: 130%; padding: 10px 0 10px 0; width: 900px; height: 1.5em; border: solid 1px #083059; border-radius: 5px; background: #ffffff; color: #000000; margin-top: 10px;">
-                <div class="win_part" id="operand_1" style="padding-left: 1em;"></div>
-                <div class="win_part" id="alt_1"></div>
-                <div class="win_part" id="direction" style="padding-left: 0.2em; padding-right: 0.2em;"></div>
-                <div class="win_part" id="alt_int"></div>
-                <div class="win_part" id="operand_2"></div>
-                <div class="win_part" id="alt_2"></div>
-                <div class="win_part" id="operand_3"></div>
-                <div class="win_part" id="alt_3"></div>
-                <div class="win_part" id="operand_4"></div>
-                <div class="win_part" id="alt_4"></div>
-                <div class="win_part" id="operand_5"></div>
-                <div class="win_part" id="alt_5"></div>
-                <div class="win_part" id="equal" style="padding-left: 1em; padding-right: 1em; display: none;">=</div>
-                <div class="win_part" id="result"></div>
-            </div>
-            
-            <div style="clear: both; height: 1px;"></div>
-            
-            <table class="calctable" style="margin-top: 1em;">
-                <tr>
-                    <td><div class="nota" id="do" rel="1" stup="1" name="До"><span>С</span><br>До</div></td>
-                    <td><div class="nota" id="re" rel="3" stup="2" name="Ре"><span>D</span><br>Ре</div></td>
-                    <td><div class="nota" id="mi" rel="5" stup="3" name="Ми"><span>E</span><br>Ми</div></td>
-                    <td><div class="nota" id="fa" rel="6" stup="4" name="Фа"><span>F</span><br>Фа</div></td>
-                    <td><div class="nota" id="sol" rel="8" stup="5" name="Соль"><span>G</span><br>Соль</div></td>
-                    <td><div class="nota" id="la" rel="10" stup="6" name="Ля"><span>A</span><br>Ля</div></td>
-                    <td><div class="nota" id="si" rel="12" stup="7" name="Си"><span>H</span><br>Си</div></td>
-                </tr>
-                <tr>
-                    <td><div class="stupen" rel="1" stup="1" name="I"><span>I</span><br><div></div></div></td>
-                    <td><div class="stupen" rel="3" stup="2" name="II"><span>II</span><br><div></div></div></td>
-                    <td><div class="stupen" rel="5" stup="3" name="III"><span>III</span><br><div></div></div></td>
-                    <td><div class="stupen" rel="6" stup="4" name="IV"><span>IV</span><br><div></div></div></td>
-                    <td><div class="stupen" rel="8" stup="5" name="V"><span>V</span><br><div></div></div></td>
-                    <td><div class="stupen" rel="10" stup="6" name="VI"><span>VI</span><br><div></div></div></td>
-                    <td><div class="stupen" rel="12" stup="7" name="VII"><span>VII</span><br><div></div></div></td>
-                </tr>
-                <tr>
-                    <td><div class="alt disabled" id="flat" rel="-1" name="бемоль"><span>&#9837;</span><br>Бемоль</div></td>
-                    <td><div class="alt disabled" id="sharp" rel="1" name="диез"><span>&#9839;</span><br>Диез</div></td>
-                    <td><div class="alt disabled" id="bekar" rel="0" name=""><span>&#9838;</span><br>Бекар</div></td>
-                    <td colspan="2"><div class="lad disabled" name="Мажор" id="dur" style="background: #ff6000; width: 11em; padding-left: 3px; padding-right: 3px;"><span>Dur</span><br>Мажор</div></td>
-                    <td colspan="2"><div class="lad disabled" name="Минор" id="moll" style="background: #006a76; width: 11em; padding-left: 3px; padding-right: 3px;"><span>moll</span><br>Минор</div></td>
-                </tr>
-                <tr>
-                    <td colspan="2" rowspan="3">
-                        <table>
-                            <tr><td><div class="led off" id="set_interval" rel="2" name="set_interval"><div></div>Определяем интервал</div></td></tr>
-                            <tr><td><div class="led off" id="set_chord" rel="2" name="set_chord"><div></div>Строим аккорд</div></td></tr>
-                            <tr><td><div class="led off" id="find_note" rel="2" name="find_note"><div></div>Строим интервал</div></td></tr>
-                            <tr><td><div class="led off" id="make_chord" rel="2" name="make_chord"><div></div>Определяем аккорд</div></td></tr>
-                        </table>
-                    </td>
-                    <td rowspan="3" colspan="3"><div style="width: 16.8em; padding-left: 3px; padding-right: 3px" class="tone" name="Тональность" id="ton"><span>Тональность</span><br><span id="tone_1"></span><span id="tone_2"></span><span id="tone_3"></span></div></td>
-                    <td colspan="2"><div class="lad_type disabled" id="harmonic" rel="1" name="гармонический">Гармонический</div></td>
-                </tr>
-                <tr><td colspan="2"><div class="lad_type disabled" id="melodic" rel="2" name="мелодический">Мелодический</div></td></tr>
-                <tr><td colspan="2"><div class="lad_type disabled" id="natural" rel="0" name="натуральный">Натуральный</div></td></tr>
-                <tr>
-                    <td><div class="number disabled" id="1" name="Прима" rel="0"><span>1</span><br>Прима</div></td>
-                    <td><div class="number disabled" id="2" name="Секунда" rel="2"><span>2</span><br><span class="interval_name_number">Секунда</span></div></td>
-                    <td><div class="number disabled" id="3" name="Терция" rel="4"><span>3</span><br><span class="interval_name_number">Терция</span></div></td>
-                    <td><div class="number disabled" id="4" name="Кварта" rel="5"><span>4</span><br><span class="interval_name_number">Кварта</span></div></td>
-                    <td><div class="func disabled" id="t"><span>T</span><br>Тоника</div></td>
-                    <td><div class="func disabled" id="s"><span>S</span><br>Субдомин.</div></td>
-                    <td><div class="func disabled" id="d"><span>D</span><br>Доминанта</div></td>
-                </tr>
-                <tr>
-                    <td><div class="number disabled" id="5" name="Квинта" rel="7"><span>5</span><br><span class="interval_name_number">Квинта</span></div></td>
-                    <td><div class="number disabled" id="6" name="Секста" rel="9"><span>6</span><br><span class="interval_name_number">Секста</span></div></td>
-                    <td><div class="number disabled" id="7" name="Септима" rel="11"><span>7</span><br><span class="interval_name_number">Септима</span></div></td>
-                    <td><div class="number disabled" id="8" name="Октава" rel="12"><span>8</span><br>Октава</div></td>
-                    <td style="position: relative"><div class="alt_int disabled" rel="-1" id="m" name="Малая"><span>М</span><br>Малая</div></td>
-                    <td><div class="alt_int disabled" rel="0" id="b" name="Большая"><span>Б</span><br>Большая</div></td>
-                    <td><div class="alt_int disabled" rel="0" id="ch" name="Чистая"><span>Ч</span><br>Чистая</div></td>
-                </tr>
-                <tr>
-                    <td><div class="number disabled" id="9" name="Нона" rel="14"><span>9</span><br>Нона</div></td>
-                    <td><div class="number disabled" id="10" name="Децима" rel="16"><span>10</span><br>Децима</div></td>
-                    <td><div class="up_down disabled" rel="1" id="up" name="↑"><span>&#8593;</span><br>вверх</div></td>
-                    <td><div class="up_down disabled" rel="-1" id="down" name="↓"><span>&#8595;</span><br>вниз</div></td>
-                    <td><div class="alt_int disabled" rel="-2" id="dim" name="Уменьшенная"><span>Ум</span><br><span style="font-size: 70%;">Уменьшенная</span></div></td>
-                    <td><div class="alt_int disabled" rel="1" id="sus" name="Увеличенная"><span>Ув</span><br><span style="font-size: 70%;">Увеличенная</span></div></td>
-                    <td><div class="is disabled" id="is"><div style="padding: 0; height: 12px;"></div><span>=</span></div></td>
-                </tr>
-                <tr>
-                    <td colspan="7"><div class="clear" id="clear"><span>C</span></div></td>
-                </tr>
-            </table>
-            
-            <!-- НОТНЫЙ СТАН - ОРИГИНАЛ БЕЗ ИЗМЕНЕНИЙ -->
-            <div class="music" style="position: relative; margin-top: 30px; font-size: 127%; padding: 10px 0 10px 0; width: 900px;">
-                <div style="position: absolute; top: 0em; left: 0;" class="music_symb">=====================</div>
-                <div style="position: absolute; top: 3.2em; padding: 0; left: 80px; text-align: center; width: 200px;" id="int_res"></div>
-                <div style="position: absolute; top: -0.25em; left: 0.2em;" class="music_symb">&amp;</div>
+            <div class="calculator-wrapper">
+                <center>
+                <div id="calc-win" style="font-size: 130%; padding: 10px 0 10px 0; width: 900px; height: 1.5em; border: solid 1px #083059; border-radius: 5px; background: #ffffff; color: #000000; margin-top: 10px;">
+                    <div class="win_part" id="operand_1" style="padding-left: 1em;"></div>
+                    <div class="win_part" id="alt_1"></div>
+                    <div class="win_part" id="direction" style="padding-left: 0.2em; padding-right: 0.2em;"></div>
+                    <div class="win_part" id="alt_int"></div>
+                    <div class="win_part" id="operand_2"></div>
+                    <div class="win_part" id="alt_2"></div>
+                    <div class="win_part" id="operand_3"></div>
+                    <div class="win_part" id="alt_3"></div>
+                    <div class="win_part" id="operand_4"></div>
+                    <div class="win_part" id="alt_4"></div>
+                    <div class="win_part" id="operand_5"></div>
+                    <div class="win_part" id="alt_5"></div>
+                    <div class="win_part" id="equal" style="padding-left: 1em; padding-right: 1em; display: none;">=</div>
+                    <div class="win_part" id="result"></div>
+                </div>
                 
-                <div id="note_1" class="note_n music_symb" style="display: none; left: 120px; top: 10.7px;">w<div class="dop_line" style="display: none; left: -5px; top: -20px;">_</div><div class="dop_dop_line" style="display: none;">_</div></div>
-                <div id="note_2" class="note_n music_symb" style="display: none; left: 220px; top: 0.1px;">w<div class="dop_line" style="display: none;">_</div><div class="dop_dop_line" style="display: none;">_</div></div>
-                <div id="note_3" class="note_n music_symb" style="display: none;">w<div class="dop_line" style="display: none;">_</div><div class="dop_dop_line">_</div></div>
-                <div id="note_4" class="note_n music_symb" style="display: none;">w<div class="dop_line" style="display: none;">_</div><div class="dop_dop_line">_</div></div>
-                <div id="note_5" class="note_n music_symb" style="display: none;">w<div class="dop_line" style="display: none;">_</div><div class="dop_dop_line">_</div></div>
+                <div style="clear: both; height: 1px;"></div>
                 
-                <div id="sign_1" class="sign_n music_symb" style="display: none; left: 106px; top: 10.7px;"></div>
-                <div id="sign_2" class="sign_n music_symb" style="display: none; left: 206px; top: 0.1px;"></div>
-                <div id="sign_3" class="sign_n music_symb" style="display: none;"></div>
-                <div id="sign_4" class="sign_n music_symb" style="display: none;"></div>
-                <div id="sign_5" class="sign_n music_symb" style="display: none;"></div>
+                <table class="calctable" style="margin-top: 1em;">
+                    <tr>
+                        <td><div class="nota" id="do" rel="1" stup="1" name="До"><span>С</span><br>До</div></td>
+                        <td><div class="nota" id="re" rel="3" stup="2" name="Ре"><span>D</span><br>Ре</div></td>
+                        <td><div class="nota" id="mi" rel="5" stup="3" name="Ми"><span>E</span><br>Ми</div></td>
+                        <td><div class="nota" id="fa" rel="6" stup="4" name="Фа"><span>F</span><br>Фа</div></td>
+                        <td><div class="nota" id="sol" rel="8" stup="5" name="Соль"><span>G</span><br>Соль</div></td>
+                        <td><div class="nota" id="la" rel="10" stup="6" name="Ля"><span>A</span><br>Ля</div></td>
+                        <td><div class="nota" id="si" rel="12" stup="7" name="Си"><span>H</span><br>Си</div></td>
+                    </tr>
+                    <tr>
+                        <td><div class="stupen" rel="1" stup="1" name="I"><span>I</span><br><div></div></div></td>
+                        <td><div class="stupen" rel="3" stup="2" name="II"><span>II</span><br><div></div></div></td>
+                        <td><div class="stupen" rel="5" stup="3" name="III"><span>III</span><br><div></div></div></td>
+                        <td><div class="stupen" rel="6" stup="4" name="IV"><span>IV</span><br><div></div></div></td>
+                        <td><div class="stupen" rel="8" stup="5" name="V"><span>V</span><br><div></div></div></td>
+                        <td><div class="stupen" rel="10" stup="6" name="VI"><span>VI</span><br><div></div></div></td>
+                        <td><div class="stupen" rel="12" stup="7" name="VII"><span>VII</span><br><div></div></div></td>
+                    </tr>
+                    <tr>
+                        <td><div class="alt disabled" id="flat" rel="-1" name="бемоль"><span>&#9837;</span><br>Бемоль</div></td>
+                        <td><div class="alt disabled" id="sharp" rel="1" name="диез"><span>&#9839;</span><br>Диез</div></td>
+                        <td><div class="alt disabled" id="bekar" rel="0" name=""><span>&#9838;</span><br>Бекар</div></td>
+                        <td colspan="2"><div class="lad disabled" name="Мажор" id="dur" style="background: #ff6000; width: 11em; padding-left: 3px; padding-right: 3px;"><span>Dur</span><br>Мажор</div></td>
+                        <td colspan="2"><div class="lad disabled" name="Минор" id="moll" style="background: #006a76; width: 11em; padding-left: 3px; padding-right: 3px;"><span>moll</span><br>Минор</div></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" rowspan="3">
+                            <table style="width:100%">
+                                <tr><td><div class="led off" id="set_interval" rel="2" name="set_interval"><div></div>Определяем интервал</div></td></tr>
+                                <tr><td><div class="led off" id="set_chord" rel="2" name="set_chord"><div></div>Строим аккорд</div></td></tr>
+                                <tr><td><div class="led off" id="find_note" rel="2" name="find_note"><div></div>Строим интервал</div></td></tr>
+                                <tr><td><div class="led off" id="make_chord" rel="2" name="make_chord"><div></div>Определяем аккорд</div></td></tr>
+                            </table>
+                        </td>
+                        <td rowspan="3" colspan="3"><div style="width: 16.8em; padding-left: 3px; padding-right: 3px" class="tone" name="Тональность" id="ton"><span>Тональность</span><br><span id="tone_1"></span><span id="tone_2"></span><span id="tone_3"></span></div></td>
+                        <td colspan="2"><div class="lad_type disabled" id="harmonic" rel="1" name="гармонический">Гармонический</div></td>
+                    </tr>
+                    <tr><td colspan="2"><div class="lad_type disabled" id="melodic" rel="2" name="мелодический">Мелодический</div></td></tr>
+                    <tr><td colspan="2"><div class="lad_type disabled" id="natural" rel="0" name="натуральный">Натуральный</div></td></tr>
+                    <tr>
+                        <td><div class="number disabled" id="1" name="Прима" rel="0"><span>1</span><br>Прима</div></td>
+                        <td><div class="number disabled" id="2" name="Секунда" rel="2"><span>2</span><br><span class="interval_name_number">Секунда</span></div></td>
+                        <td><div class="number disabled" id="3" name="Терция" rel="4"><span>3</span><br><span class="interval_name_number">Терция</span></div></td>
+                        <td><div class="number disabled" id="4" name="Кварта" rel="5"><span>4</span><br><span class="interval_name_number">Кварта</span></div></td>
+                        <td><div class="func disabled" id="t"><span>T</span><br>Тоника</div></td>
+                        <td><div class="func disabled" id="s"><span>S</span><br>Субдомин.</div></td>
+                        <td><div class="func disabled" id="d"><span>D</span><br>Доминанта</div></td>
+                    </tr>
+                    <tr>
+                        <td><div class="number disabled" id="5" name="Квинта" rel="7"><span>5</span><br><span class="interval_name_number">Квинта</span></div></td>
+                        <td><div class="number disabled" id="6" name="Секста" rel="9"><span>6</span><br><span class="interval_name_number">Секста</span></div></td>
+                        <td><div class="number disabled" id="7" name="Септима" rel="11"><span>7</span><br><span class="interval_name_number">Септима</span></div></td>
+                        <td><div class="number disabled" id="8" name="Октава" rel="12"><span>8</span><br>Октава</div></td>
+                        <td style="position: relative"><div class="alt_int disabled" rel="-1" id="m" name="Малая"><span>М</span><br>Малая</div></td>
+                        <td><div class="alt_int disabled" rel="0" id="b" name="Большая"><span>Б</span><br>Большая</div></td>
+                        <td><div class="alt_int disabled" rel="0" id="ch" name="Чистая"><span>Ч</span><br>Чистая</div></td>
+                    </tr>
+                    <tr>
+                        <td><div class="number disabled" id="9" name="Нона" rel="14"><span>9</span><br>Нона</div></td>
+                        <td><div class="number disabled" id="10" name="Децима" rel="16"><span>10</span><br>Децима</div></td>
+                        <td><div class="up_down disabled" rel="1" id="up" name="↑"><span>&#8593;</span><br>вверх</div></td>
+                        <td><div class="up_down disabled" rel="-1" id="down" name="↓"><span>&#8595;</span><br>вниз</div></td>
+                        <td><div class="alt_int disabled" rel="-2" id="dim" name="Уменьшенная"><span>Ум</span><br><span style="font-size: 70%;">Уменьшенная</span></div></td>
+                        <td><div class="alt_int disabled" rel="1" id="sus" name="Увеличенная"><span>Ув</span><br><span style="font-size: 70%;">Увеличенная</span></div></td>
+                        <td><div class="is disabled" id="is"><div style="padding: 0; height: 12px;"></div><span>=</span></div></td>
+                    </tr>
+                    <tr>
+                        <td colspan="7"><div class="clear" id="clear"><span>C</span></div></td>
+                    </tr>
+                </table>
+                
+                <!-- НОТНЫЙ СТАН - ОРИГИНАЛ БЕЗ ИЗМЕНЕНИЙ -->
+                <div class="music" style="position: relative; margin-top: 30px; font-size: 127%; padding: 10px 0 10px 0; width: 900px;">
+                    <div style="position: absolute; top: 0em; left: 0;" class="music_symb">=====================</div>
+                    <div style="position: absolute; top: 3.2em; padding: 0; left: 80px; text-align: center; width: 200px;" id="int_res"></div>
+                    <div style="position: absolute; top: -0.25em; left: 0.2em;" class="music_symb">&amp;</div>
+                    
+                    <div id="note_1" class="note_n music_symb" style="display: none; left: 120px; top: 10.7px;">w<div class="dop_line" style="display: none; left: -5px; top: -20px;">_</div><div class="dop_dop_line" style="display: none;">_</div></div>
+                    <div id="note_2" class="note_n music_symb" style="display: none; left: 220px; top: 0.1px;">w<div class="dop_line" style="display: none;">_</div><div class="dop_dop_line" style="display: none;">_</div></div>
+                    <div id="note_3" class="note_n music_symb" style="display: none;">w<div class="dop_line" style="display: none;">_</div><div class="dop_dop_line">_</div></div>
+                    <div id="note_4" class="note_n music_symb" style="display: none;">w<div class="dop_line" style="display: none;">_</div><div class="dop_dop_line">_</div></div>
+                    <div id="note_5" class="note_n music_symb" style="display: none;">w<div class="dop_line" style="display: none;">_</div><div class="dop_dop_line">_</div></div>
+                    
+                    <div id="sign_1" class="sign_n music_symb" style="display: none; left: 106px; top: 10.7px;"></div>
+                    <div id="sign_2" class="sign_n music_symb" style="display: none; left: 206px; top: 0.1px;"></div>
+                    <div id="sign_3" class="sign_n music_symb" style="display: none;"></div>
+                    <div id="sign_4" class="sign_n music_symb" style="display: none;"></div>
+                    <div id="sign_5" class="sign_n music_symb" style="display: none;"></div>
+                </div>
+                </center>
             </div>
-            </center>
-            <!-- КОНЕЦ ОРИГИНАЛЬНОГО КАЛЬКУЛЯТОРА -->
         </div>
         
         <div id="terms" class="tab-content">
             <h2>📖 Музыкальные термины</h2>
-            <p style="padding: 20px; color: #999;">Скоро здесь появится словарь терминов...</p>
+            <div class="terms-placeholder">
+                Скоро здесь появится словарь терминов...
+            </div>
         </div>
     </div>
     
