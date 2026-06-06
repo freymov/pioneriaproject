@@ -2,9 +2,17 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Сольфеджио — Pioneria Project</title>
     <link rel="icon" type="image/jpg" href="/favicon.jpg">
+    
+    <!-- Тема применяется ДО загрузки страницы -->
+    <script>
+        (function() {
+            var theme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -13,6 +21,8 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: #f0f2f5;
             color: #333;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
         }
         
         [data-theme="dark"] body {
@@ -40,11 +50,13 @@
         .back-btn {
             background: none; border: none;
             font-size: 24px; cursor: pointer;
-            padding: 8px; border-radius: 8px;
+            padding: 8px 12px; border-radius: 8px;
             color: inherit;
             text-decoration: none;
+            -webkit-tap-highlight-color: transparent;
         }
         .back-btn:hover { background: #f0f0f0; }
+        .back-btn:active { transform: scale(0.94); }
         [data-theme="dark"] .back-btn:hover { background: #2a2a40; }
         
         .page-title { font-size: 20px; font-weight: 700; }
@@ -52,15 +64,15 @@
         .container {
             max-width: 780px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 16px;
         }
         
         /* Вкладки */
         .tabs {
             display: flex; gap: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             background: white;
-            padding: 8px; border-radius: 12px;
+            padding: 6px; border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         
@@ -70,12 +82,13 @@
         }
         
         .tab-btn {
-            flex: 1; padding: 12px;
+            flex: 1; padding: 12px 8px;
             border: none; background: none;
             border-radius: 8px; cursor: pointer;
             font-size: 14px; font-weight: 500;
             transition: all 0.2s;
             color: inherit;
+            -webkit-tap-highlight-color: transparent;
         }
         
         .tab-btn.active { background: #667eea; color: white; }
@@ -90,7 +103,7 @@
             src: url(/fonts/petrucci.ttf);
         }
         
-        /* ===== СТИЛИ КАЛЬКУЛЯТОРА (ОРИГИНАЛ + ТЁМНАЯ ТЕМА) ===== */
+        /* ===== СТИЛИ КАЛЬКУЛЯТОРА ===== */
         
         .maj { background: #ffeeee; }
         .min { background: #ebfdff; }
@@ -99,7 +112,7 @@
         
         .music_symb {
             font-family: Petrucci;
-            font-size: 200%;
+            font-size: 180%;
             padding: 0; margin: 0;
             width: auto; height: auto;
         }
@@ -120,41 +133,51 @@
         }
         
         .disabled {
-            opacity: 0.3;
+            opacity: 0.35;
             cursor: default !important;
+            pointer-events: none;
         }
         
         .calctable {
-            margin: 1em auto;
-            border-spacing: 5px;
+            margin: 0.5em auto;
+            border-spacing: 4px;
+            width: 100%;
+            max-width: 750px;
+        }
+        
+        .calctable td {
+            padding: 0;
         }
         
         .calctable td div {
             text-align: center;
-            width: 75px;
-            height: 60px;
+            width: 100%;
+            height: 58px;
             line-height: 1.3;
             cursor: pointer;
-            padding: 6px 4px 0 4px;
+            padding: 6px 3px 0 3px;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: 12px;
             box-sizing: border-box;
             overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
         
         .calctable td div span {
-            font-size: 180%;
+            font-size: 170%;
             display: block;
             line-height: 1;
+            margin-bottom: 1px;
         }
         
         /* Дисплей */
         #calc-win {
-            font-size: 15px;
-            padding: 10px 12px;
+            font-size: 14px;
+            padding: 10px 14px;
             width: 100%;
             max-width: 750px;
-            min-height: 45px;
+            min-height: 44px;
             border-radius: 8px;
             background: #fff;
             color: #000;
@@ -163,8 +186,9 @@
             flex-wrap: wrap;
             align-items: center;
             justify-content: center;
-            gap: 6px;
-            margin-top: 20px;
+            gap: 5px;
+            margin: 0 auto 12px auto;
+            text-align: center;
         }
         
         [data-theme="dark"] #calc-win {
@@ -174,8 +198,9 @@
         }
         
         .win_part {
-            padding: 2px 6px;
-            font-size: 14px;
+            padding: 2px 5px;
+            font-size: 13px;
+            white-space: nowrap;
         }
         
         /* Ноты */
@@ -185,6 +210,7 @@
             background: #f9ff4a;
         }
         .nota:not(.disabled):hover { background: #fdffc0; }
+        .nota:not(.disabled):active { transform: scale(0.94); background: #fdffc0; }
         [data-theme="dark"] .nota {
             background: #3e3520;
             color: #ffe082;
@@ -198,13 +224,13 @@
             background: #000;
         }
         .alt:not(.disabled):hover { background: #333; }
+        .alt:not(.disabled):active { transform: scale(0.94); }
         [data-theme="dark"] .alt { background: #555; border-color: #777; }
         
         /* Лад */
         .lad {
             border: solid 1px #0e69c7;
             color: #fff;
-            width: 100% !important;
         }
         #dur { background: #ff6000; }
         #moll { background: #006a76; }
@@ -214,12 +240,11 @@
         /* Типы лада */
         .lad_type {
             height: auto !important;
-            padding: 8px 4px !important;
+            padding: 7px 3px !important;
             background: #002a53;
             border-radius: 5px;
             color: #fff;
-            font-size: 12px;
-            width: 100% !important;
+            font-size: 11px;
         }
         .lad_type.selected { background: #16487b; }
         
@@ -229,15 +254,16 @@
             height: auto;
             color: #999;
             text-align: left;
-            font-size: 11px;
-            width: auto !important;
+            font-size: 10px;
+            white-space: nowrap;
         }
         .led div {
-            width: 10px; height: 10px;
-            border-radius: 10px;
+            width: 9px; height: 9px;
+            border-radius: 9px;
             border: solid 1px #999;
-            float: left; margin-right: 5px;
+            float: left; margin-right: 4px;
             background: #e1e1e1;
+            flex-shrink: 0;
         }
         .on { color: #000; }
         .on div { background: #c4ff67 !important; }
@@ -252,7 +278,7 @@
         }
         .stupen div { position: relative; top: -8px; }
         .stupen div span {
-            font-size: 140%;
+            font-size: 130%;
             font-family: Petrucci;
             position: relative; top: -2px;
         }
@@ -299,10 +325,6 @@
             color: #fff;
             background: #0e6900;
         }
-        .is {
-            height: auto !important;
-            padding: 10px 4px 0 4px !important;
-        }
         .up_down:not(.disabled):hover, .is:not(.disabled):hover { background: #144a00; }
         [data-theme="dark"] .up_down, [data-theme="dark"] .is { background: #1a3a1a; }
         
@@ -311,12 +333,14 @@
             border: solid 1px #16487b;
             color: #fff;
             background: #16487b;
-            width: auto !important;
-            height: auto !important;
-            min-height: 65px;
-            padding: 10px !important;
+            min-height: 60px;
+            padding: 10px 6px !important;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
-        .tone span { font-size: 120%; }
+        .tone span { font-size: 110%; }
         .tone:not(.disabled):hover { background: #0f3a65; }
         [data-theme="dark"] .tone { background: #1a2a40; }
         .in_tone { color: #16487b; }
@@ -329,7 +353,7 @@
             padding: 14px 0 !important;
             border-radius: 5px;
             color: #fff;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
         }
         .clear-btn:hover { background: #dd0000; }
@@ -346,15 +370,16 @@
         /* Нотный стан */
         .music-staff {
             position: relative;
-            margin: 20px auto 0 auto;
-            font-size: 120%;
-            padding: 15px 0;
+            margin: 16px auto 0 auto;
+            font-size: 110%;
+            padding: 10px 0;
             width: 100%;
             max-width: 750px;
+            min-height: 70px;
             overflow-x: auto;
+            overflow-y: hidden;
             background: #fffef5;
             border-radius: 8px;
-            min-height: 80px;
         }
         
         [data-theme="dark"] .music-staff {
@@ -363,34 +388,122 @@
         
         #int_res {
             font-family: Petrucci;
-            font-size: 22px;
+            font-size: 20px;
         }
         
-        /* Адаптивность */
+        /* Убираем табы "Аккорды" */
+        #tab-chords { display: none; }
+        
+        /* ===== МОБИЛЬНАЯ АДАПТАЦИЯ ===== */
         @media (max-width: 768px) {
-            .calctable td div {
-                width: 48px;
-                height: 48px;
-                padding: 4px 2px;
-                font-size: 10px;
+            .container {
+                padding: 8px;
             }
+            
+            .header {
+                padding: 10px 14px;
+            }
+            
+            .page-title {
+                font-size: 17px;
+            }
+            
+            .calctable {
+                border-spacing: 2px;
+            }
+            
+            .calctable td div {
+                height: 48px;
+                padding: 4px 1px 0 1px;
+                font-size: 9px;
+                border-radius: 4px;
+            }
+            
             .calctable td div span {
                 font-size: 130%;
             }
+            
             #calc-win {
-                font-size: 12px;
-                gap: 3px;
-                padding: 8px;
-            }
-            .win_part {
                 font-size: 11px;
+                gap: 3px;
+                padding: 8px 10px;
+                min-height: 38px;
+            }
+            
+            .win_part {
+                font-size: 10px;
                 padding: 1px 3px;
             }
+            
             .music-staff {
-                font-size: 90%;
+                font-size: 85%;
+                min-height: 55px;
+                padding: 8px 0;
             }
+            
+            .music_symb {
+                font-size: 140%;
+            }
+            
             .led {
                 font-size: 8px;
+                padding: 2px 3px;
+            }
+            
+            .led div {
+                width: 7px; height: 7px;
+            }
+            
+            .tone {
+                min-height: 48px;
+                padding: 6px 4px !important;
+                font-size: 10px;
+            }
+            
+            .tone span {
+                font-size: 100%;
+            }
+            
+            .lad_type {
+                font-size: 9px;
+                padding: 5px 2px !important;
+            }
+            
+            .tab-btn {
+                font-size: 12px;
+                padding: 10px 6px;
+            }
+            
+            /* Скрываем длинные тексты на мобилках */
+            .func br, .alt_int br, .number br {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .calctable td div {
+                height: 42px;
+                padding: 3px 1px 0 1px;
+                font-size: 8px;
+            }
+            
+            .calctable td div span {
+                font-size: 115%;
+            }
+            
+            .calctable {
+                border-spacing: 1px;
+            }
+            
+            #calc-win {
+                font-size: 10px;
+                gap: 2px;
+                padding: 6px 8px;
+            }
+            
+            .music-staff {
+                font-size: 75%;
+                min-height: 45px;
             }
         }
     </style>
@@ -405,7 +518,6 @@
         <div class="tabs">
             <button class="tab-btn active" data-tab="calculator">🎹 Калькулятор</button>
             <button class="tab-btn" data-tab="terms">📖 Термины</button>
-            <button class="tab-btn" data-tab="chords">🎸 Аккорды</button>
         </div>
         
         <!-- КАЛЬКУЛЯТОР -->
@@ -442,10 +554,10 @@
                     <tr>
                         <td colspan="2" rowspan="3">
                             <table>
-                                <tr><td><div class="led off" id="set_interval"><div></div>Определяем интервал</div></td></tr>
-                                <tr><td><div class="led off" id="set_chord"><div></div>Строим аккорд</div></td></tr>
-                                <tr><td><div class="led off" id="find_note"><div></div>Строим интервал</div></td></tr>
-                                <tr><td><div class="led off" id="make_chord"><div></div>Определяем аккорд</div></td></tr>
+                                <tr><td><div class="led off" id="set_interval"><div></div>Интервал</div></td></tr>
+                                <tr><td><div class="led off" id="set_chord"><div></div>Аккорд</div></td></tr>
+                                <tr><td><div class="led off" id="find_note"><div></div>Построить</div></td></tr>
+                                <tr><td><div class="led off" id="make_chord"><div></div>Определить</div></td></tr>
                             </table>
                         </td>
                         <td rowspan="3" colspan="3"><div class="tone" id="ton"><span>Тональность</span><br><span id="tone_1"></span><span id="tone_2"></span><span id="tone_3"></span></div></td>
@@ -459,8 +571,8 @@
                         <td><div class="number disabled" id="num3" name="Терция" rel="4"><span>3</span>Терция</div></td>
                         <td><div class="number disabled" id="num4" name="Кварта" rel="5"><span>4</span>Кварта</div></td>
                         <td><div class="func disabled" id="t"><span>T</span>Тоника</div></td>
-                        <td><div class="func disabled" id="s"><span>S</span>Субдомин.</div></td>
-                        <td><div class="func disabled" id="d"><span>D</span>Доминанта</div></td>
+                        <td><div class="func disabled" id="s"><span>S</span>Субдом.</div></td>
+                        <td><div class="func disabled" id="d"><span>D</span>Домин.</div></td>
                     </tr>
                     <tr>
                         <td><div class="number disabled" id="num5" name="Квинта" rel="7"><span>5</span>Квинта</div></td>
@@ -474,10 +586,10 @@
                     <tr>
                         <td><div class="number disabled" id="num9" name="Нона" rel="14"><span>9</span>Нона</div></td>
                         <td><div class="number disabled" id="num10" name="Децима" rel="16"><span>10</span>Децима</div></td>
-                        <td><div class="up_down disabled" rel="1" id="up" name="↑"><span>&#8593;</span>вверх</div></td>
-                        <td><div class="up_down disabled" rel="-1" id="down" name="↓"><span>&#8595;</span>вниз</div></td>
-                        <td><div class="alt_int disabled" rel="-2" id="dim" name="Уменьшенная"><span>Ум</span>Уменьш.</div></td>
-                        <td><div class="alt_int disabled" rel="1" id="sus" name="Увеличенная"><span>Ув</span>Увеличен.</div></td>
+                        <td><div class="up_down disabled" rel="1" id="up" name="↑"><span>&#8593;</span>Вверх</div></td>
+                        <td><div class="up_down disabled" rel="-1" id="down" name="↓"><span>&#8595;</span>Вниз</div></td>
+                        <td><div class="alt_int disabled" rel="-2" id="dim" name="Ум."><span>Ум</span>Ум.</div></td>
+                        <td><div class="alt_int disabled" rel="1" id="sus" name="Ув."><span>Ув</span>Ув.</div></td>
                         <td><div class="is disabled" id="is"><span>=</span></div></td>
                     </tr>
                     <tr>
@@ -486,19 +598,21 @@
                 </table>
                 
                 <div class="music-staff">
-                    <div style="position: absolute; top: 0; left: 0;" class="music_symb">=====================</div>
-                    <div style="position: absolute; top: 3.2em; left: 80px; text-align: center; width: 200px;" id="int_res"></div>
-                    <div style="position: absolute; top: -0.25em; left: 0.2em;" class="music_symb">&amp;</div>
-                    <div id="note_1" class="note_n music_symb" style="left: 120px; top: 10.7px;">w<div class="dop_line"></div></div>
-                    <div id="note_2" class="note_n music_symb" style="left: 220px; top: 0.1px;">w<div class="dop_line"></div></div>
-                    <div id="note_3" class="note_n music_symb">w<div class="dop_line"></div></div>
-                    <div id="note_4" class="note_n music_symb">w<div class="dop_line"></div></div>
-                    <div id="note_5" class="note_n music_symb">w<div class="dop_line"></div></div>
-                    <div id="sign_1" class="sign_n music_symb" style="left: 106px; top: 10.7px;"></div>
-                    <div id="sign_2" class="sign_n music_symb" style="left: 206px; top: 0.1px;"></div>
-                    <div id="sign_3" class="sign_n music_symb"></div>
-                    <div id="sign_4" class="sign_n music_symb"></div>
-                    <div id="sign_5" class="sign_n music_symb"></div>
+                    <div style="position: relative; width: 100%; min-height: 60px;">
+                        <div style="position: absolute; top: -5px; left: 35px;" class="music_symb">=========================</div>
+                        <div style="position: absolute; top: -8px; left: 2px; font-size: 220%;" class="music_symb">&amp;</div>
+                        <div style="position: absolute; top: 2.8em; left: 60px; text-align: center; width: 200px;" id="int_res"></div>
+                        <div id="note_1" class="note_n music_symb" style="left: 110px; top: 8px;">w<div class="dop_line"></div></div>
+                        <div id="note_2" class="note_n music_symb" style="left: 210px; top: 8px;">w<div class="dop_line"></div></div>
+                        <div id="note_3" class="note_n music_symb">w<div class="dop_line"></div></div>
+                        <div id="note_4" class="note_n music_symb">w<div class="dop_line"></div></div>
+                        <div id="note_5" class="note_n music_symb">w<div class="dop_line"></div></div>
+                        <div id="sign_1" class="sign_n music_symb" style="left: 96px; top: 8px;"></div>
+                        <div id="sign_2" class="sign_n music_symb" style="left: 196px; top: 8px;"></div>
+                        <div id="sign_3" class="sign_n music_symb"></div>
+                        <div id="sign_4" class="sign_n music_symb"></div>
+                        <div id="sign_5" class="sign_n music_symb"></div>
+                    </div>
                 </div>
             </center>
         </div>
@@ -508,18 +622,12 @@
             <h2>📖 Музыкальные термины</h2>
             <p style="padding: 20px; color: #999;">Скоро здесь появится словарь терминов...</p>
         </div>
-        
-        <!-- АККОРДЫ -->
-        <div id="chords" class="tab-content">
-            <h2>🎸 Аккорды</h2>
-            <p style="padding: 20px; color: #999;">Скоро здесь появится справочник аккордов...</p>
-        </div>
     </div>
     
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
     <script>
-    // ===== МУЗЫКАЛЬНЫЙ КАЛЬКУЛЯТОР (ОРИГИНАЛЬНЫЙ JS) =====
+    // ===== МУЗЫКАЛЬНЫЙ КАЛЬКУЛЯТОР =====
     function winpolutonov(a) {
         var p = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24, 26, 28, 29, 31, 33, 35, 36];
         return p[a];
@@ -922,7 +1030,6 @@
     </script>
     
     <script>
-        // Переключение вкладок
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -931,12 +1038,6 @@
                 document.getElementById(btn.dataset.tab).classList.add('active');
             });
         });
-        
-        // Поддержка тёмной темы
-        (function() {
-            var theme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', theme);
-        })();
     </script>
 </body>
 </html>
