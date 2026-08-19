@@ -1,1 +1,57 @@
-
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <script>
+        (function() {
+            var theme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Хранилище — Pioneria</title>
+    <link rel="icon" type="image/jpg" href="/favicon.jpg">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root, [data-theme="light"] {
+            --bg: linear-gradient(160deg, #e8ecf5, #f0f2fa);
+            --text: #1a1a2e; --text2: #6b7280; --accent: #667eea;
+        }
+        [data-theme="dark"] {
+            --bg: linear-gradient(160deg, #13132b, #1a1a35);
+            --text: #e4e6eb; --text2: #9ca3af; --accent: #7c8aff;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg); min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text);
+        }
+        .header {
+            background: rgba(255,255,255,0.85); backdrop-filter: blur(20px);
+            padding: 12px 20px; display: flex; align-items: center; gap: 14px;
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+        }
+        [data-theme="dark"] .header { background: rgba(30,30,50,0.85); }
+        .back-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--accent); }
+        .header h2 { font-size: 17px; font-weight: 700; flex: 1; }
+        .message { text-align: center; padding: 20px; }
+        .message .icon { font-size: 64px; margin-bottom: 16px; }
+        .message h3 { font-size: 18px; margin-bottom: 8px; }
+        .message p { font-size: 14px; color: var(--text2); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="back-btn" onclick="location.href='lobby.html'">←</button>
+        <h2>🗺️ Навигатор</h2>
+    </div>
+    <div class="message">
+        <div class="icon">🚧</div>
+        <h3>Скоро здесь будут концертные залы</h3>
+        <p>Раздел в разработке — появится позже</p>
+    </div>
+</body>
+</html>
