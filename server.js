@@ -53,6 +53,9 @@ const io = new Server(server);
 
 app.use(express.static('public'));
 app.use(express.json());
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok' });
+});
 
 // ========== БАЗА ДАННЫХ ==========
 const DATABASE_URL = process.env.DATABASE_URL;
