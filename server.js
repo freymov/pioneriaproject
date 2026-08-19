@@ -69,12 +69,24 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
-// ========== PUSH УВЕДОМЛЕНИЯ ==========
+// ========== КЭШ ДЛЯ PUSH ПОДПИСОК ==========
+const pushCache = new Map();
+
+// ========== PUSH УВЕДОМЛЕНИЯ (ОПТИМИЗИРОВАННАЯ ВЕРСИЯ) ==========
 async function sendPushNotification(userId, title, body, data = {}) {
     try {
-        const result = await pool.query('SELECT subscription FROM push_subscriptions WHERE user_id = $1', [userId]);
-        if (result.rows.length === 0) return false;
-        const subscription = result.rows[0].subscription;
+        let subscription;
+        
+        // Проверяем кэш
+        if (pushCache.has(userId)) {
+            subscription = pushCache.get(userId);
+        } else {
+            const result = await pool.query('SELECT subscription FROM push_subscriptions WHERE user_id = $1', [userId]);
+            if (result.rows.length === 0) return false;
+            subscription = result.rows[0].subscription;
+            pushCache.set(userId, subscription);
+        }
+        
         const payload = JSON.stringify({
             title: title || 'Pioneria Messenger',
             body: body || 'Новое сообщение',
@@ -82,15 +94,22 @@ async function sendPushNotification(userId, title, body, data = {}) {
             badge: '/favicon.jpg',
             ...data
         });
-        await webpush.sendNotification(subscription, payload);
-        console.log(`✅ Push отправлен user ${userId}`);
+        
+        // Отправляем без await, чтобы не блокировать
+        webpush.sendNotification(subscription, payload)
+            .then(() => console.log(`✅ Push отправлен user ${userId}`))
+            .catch(async (err) => {
+                if (err.statusCode === 410 || err.statusCode === 404) {
+                    await pool.query('DELETE FROM push_subscriptions WHERE user_id = $1', [userId]);
+                    pushCache.delete(userId); // Удаляем из кэша
+                } else {
+                    console.error('❌ Ошибка push:', err.message);
+                }
+            });
+        
         return true;
     } catch (err) {
-        if (err.statusCode === 410 || err.statusCode === 404) {
-            await pool.query('DELETE FROM push_subscriptions WHERE user_id = $1', [userId]);
-        } else {
-            console.error('❌ Ошибка push:', err.message);
-        }
+        console.error('❌ Ошибка получения подписки:', err.message);
         return false;
     }
 }
@@ -309,6 +328,7 @@ app.post('/api/push/subscribe', async (req, res) => {
             `INSERT INTO push_subscriptions (user_id, subscription) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET subscription = $2`,
             [userId, JSON.stringify(subscription)]
         );
+        pushCache.set(parseInt(userId), subscription); // Обновляем кэш
         res.json({ success: true });
     } catch (err) {
         res.json({ success: false, error: 'Ошибка сервера' });
@@ -1024,20 +1044,30 @@ io.on('connection', async (socket) => {
             chat_id: finalChatId
         };
 
+        // Отправляем сообщение сразу
         if (finalChatId) {
             const participants = await pool.query('SELECT user_id FROM chat_participants WHERE chat_id = $1', [finalChatId]);
             for (const p of participants.rows) {
                 io.to(`user_${p.user_id}`).emit('message', messageData);
-                if (p.user_id !== userId) {
-                    sendPushNotification(p.user_id, `💬 Чат · ${userName}`, text?.substring(0, 100) || 'Новое сообщение');
-                }
             }
+            
+            // Push-уведомления отправляем параллельно, без блокировки
+            const pushPromises = participants.rows
+                .filter(p => p.user_id !== userId)
+                .map(p => sendPushNotification(p.user_id, `💬 Чат · ${userName}`, text?.substring(0, 100) || 'Новое сообщение'));
+            
+            // Не ждём завершения всех push
+            Promise.allSettled(pushPromises);
         } else {
             io.emit('message', messageData);
+            
+            // Получаем пользователей и отправляем push параллельно
             const allUsers = await pool.query('SELECT id FROM users WHERE id != $1', [userId]);
-            for (const u of allUsers.rows) {
-                sendPushNotification(u.id, `🌐 Общий чат · ${userName}`, text?.substring(0, 100) || 'Новое сообщение');
-            }
+            const pushPromises = allUsers.rows.map(u => 
+                sendPushNotification(u.id, `🌐 Общий чат · ${userName}`, text?.substring(0, 100) || 'Новое сообщение')
+            );
+            
+            Promise.allSettled(pushPromises);
         }
     });
 
