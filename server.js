@@ -5,6 +5,8 @@ console.log('CLOUDINARY_API_KEY:', process.env.CLOUDINARY_API_KEY ? '✅ ест�
 console.log('CLOUDINARY_API_SECRET:', process.env.CLOUDINARY_API_SECRET ? '✅ есть' : '❌ нет');
 console.log('DATABASE_URL:', process.env.DATABASE_URL ? '✅ есть' : '❌ нет');
 console.log('RESEND_API_KEY:', process.env.RESEND_API_KEY ? '✅ есть' : '❌ нет');
+console.log('VAPID_PUBLIC_KEY:', process.env.VAPID_PUBLIC_KEY ? '✅ есть' : '❌ нет');
+console.log('VAPID_PRIVATE_KEY:', process.env.VAPID_PRIVATE_KEY ? '✅ есть' : '❌ нет');
 
 const express = require('express');
 const http = require('http');
