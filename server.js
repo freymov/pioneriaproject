@@ -204,6 +204,7 @@ async function initDatabase() {
                 chat_id INTEGER REFERENCES chats(id) ON DELETE CASCADE,
                 name VARCHAR(255) NOT NULL,
                 created_by INTEGER REFERENCES users(id),
+                is_main BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
@@ -284,6 +285,7 @@ async function initDatabase() {
 
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT`);
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(50) UNIQUE`);
+        await pool.query(`ALTER TABLE groups ADD COLUMN IF NOT EXISTS is_main BOOLEAN DEFAULT FALSE`);
         
         try {
             await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users(username) WHERE username IS NOT NULL`);
@@ -304,6 +306,21 @@ async function initDatabase() {
         if (existing.rows.length === 0) {
             await pool.query("INSERT INTO invite_keys (key_code, role) VALUES ('ADMIN-PIONERIA-2025', 'admin')");
             console.log('✅ Админ-ключ создан');
+        }
+
+        // Проверяем, существует ли главная группа
+        const mainGroupExists = await pool.query("SELECT * FROM groups WHERE is_main = true LIMIT 1");
+        if (mainGroupExists.rows.length === 0) {
+            // Создаем главную группу, если её нет
+            console.log('📌 Создание главной группы...');
+            // Главная группа не имеет chat_id, так как это общий чат
+            // Просто отмечаем, что она существует в настройках
+            await pool.query(`
+                INSERT INTO settings (key, value) 
+                VALUES ('main_group_exists', 'true')
+                ON CONFLICT (key) DO UPDATE SET value = 'true'
+            `);
+            console.log('✅ Главная группа отмечена в настройках');
         }
 
         console.log('✅ База данных готова');
@@ -344,8 +361,18 @@ app.post('/api/register', async (req, res) => {
         const userExists = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
         if (userExists.rows.length > 0) return res.json({ success: false, error: 'Email уже существует' });
         const hashedPassword = await bcrypt.hash(password, 10);
-        await pool.query('INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id', [name, email, hashedPassword, key.role]);
+        const newUser = await pool.query('INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id', [name, email, hashedPassword, key.role]);
         await pool.query('UPDATE invite_keys SET used_by = $1, used_at = NOW() WHERE key_code = $2', [email, accessKey]);
+        
+        // Автоматически добавляем пользователя в главную группу (общий чат)
+        // Главная группа не требует записи в chat_participants, так как это общий чат
+        // Но мы можем отметить это в настройках пользователя
+        await pool.query(`
+            INSERT INTO user_settings (user_id, setting_key, setting_value) 
+            VALUES ($1, 'in_main_group', 'true')
+            ON CONFLICT (user_id, setting_key) DO UPDATE SET setting_value = 'true'
+        `, [newUser.rows[0].id]);
+        
         res.json({ success: true });
     } catch (err) {
         console.error('❌ Ошибка регистрации:', err);
@@ -545,7 +572,7 @@ app.get('/api/chats', async (req, res) => {
     const { userId } = req.query;
     try {
         const privateChats = await pool.query(`SELECT c.id, u.id as other_user_id, u.name as other_user_name, u.username as other_user_username, u.role as other_user_role, u.avatar_url as other_user_avatar, 'private' as type, (SELECT text FROM messages WHERE chat_id = c.id ORDER BY timestamp DESC LIMIT 1) as last_message, (SELECT timestamp FROM messages WHERE chat_id = c.id ORDER BY timestamp DESC LIMIT 1) as last_message_time, (SELECT COUNT(*) FROM messages WHERE chat_id = c.id AND user_id != $1 AND is_read = false) as unread_count FROM chats c JOIN chat_participants cp ON c.id = cp.chat_id JOIN users u ON cp.user_id = u.id WHERE c.id IN (SELECT chat_id FROM chat_participants WHERE user_id = $1) AND cp.user_id != $1 AND c.id NOT IN (SELECT chat_id FROM groups) ORDER BY last_message_time DESC NULLS LAST`, [userId]);
-        const groups = await pool.query(`SELECT g.chat_id as id, g.name as other_user_name, 'group' as type, (SELECT text FROM messages WHERE chat_id = g.chat_id ORDER BY timestamp DESC LIMIT 1) as last_message, (SELECT timestamp FROM messages WHERE chat_id = g.chat_id ORDER BY timestamp DESC LIMIT 1) as last_message_time, (SELECT COUNT(*) FROM messages WHERE chat_id = g.chat_id AND user_id != $1 AND is_read = false) as unread_count FROM groups g JOIN chat_participants cp ON g.chat_id = cp.chat_id WHERE cp.user_id = $1 ORDER BY last_message_time DESC NULLS LAST`, [userId]);
+        const groups = await pool.query(`SELECT g.chat_id as id, g.name as other_user_name, 'group' as type, g.is_main, (SELECT text FROM messages WHERE chat_id = g.chat_id ORDER BY timestamp DESC LIMIT 1) as last_message, (SELECT timestamp FROM messages WHERE chat_id = g.chat_id ORDER BY timestamp DESC LIMIT 1) as last_message_time, (SELECT COUNT(*) FROM messages WHERE chat_id = g.chat_id AND user_id != $1 AND is_read = false) as unread_count FROM groups g JOIN chat_participants cp ON g.chat_id = cp.chat_id WHERE cp.user_id = $1 ORDER BY last_message_time DESC NULLS LAST`, [userId]);
         res.json({ success: true, chats: [...privateChats.rows, ...groups.rows] });
     } catch (err) {
         res.json({ success: false, error: 'Ошибка сервера' });
@@ -558,6 +585,132 @@ app.post('/api/mark-read', async (req, res) => {
         await pool.query('UPDATE messages SET is_read = true WHERE chat_id = $1 AND user_id != $2 AND is_read = false', [chatId, userId]);
         res.json({ success: true });
     } catch (err) {
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+// ========== НОВЫЙ API: УЧАСТНИКИ ГРУПП ==========
+
+// Получение списка участников группы
+app.get('/api/group-members', async (req, res) => {
+    const { chatId } = req.query;
+    
+    try {
+        // Если chatId = 'general' или null, это главная группа
+        if (!chatId || chatId === 'general' || chatId === 'null') {
+            // Для главной группы возвращаем всех пользователей
+            const result = await pool.query(`
+                SELECT id, name, username, avatar_url, role,
+                       CASE WHEN role = 'admin' THEN true ELSE false END as is_creator
+                FROM users 
+                ORDER BY 
+                    CASE WHEN role = 'admin' THEN 0 ELSE 1 END,
+                    name
+            `);
+            
+            return res.json({ 
+                success: true, 
+                members: result.rows,
+                count: result.rows.length,
+                isMainGroup: true,
+                canLeave: false
+            });
+        }
+        
+        // Для обычных групп
+        const numericChatId = parseInt(chatId);
+        if (isNaN(numericChatId)) {
+            return res.json({ success: false, error: 'Неверный ID чата' });
+        }
+        
+        // Проверяем, существует ли группа
+        const groupCheck = await pool.query('SELECT * FROM groups WHERE chat_id = $1', [numericChatId]);
+        if (groupCheck.rows.length === 0) {
+            return res.json({ success: false, error: 'Группа не найдена' });
+        }
+        
+        const group = groupCheck.rows[0];
+        
+        // Получаем участников группы
+        const result = await pool.query(`
+            SELECT u.id, u.name, u.username, u.avatar_url, u.role,
+                   CASE WHEN g.created_by = u.id THEN true ELSE false END as is_creator
+            FROM chat_participants cp
+            JOIN users u ON cp.user_id = u.id
+            LEFT JOIN groups g ON g.chat_id = cp.chat_id
+            WHERE cp.chat_id = $1
+            ORDER BY 
+                CASE WHEN g.created_by = u.id THEN 0 ELSE 1 END,
+                u.name
+        `, [numericChatId]);
+        
+        res.json({ 
+            success: true, 
+            members: result.rows,
+            count: result.rows.length,
+            isMainGroup: false,
+            canLeave: !group.is_main,
+            groupName: group.name
+        });
+    } catch (err) {
+        console.error('❌ Ошибка получения участников:', err);
+        res.json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+// Выход из группы
+app.post('/api/leave-group', async (req, res) => {
+    const { chatId, userId } = req.body;
+    
+    if (!chatId || !userId) {
+        return res.json({ success: false, error: 'Нет данных' });
+    }
+    
+    try {
+        const numericChatId = parseInt(chatId);
+        if (isNaN(numericChatId)) {
+            return res.json({ success: false, error: 'Неверный ID чата' });
+        }
+        
+        // Получаем информацию о группе
+        const groupCheck = await pool.query('SELECT * FROM groups WHERE chat_id = $1', [numericChatId]);
+        if (groupCheck.rows.length === 0) {
+            return res.json({ success: false, error: 'Группа не найдена' });
+        }
+        
+        const group = groupCheck.rows[0];
+        
+        // ГЛАВНОЕ ПРАВИЛО: Нельзя выйти из главной группы
+        if (group.is_main) {
+            return res.json({ success: false, error: 'Невозможно покинуть главную группу' });
+        }
+        
+        // Проверяем, является ли пользователь создателем группы
+        if (group.created_by === userId) {
+            // Если создатель выходит, удаляем всю группу
+            await pool.query('DELETE FROM groups WHERE chat_id = $1', [numericChatId]);
+            await pool.query('DELETE FROM chat_participants WHERE chat_id = $1', [numericChatId]);
+            await pool.query('DELETE FROM messages WHERE chat_id = $1', [numericChatId]);
+            await pool.query('DELETE FROM chats WHERE id = $1', [numericChatId]);
+            
+            // Уведомляем всех участников
+            io.emit('group deleted', { chatId: numericChatId });
+            
+            return res.json({ success: true, groupDeleted: true });
+        }
+        
+        // Удаляем пользователя из участников группы
+        await pool.query('DELETE FROM chat_participants WHERE chat_id = $1 AND user_id = $2', [numericChatId, userId]);
+        
+        // Уведомляем остальных участников
+        io.to(`chat_${numericChatId}`).emit('user left group', { 
+            chatId: numericChatId, 
+            userId: userId 
+        });
+        
+        res.json({ success: true, groupDeleted: false });
+    } catch (err) {
+        console.error('❌ Ошибка выхода из группы:', err);
         res.json({ success: false, error: 'Ошибка сервера' });
     }
 });
@@ -677,7 +830,7 @@ app.post('/api/create-group', async (req, res) => {
     try {
         const chatResult = await pool.query('INSERT INTO chats DEFAULT VALUES RETURNING id');
         const chatId = chatResult.rows[0].id;
-        await pool.query('INSERT INTO groups (chat_id, name, created_by) VALUES ($1, $2, $3)', [chatId, name, creatorId]);
+        await pool.query('INSERT INTO groups (chat_id, name, created_by, is_main) VALUES ($1, $2, $3, $4)', [chatId, name, creatorId, false]);
         for (const userId of [creatorId, ...members]) {
             await pool.query('INSERT INTO chat_participants (chat_id, user_id) VALUES ($1, $2)', [chatId, userId]);
         }
@@ -703,7 +856,7 @@ app.post('/api/rename-group', async (req, res) => {
 app.get('/api/user-groups', async (req, res) => {
     const { userId } = req.query;
     try {
-        const result = await pool.query(`SELECT g.chat_id, g.name, g.created_by, (SELECT text FROM messages WHERE chat_id = g.chat_id ORDER BY timestamp DESC LIMIT 1) as last_message, (SELECT COUNT(*) FROM messages WHERE chat_id = g.chat_id AND user_id != $1 AND is_read = false) as unread_count FROM groups g JOIN chat_participants cp ON g.chat_id = cp.chat_id WHERE cp.user_id = $1 ORDER BY g.created_at DESC`, [userId]);
+        const result = await pool.query(`SELECT g.chat_id, g.name, g.created_by, g.is_main, (SELECT text FROM messages WHERE chat_id = g.chat_id ORDER BY timestamp DESC LIMIT 1) as last_message, (SELECT COUNT(*) FROM messages WHERE chat_id = g.chat_id AND user_id != $1 AND is_read = false) as unread_count FROM groups g JOIN chat_participants cp ON g.chat_id = cp.chat_id WHERE cp.user_id = $1 ORDER BY g.created_at DESC`, [userId]);
         res.json({ success: true, groups: result.rows });
     } catch (err) {
         res.json({ success: false, error: 'Ошибка сервера' });
@@ -1016,6 +1169,11 @@ io.on('connection', async (socket) => {
     const chatId = socket.handshake.query.chatId ? Number(socket.handshake.query.chatId) : null;
     let currentUser = null;
 
+    // Присоединяемся к комнате чата
+    if (chatId) {
+        socket.join(`chat_${chatId}`);
+    }
+
     const history = await getMessageHistory(chatId);
     socket.emit('message history', history);
 
@@ -1051,6 +1209,9 @@ io.on('connection', async (socket) => {
                 io.to(`user_${p.user_id}`).emit('message', messageData);
             }
             
+            // Отправляем в комнату чата для тех, кто в ней
+            io.to(`chat_${finalChatId}`).emit('message', messageData);
+            
             // Push-уведомления отправляем параллельно, без блокировки
             const pushPromises = participants.rows
                 .filter(p => p.user_id !== userId)
@@ -1068,6 +1229,44 @@ io.on('connection', async (socket) => {
             );
             
             Promise.allSettled(pushPromises);
+        }
+    });
+
+    // Обработка выхода из группы через сокет
+    socket.on('leave group', async (data) => {
+        const { chatId: leaveChatId, userId: leaveUserId } = data;
+        
+        try {
+            const numericChatId = parseInt(leaveChatId);
+            if (isNaN(numericChatId)) return;
+            
+            const groupCheck = await pool.query('SELECT * FROM groups WHERE chat_id = $1', [numericChatId]);
+            if (groupCheck.rows.length === 0) return;
+            
+            const group = groupCheck.rows[0];
+            
+            // Нельзя выйти из главной группы
+            if (group.is_main) {
+                socket.emit('leave group error', { error: 'Невозможно покинуть главную группу' });
+                return;
+            }
+            
+            // Удаляем из участников
+            await pool.query('DELETE FROM chat_participants WHERE chat_id = $1 AND user_id = $2', [numericChatId, leaveUserId]);
+            
+            // Покидаем комнату
+            socket.leave(`chat_${numericChatId}`);
+            
+            // Уведомляем остальных
+            socket.to(`chat_${numericChatId}`).emit('user left group', { 
+                chatId: numericChatId, 
+                userId: leaveUserId 
+            });
+            
+            socket.emit('leave group success', { chatId: numericChatId });
+        } catch (err) {
+            console.error('Ошибка выхода из группы:', err);
+            socket.emit('leave group error', { error: 'Ошибка сервера' });
         }
     });
 
