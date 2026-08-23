@@ -147,7 +147,8 @@
         .chat-header-avatar img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
         .chat-header-info { flex: 1; min-width: 0; cursor: pointer; }
         .chat-header-name { font-weight: 600; font-size: 15px; }
-        .chat-header-status { font-size: 11px; color: var(--text2); }
+        .chat-header-status { font-size: 11px; color: var(--text2); cursor: pointer; }
+        .chat-header-status:hover { color: var(--accent); }
 
         /* Закреплённые сообщения */
         .pinned-bar {
@@ -428,6 +429,20 @@
         .modal-card button:active { transform: scale(0.97); opacity: 0.85; }
         .modal-card .cbtn { background: var(--bg2); color: var(--text); }
 
+        /* Кнопка выхода из группы */
+        .danger-btn {
+            width: 100%; padding: 11px;
+            background: var(--danger); color: #fff;
+            border: none; border-radius: var(--radius-sm);
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            transition: all 0.15s;
+        }
+        .danger-btn:active { transform: scale(0.97); opacity: 0.85; }
+        .danger-btn:disabled {
+            background: var(--bg2); color: var(--text2);
+            cursor: not-allowed;
+        }
+
         /* Профиль */
         .profile-avatar {
             width: 80px; height: 80px; border-radius: 50%;
@@ -489,9 +504,9 @@
             <div class="chat-header">
                 <button class="back-arrow" onclick="showSidebar()">←</button>
                 <div class="chat-header-avatar" id="chatAvatar" onclick="openChatProfile()">🎵</div>
-                <div class="chat-header-info" onclick="openChatProfile()">
-                    <div class="chat-header-name" id="chatTitle">Старший хор</div>
-                    <div class="chat-header-status" id="chatStatus">Общий чат</div>
+                <div class="chat-header-info">
+                    <div class="chat-header-name" id="chatTitle" onclick="openChatProfile()">Старший хор</div>
+                    <div class="chat-header-status" id="chatStatus" onclick="showGroupMembers()">Общий чат · 0 участников</div>
                 </div>
             </div>
 
@@ -572,8 +587,18 @@
     <!-- Модалка профиля -->
     <div class="modal" id="profileModal"><div class="modal-card" id="profileContent"></div></div>
 
+    <!-- Модалка участников группы -->
+    <div class="modal" id="membersModal"><div class="modal-card">
+        <h3 id="membersTitle">Участники</h3>
+        <div id="membersList"></div>
+        <div id="leaveGroupSection" style="margin-top: 15px; display: none;">
+            <button id="leaveGroupBtn" class="danger-btn" onclick="leaveGroup()">🚪 Выйти из группы</button>
+        </div>
+        <button class="cbtn" onclick="closeM('membersModal')">Закрыть</button>
+    </div></div>
+
     <script src="/socket.io/socket.io.js"></script>
-        <script>
+    <script>
         const userData = JSON.parse(localStorage.getItem('user') || '{}');
         if (!userData.name) window.location.href = 'login.html';
     
@@ -763,7 +788,132 @@
                     showUserProfile(chat.other_user_id);
                 }
             } else if(currentChatType === 'group'){
-                openChatSettings();
+                showGroupMembers();
+            } else if(currentChatType === 'general'){
+                showGroupMembers();
+            }
+        }
+    
+        // ====== УЧАСТНИКИ ГРУППЫ ======
+        async function showGroupMembers() {
+            if (!currentChatId && currentChatType !== 'general') return;
+            
+            const chatId = currentChatId === null ? 'general' : currentChatId;
+            
+            try {
+                const response = await fetch(`/api/group-members?chatId=${chatId}`);
+                const data = await response.json();
+                
+                if (!data.success) {
+                    alert(data.error || 'Ошибка загрузки участников');
+                    return;
+                }
+                
+                $('membersTitle').textContent = `Участники: ${data.count}`;
+                
+                // Рендерим список участников
+                $('membersList').innerHTML = data.members.map(member => {
+                    const avatarHtml = member.avatar_url 
+                        ? `<img src="${member.avatar_url}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` 
+                        : `<div style="width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;">${(member.name || '?')[0].toUpperCase()}</div>`;
+                    
+                    const roleBadge = member.role === 'admin' 
+                        ? '<span style="font-size:10px;background:#f59e0b;color:#fff;padding:2px 6px;border-radius:8px;margin-left:6px;">Админ</span>' 
+                        : '';
+                    
+                    const isCreator = member.is_creator 
+                        ? '<span style="font-size:10px;background:var(--accent);color:#fff;padding:2px 6px;border-radius:8px;margin-left:6px;">Создатель</span>' 
+                        : '';
+                    
+                    return `
+                        <div style="display:flex;align-items:center;gap:10px;padding:8px;border-bottom:1px solid var(--border);">
+                            ${avatarHtml}
+                            <div style="flex:1;">
+                                <div style="font-weight:600;font-size:14px;">
+                                    ${esc(member.name)} ${roleBadge} ${isCreator}
+                                </div>
+                                ${member.username ? `<div style="font-size:12px;color:var(--text2);">@${esc(member.username)}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                // Показываем/скрываем кнопку выхода
+                const leaveSection = $('leaveGroupSection');
+                const leaveBtn = $('leaveGroupBtn');
+                
+                if (data.isMainGroup) {
+                    // Главная группа - выходить нельзя
+                    leaveSection.style.display = 'block';
+                    leaveBtn.disabled = true;
+                    leaveBtn.textContent = '🔒 Нельзя покинуть главную группу';
+                    leaveBtn.title = 'Главная группа доступна всем пользователям';
+                } else if (data.canLeave) {
+                    // Обычная группа - можно выйти
+                    leaveSection.style.display = 'block';
+                    leaveBtn.disabled = false;
+                    leaveBtn.textContent = '🚪 Выйти из группы';
+                } else {
+                    // Скрываем секцию выхода
+                    leaveSection.style.display = 'none';
+                }
+                
+                $('membersModal').classList.add('show');
+            } catch (error) {
+                console.error('Ошибка загрузки участников:', error);
+                alert('Ошибка загрузки участников');
+            }
+        }
+    
+        async function leaveGroup() {
+            if (!currentChatId || currentChatType !== 'group') return;
+            
+            if (!confirm('Вы уверены, что хотите выйти из группы?')) return;
+            
+            try {
+                const response = await fetch('/api/leave-group', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chatId: currentChatId,
+                        userId: userData.id
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    closeM('membersModal');
+                    // Переключаемся на главный чат
+                    selectChat(null, cachedGeneralName || 'Старший хор «Пионерия»', 'general');
+                    // Перезагружаем список чатов
+                    setTimeout(() => loadChats(), 500);
+                } else {
+                    alert(data.error || 'Ошибка выхода из группы');
+                }
+            } catch (error) {
+                console.error('Ошибка выхода из группы:', error);
+                alert('Ошибка выхода из группы');
+            }
+        }
+    
+        async function updateMembersCount() {
+            const chatId = currentChatId === null ? 'general' : currentChatId;
+            
+            try {
+                const response = await fetch(`/api/group-members?chatId=${chatId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const status = $('chatStatus');
+                    const typeText = currentChatType === 'group' 
+                        ? 'Группа' 
+                        : (currentChatType === 'general' ? 'Общий чат' : 'Личный чат');
+                    
+                    status.textContent = `${typeText} · ${data.count} участников`;
+                }
+            } catch (error) {
+                console.error('Ошибка обновления количества участников:', error);
             }
         }
     
@@ -1024,6 +1174,7 @@
     
             renderChats($('chatSearch').value);
             loadPinned();
+            updateMembersCount();
         }
     
         // ====== LONG PRESS ======
